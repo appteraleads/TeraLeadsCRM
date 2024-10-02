@@ -1,0 +1,33 @@
+.login-container-left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.container-right{
+  background-image: url("../assets/sidebar.jpg");
+  background-repeat: round;
+  min-height: 100vh;
+}
+.logo{
+  display: flex;
+  justify-content: center;
+}
+@media (max-width: 576px) {
+  .login-container {
+    padding: 10px;
+  }
+  .login-container h2 {
+    font-size: 24px;
+  }
+  .login-container p {
+    font-size: 14px;
+  }
+}
+
+.signup-container-left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
