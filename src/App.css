@@ -48,6 +48,7 @@
 }
 .custom-text-link{
   color: #3900DB;
+  cursor: pointer;
 }
 
 .login-container-left {
@@ -57,13 +58,12 @@
 }
 
 .auth-custom-footer {
-  position: fixed; /* Keeps footer at the bottom */
-  bottom: 0; /* Aligns to the bottom of the viewport */
-  left: 0; /* Aligns to the left */
-  right: 0; /* Aligns to the right */
-
-  padding: 10px 20px; /* Padding for spacing */
-
+  bottom: 0; 
+  left: 0; 
+  right: 0; 
+  padding: 10px 20px; 
+  position: absolute;
+  margin-top: 20px    ;
 }
 
 @media (max-width: 768px) {
@@ -88,4 +88,17 @@
 }
 .custom-btn{
 margin: 5px;
+}
+.ant-form-item{
+  margin-bottom: 10px !important;
+}
+.ant-input-outlined:focus-within{
+  border-color:#3900DB
+}
+.ant-input-outlined:hover{
+  border-color:#3900DB
+}
+.ant-checkbox-checked .ant-checkbox-inner{
+  border-color:#3900DB;
+  background-color: #3900DB;
 }

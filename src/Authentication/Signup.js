@@ -1,36 +1,126 @@
 import React, { useState } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Checkbox,
-  Row,
-  Col,
-  Image,
-  Select,
-
-} from "antd";
+import { Form, Input, Button, Checkbox, Row, Col, Image, Select ,notification} from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import { FaArrowLeft } from "react-icons/fa";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoMailUnreadOutline } from "react-icons/io5";
-const Signup = () => {
+import { PiCheckBold } from "react-icons/pi";
+import axios from 'axios';
+
+const CustomButton = ({ service, services, onClick }) => {
+  const isSelected = services.includes(service);
+
+  return (
+    <Button
+      className="custom-btn"
+      style={{
+        color: isSelected ? "#3900DB" : "",
+        borderColor: isSelected ? "#3900DB" : "",
+        background: isSelected ? "#ECEEFF" : "",
+      }}
+      onClick={onClick}
+    >
+      {isSelected ? <PiCheckBold /> : ""}
+      {service}
+    </Button>
+  );
+};
+
+const Signup = ({userEmailId,setuserEmailId}) => {
   const navigate = useNavigate();
-  
+  const [api, contextHolder] = notification.useNotification();
+  const openNotificationWithIcon = (type,messageType,message) => {
+    api[type]({
+      message: messageType,
+      description:message,
+    });
+  };
+  const serviceList = [
+    "Full Arch",
+    "Dental Implants",
+    "Genral Dentistry",
+    "Othodontics",
+    "Cosmetic Dentistry",
+    "Oral Surgery",
+    "Pediatric Dentistry",
+  ];
   const [form] = Form.useForm();
-  
+
   const [signupSteps, setsignupSteps] = useState(1);
-  const onFinish = (values) => {
-    console.log(signupSteps);
+
+  const [services, setservices] = useState([]);
+
+  const addServices = (val) => {
+    if (services.includes(val.trim())) {
+      setservices(services.filter((service) => service !== val));
+    } else {
+      setservices([...services, val]);
+    }
+  };
+
+  const reSendActivationLink = ()=>{
+    let data = {email:userEmailId?userEmailId:'app@teraleads.com'}
+    axios
+    .post('http://localhost:8080/api/v1/auth/resend-activation-link', data)
+    .then((res) => {
+      console.log(res)
+      openNotificationWithIcon('success','Success',res?.data)
+    })
+    .catch((err) => {
+      console.log(err);
+      openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
+    });
+  }
+
+  const onFinish = async() => {
     if (signupSteps === 4) {
-      navigate('/login');
+      navigate("/login");
       setsignupSteps(0);
+    }
+    if (signupSteps === 3) {
+      
+      const data = 
+        {
+          clinic_name: form.getFieldValue(["clinicName"]),
+          dentist_full_name: form.getFieldValue(["dentistFullName"]),
+          clinic_website: form.getFieldValue(["clinicWebsite"]),
+          email: form.getFieldValue(["email"]),
+          phone: form.getFieldValue(["phone"]),
+          clinic_size: form.getFieldValue(["clinicSize"]),
+          patients_average_per_week: form.getFieldValue([
+            "patientsAveragePerWeek",
+          ]),
+          services_frequently: services.toString(),
+          in_house_arch_lab_yn:
+            form.getFieldValue(["inHouseArchLabYN"]) === "Y"
+              ? true
+              : form.getFieldValue(["inHouseArchLabYN"]) === "N"
+              ? false
+              : undefined,
+          arch_digital_workflow_yn:
+            form.getFieldValue(["archDigitalWorkFlowYN"]) === "Y"
+              ? true
+              : form.getFieldValue(["archDigitalWorkFlowYN"]) === "N"
+              ? false
+              : undefined,
+          activated_yn: false,
+          staffCount:form.getFieldValue(["staffCount"])
+        }
+      ;
+
+      axios
+      .post('http://localhost:8080/api/v1/auth/user', data)
+      .then((res) => {
+        console.log(res)
+        setsignupSteps(signupSteps + 1);
+      })
+      .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
+      });
     } else {
       setsignupSteps(signupSteps + 1);
-     
     }
-
-    // Simulate a request
   };
 
   const clinicSizeOption = [
@@ -39,20 +129,24 @@ const Signup = () => {
       lable: "1-5 dentists",
     },
     {
-      value: "1-10 dentists",
-      lable: "1-10 dentists",
+      value: "6-10 dentists",
+      lable: "6-10 dentists",
     },
     {
-      value: "1-15 dentists",
-      lable: "1-15 dentists",
+      value: "11-15 dentists",
+      lable: "11-15 dentists",
     },
     {
-      value: "1-20 dentists",
-      lable: "1-20 dentists",
+      value: "16-20 dentists",
+      lable: "16-20 dentists",
     },
     {
-      value: "1-25 dentists",
-      lable: "1-25 dentists",
+      value: "21-25 dentists",
+      lable: "21-25 dentists",
+    },
+    {
+      value: "25+ dentists",
+      lable: "25+ dentists",
     },
   ];
 
@@ -62,27 +156,27 @@ const Signup = () => {
       lable: "Less Than 50",
     },
     {
-      value: "50-100",
-      lable: "50-100",
+      value: "51-100",
+      lable: "51-100",
     },
     {
-      value: "100-150",
-      lable: "150-200",
+      value: "101-150",
+      lable: "101-150",
     },
     {
-      value: "More Than 200",
-      lable: "1-20 dentists",
+      value: "More Than 150",
+      lable: "More Than 150",
     },
   ];
 
   return (
-    <>
+    <> {contextHolder}
       <Row>
         <Col span={24} md={12}>
           <Row justify="start">
-            <Image style={{ margin: 35 }} width={100} src={TeraLogo} />
+            <Image style={{ margin: 20 }} width={100} src={TeraLogo} />
           </Row>
-          <div className="login-container-left">
+          <div className="login-container-left" > 
             <div style={{ maxWidth: "410px", margin: "auto", padding: "10px" }}>
               {signupSteps !== 1 && signupSteps !== 4 ? (
                 <>
@@ -109,6 +203,7 @@ const Signup = () => {
 
               <Form
                 name="signup"
+                form={form}
                 initialValues={{ remember: true }}
                 onFinish={onFinish}
                 layout="vertical"
@@ -119,19 +214,6 @@ const Signup = () => {
                     <p className="custom-text1">
                       Enter your clinic’s details to get everything in place.
                     </p>
-                    <Form.Item
-                      name="clinicName"
-                      label="Clinic  Name"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter clinic name !",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter clinic name" />
-                    </Form.Item>
-
                     <Form.Item
                       name="dentistFullName"
                       label="Dentist Full Name"
@@ -145,22 +227,14 @@ const Signup = () => {
                       <Input placeholder="Please enter dentist full name" />
                     </Form.Item>
                     <Form.Item
-                      name="clinicWebsite"
-                      label="Clinic Website"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter clinic website!",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter clinic website" />
-                    </Form.Item>
-                    <Form.Item
                       name="email"
                       label="Email"
                       rules={[
-                        { required: true, message: "Please enter your email!" },
+                        {
+                          required: true,
+                          message: "Please enter valid email!",
+                          type: "email",
+                        },
                       ]}
                     >
                       <Input placeholder="Please enter your email" />
@@ -177,6 +251,19 @@ const Signup = () => {
                     >
                       <Input placeholder="Please enter clinic phone number" />
                     </Form.Item>
+                    <Form.Item name="clinicName" label="Clinic  Name"
+                     rules={[
+                      {
+                        required: true,
+                        message: "Please enter clinic name!",
+                      },
+                    ]}>
+                      <Input placeholder="Please enter clinic name" />
+                    </Form.Item>
+
+                    <Form.Item name="clinicWebsite" label="Clinic Website">
+                      <Input placeholder="Please enter clinic website" />
+                    </Form.Item>
                   </>
                 ) : signupSteps === 2 ? (
                   <>
@@ -188,9 +275,6 @@ const Signup = () => {
                     <Form.Item
                       name="clinicSize"
                       label="What is your clinic size?"
-                      rules={[
-                        { required: true, message: "Select clinic size !" },
-                      ]}
                     >
                       <Select
                         showSearch
@@ -203,16 +287,25 @@ const Signup = () => {
                         options={clinicSizeOption}
                       />
                     </Form.Item>
-
+                    <Form.Item
+                      name="staffCount"
+                      label="how much staff do you have? "
+                    >
+                      <Select
+                        showSearch
+                        placeholder="Select a person"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={clinicSizeOption}
+                      />
+                    </Form.Item>
+                    
                     <Form.Item
                       name="patientsAveragePerWeek"
                       label="How many patients do you see on average per week?"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Select average per week?!",
-                        },
-                      ]}
                     >
                       <Select
                         showSearch
@@ -229,22 +322,25 @@ const Signup = () => {
                       name="servicesFrequently"
                       label="What type of dental services do you offer most frequently?"
                     >
-                      <Button className="custom-btn">Genral Dentistry</Button>
-                      <Button className="custom-btn">Othodontics</Button>
-                      <Button className="custom-btn">Cosmetic Dentistry</Button>
-                      <Button className="custom-btn">Oral Surgery</Button>
-                      <Button className="custom-btn">
-                        Pediatric Dentistry
-                      </Button>
+                      {serviceList.map((service) => (
+                        <CustomButton
+                          key={service}
+                          service={service}
+                          services={services}
+                          onClick={() => addServices(service)}
+                        />
+                      ))}
                     </Form.Item>
                   </>
                 ) : signupSteps === 3 ? (
                   <>
-                    <h2>Full Arch Solutions</h2>
+                    <h2>Digital Workflow & Lab Resources
+                    </h2>
                     <p className="custom-text1">
                       Let us know about your digital workflow and lab resources.
                     </p>
-                    <Form.Item
+                    {
+                      services.includes('Full Arch')? <Form.Item
                       name="inHouseArchLabYN"
                       label="Do you have an in-house full arch lab?"
                     >
@@ -252,11 +348,13 @@ const Signup = () => {
                         <Checkbox value="Y">Yes</Checkbox>
                         <Checkbox value="N">No</Checkbox>
                       </Row>
-                    </Form.Item>
+                    </Form.Item>:''
+                    }
+                   
 
                     <Form.Item
                       name="archDigitalWorkFlowYN"
-                      label="Do you have full arch digital workflow?"
+                      label="Is your clinic set up for digital workflow?"
                     >
                       <Row>
                         <Checkbox value="Y">Yes</Checkbox>
@@ -271,12 +369,12 @@ const Signup = () => {
                       An activation email has been sent. Please confirm to
                       complete your setup.
                     </p>
-                   
+
                     <p style={{ paddingBottom: 10 }}>
                       Didn’t get the email?{" "}
-                      <a href="/signup" className="custom-text-link">
-                    Resend
-                </a>{" "}
+                      <span className="custom-text-link" onClick={()=>{reSendActivationLink()}}>
+                        Resend
+                      </span>{" "}
                     </p>
                   </>
                 ) : (
@@ -310,7 +408,7 @@ const Signup = () => {
                 <>
                   {" "}
                   <p style={{ display: "flex", justifyContent: "center" }}>
-                    Do you have an account?{" "}
+                    Do you have an account?&nbsp; 
                     <a href="/login" className="custom-text-link">
                       Login
                     </a>
@@ -336,9 +434,10 @@ const Signup = () => {
               )}
             </div>
           </div>
+
           <div className="auth-custom-footer">
             <Row className="auth-footer-content">
-              <Col span={7} className="footer-col" style={{ marginLeft: 15 }}>
+              <Col span={11} className="footer-col" style={{ marginLeft: 15 }}>
                 <p className="custom-text1">
                   All rights reserved Teraleads 2024
                 </p>
@@ -346,7 +445,7 @@ const Signup = () => {
               <Col
                 className="footer-links footer-col"
                 span={12}
-                style={{ display: "flex" }}
+                style={{ display: "flex" ,justifyContent:'end'}}
               >
                 <a
                   className="custom-text1"

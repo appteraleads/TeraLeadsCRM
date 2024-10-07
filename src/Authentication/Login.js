@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Form,
   Input,
@@ -9,24 +9,43 @@ import {
   Col,
   Image,
   Divider,
+  notification
 } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
+import { useParams } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+const Login = ({userEmailId,setuserEmailId}) => {
+  const { token } = useParams(); 
+  const navigate = useNavigate();
+  const [api, contextHolder] = notification.useNotification();
 
-const Login = () => {
-
-
-  const onFinish = (values) => {
- 
-    console.log(values);
-    setTimeout(() => {
-      
-      message.success("Login successful!");
-    }, 1500);
+  const openNotificationWithIcon = (type,messageType,message) => {
+    api[type]({
+      message: messageType,
+      description:message,
+    });
   };
 
+  const onFinish = (values) => {
+    axios
+    .post('http://localhost:8080/api/v1/auth/login',values )
+    .then((res) => {
+      console?.log(res)
+      openNotificationWithIcon('success','Success',res?.data?.message)
+      navigate('/dashboard')
+    })
+    .catch((err) => {
+      console.log(err);
+      openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
+    });
+  };
+
+
+
   return (
-    <>
+    <>{contextHolder}
       <Row>
         <Col span={24} md={12}>
           <Row justify="start">
@@ -54,7 +73,7 @@ const Login = () => {
                   name="email"
                   label="Email"
                   rules={[
-                    { required: true, message: "Please enter your email!" },
+                    { required: true, message: "Please enter your email!" ,type:"email"},
                   ]}
                 >
                   <Input placeholder="Enter your email" />
@@ -103,7 +122,7 @@ const Login = () => {
           </div>
           <div className="auth-custom-footer">
             <Row className="auth-footer-content">
-              <Col span={7} className="footer-col" style={{ marginLeft: 15 }}>
+              <Col span={11} className="footer-col" style={{ marginLeft: 15 }}>
                 <p className="custom-text1">
                   All rights reserved Teraleads 2024
                 </p>
@@ -111,7 +130,7 @@ const Login = () => {
               <Col
                 className="footer-links footer-col"
                 span={12}
-                style={{ display: "flex" }}
+                style={{ display: "flex",justifyContent:'end' }}
               >
                 <a
                   className="custom-text1"

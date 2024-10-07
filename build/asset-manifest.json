@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/react-gh-pages/static/css/main.ea3bf9e8.css",
-    "main.js": "/react-gh-pages/static/js/main.6a2148be.js",
-    "static/js/453.8e39ce26.chunk.js": "/react-gh-pages/static/js/453.8e39ce26.chunk.js",
-    "static/media/sidebar.jpg": "/react-gh-pages/static/media/sidebar.2f5769e4caa6af869587.jpg",
-    "static/media/google_logo-google_icongoogle-512 (1) 1.svg": "/react-gh-pages/static/media/google_logo-google_icongoogle-512 (1) 1.2f747f7fb850aaee768fc012bcb12e79.svg",
-    "static/media/teraleadslogo.jpg": "/react-gh-pages/static/media/teraleadslogo.5f26c84c9312b1a93ca6.jpg",
-    "index.html": "/react-gh-pages/index.html",
-    "main.ea3bf9e8.css.map": "/react-gh-pages/static/css/main.ea3bf9e8.css.map",
-    "main.6a2148be.js.map": "/react-gh-pages/static/js/main.6a2148be.js.map",
-    "453.8e39ce26.chunk.js.map": "/react-gh-pages/static/js/453.8e39ce26.chunk.js.map"
+    "main.css": "/static/css/main.51f3e2cc.css",
+    "main.js": "/static/js/main.f077070d.js",
+    "static/js/453.8e39ce26.chunk.js": "/static/js/453.8e39ce26.chunk.js",
+    "static/media/sidebar.jpg": "/static/media/sidebar.2f5769e4caa6af869587.jpg",
+    "static/media/google_logo-google_icongoogle-512 (1) 1.svg": "/static/media/google_logo-google_icongoogle-512 (1) 1.2f747f7fb850aaee768fc012bcb12e79.svg",
+    "static/media/teraleadslogo.jpg": "/static/media/teraleadslogo.5f26c84c9312b1a93ca6.jpg",
+    "index.html": "/index.html",
+    "main.51f3e2cc.css.map": "/static/css/main.51f3e2cc.css.map",
+    "main.f077070d.js.map": "/static/js/main.f077070d.js.map",
+    "453.8e39ce26.chunk.js.map": "/static/js/453.8e39ce26.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ea3bf9e8.css",
-    "static/js/main.6a2148be.js"
+    "static/css/main.51f3e2cc.css",
+    "static/js/main.f077070d.js"
   ]
 }

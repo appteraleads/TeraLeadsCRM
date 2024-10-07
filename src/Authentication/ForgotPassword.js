@@ -1,26 +1,36 @@
 import React  from "react";
-import { Form, Input, Button, message, Row, Col, Image } from "antd";
+import { Form, Input, Button, notification, Row, Col, Image } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import { FaArrowLeft } from "react-icons/fa";
 import {  useNavigate } from "react-router-dom";
-const ForgotPassword = () => {
+import axios from 'axios';
+const ForgotPassword = ({userEmailId,setuserEmailId}) => {
   const navigate = useNavigate();
- 
+  const [api, contextHolder] = notification.useNotification();
+
+  const openNotificationWithIcon = (type,messageType,message) => {
+    api[type]({
+      message: messageType,
+      description:message,
+    });
+  };
 
   const onFinish = (values) => {
-    
-    // Simulate sending reset passwordß request
-    setTimeout(() => {
-      
-      message.success(
-        "We’ve sent the reset code to hi@teraleads.com. Enter the code to continue."
-      );
-      navigate("/verify-otp");
-    }, 1500);
+    setuserEmailId(values.email)
+      axios
+      .post('http://localhost:8080/api/v1/auth/send-otp',values )
+      .then((res) => {
+        openNotificationWithIcon('success','Success',res?.data?.message)
+        navigate("/verify-otp");
+      })
+      .catch((err) => {
+        console.log(err);
+      openNotificationWithIcon('error','Error',err?.message)
+      });
   };
 
   return (
-    <>
+    <>{contextHolder}
       <Row>
         <Col span={24} md={12}>
           <Row justify="start">
@@ -28,12 +38,7 @@ const ForgotPassword = () => {
           </Row>
           <div className="login-container-left">
             <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
-              <h2>Forgot Your Password?</h2>
-              <p className="custom-text1">
-                Enter your email, and we’ll send you instructions to reset your
-                password.
-              </p>
-              <Button
+            <Button
                 icon={<FaArrowLeft />}
                 style={{ marginBottom: "10px" }}
                 onClick={() => {
@@ -42,6 +47,12 @@ const ForgotPassword = () => {
               >
                 Back
               </Button>
+              <h2>Forgot Your Password?</h2>
+              <p className="custom-text1">
+                Enter your email, and we’ll send you instructions to reset your
+                password.
+              </p>
+          
               <Form
                 name="login"
                 initialValues={{ remember: true }}
@@ -69,7 +80,7 @@ const ForgotPassword = () => {
           </div>
           <div className="auth-custom-footer">
             <Row className="auth-footer-content">
-              <Col span={7} className="footer-col" style={{ marginLeft: 15 }}>
+              <Col span={11} className="footer-col" style={{ marginLeft: 15 }}>
                 <p className="custom-text1">
                   All rights reserved Teraleads 2024
                 </p>
@@ -77,7 +88,7 @@ const ForgotPassword = () => {
               <Col
                 className="footer-links footer-col"
                 span={12}
-                style={{ display: "flex" }}
+                style={{ display: "flex" ,justifyContent:'end'}}
               >
                 <a
                   className="custom-text1"
