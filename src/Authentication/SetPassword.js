@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from "react";
 import { Form, Input, Button, Row, Col, Image, notification } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";

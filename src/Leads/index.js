@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Layout,theme, Menu, Table, Row, Col, Card, Statistic ,Image,Divider} from "antd";
 import {
 
@@ -8,7 +8,7 @@ import {
   FormOutlined,
   
 } from "@ant-design/icons";
-import {  SettingOutlined } from '@ant-design/icons';
+
 import TeraleadsLogo from '../assets/logo/TeraleadsRemoveBg.png'
 const { Header, Sider, Content } = Layout;
 
@@ -71,7 +71,7 @@ const columns = [
     title: "Name",
     dataIndex: "name",
     key: "name",
-    render: (text) => <a>{text}</a>,
+    render: (text) => <span>{text}</span>,
   },
   {
     title: "Phone Number",

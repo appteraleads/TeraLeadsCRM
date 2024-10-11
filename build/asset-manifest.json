@@ -1,18 +1,17 @@
 {
   "files": {
-    "main.css": "/TeraLeadsCRM/static/css/main.49911b64.css",
-    "main.js": "/TeraLeadsCRM/static/js/main.cba496d4.js",
-    "static/js/453.8e39ce26.chunk.js": "/TeraLeadsCRM/static/js/453.8e39ce26.chunk.js",
-    "static/media/sidebar.jpg": "/TeraLeadsCRM/static/media/sidebar.2f5769e4caa6af869587.jpg",
-    "static/media/google_logo-google_icongoogle-512 (1) 1.svg": "/TeraLeadsCRM/static/media/google_logo-google_icongoogle-512 (1) 1.2f747f7fb850aaee768fc012bcb12e79.svg",
-    "static/media/teraleadslogo.jpg": "/TeraLeadsCRM/static/media/teraleadslogo.5f26c84c9312b1a93ca6.jpg",
-    "index.html": "/TeraLeadsCRM/index.html",
-    "main.49911b64.css.map": "/TeraLeadsCRM/static/css/main.49911b64.css.map",
-    "main.cba496d4.js.map": "/TeraLeadsCRM/static/js/main.cba496d4.js.map",
-    "453.8e39ce26.chunk.js.map": "/TeraLeadsCRM/static/js/453.8e39ce26.chunk.js.map"
+    "main.css": "/teracrm/static/css/main.b86ef2ed.css",
+    "main.js": "/teracrm/static/js/main.743b2c5e.js",
+    "static/media/sidebar.jpg": "/teracrm/static/media/sidebar.2f5769e4caa6af869587.jpg",
+    "static/media/TeraleadsRemoveBg.png": "/teracrm/static/media/TeraleadsRemoveBg.4cb1fe8a37f068fe3843.png",
+    "static/media/google_logo-google_icongoogle-512 (1) 1.svg": "/teracrm/static/media/google_logo-google_icongoogle-512 (1) 1.2f747f7fb850aaee768fc012bcb12e79.svg",
+    "static/media/teraleadslogo.jpg": "/teracrm/static/media/teraleadslogo.5f26c84c9312b1a93ca6.jpg",
+    "index.html": "/teracrm/index.html",
+    "main.b86ef2ed.css.map": "/teracrm/static/css/main.b86ef2ed.css.map",
+    "main.743b2c5e.js.map": "/teracrm/static/js/main.743b2c5e.js.map"
   },
   "entrypoints": [
-    "static/css/main.49911b64.css",
-    "static/js/main.cba496d4.js"
+    "static/css/main.b86ef2ed.css",
+    "static/js/main.743b2c5e.js"
   ]
 }
