@@ -4,8 +4,7 @@ node_modules/
 # Ignore all log files
 *.log
 
-# Ignore specific file
-firebaseConfig.js
+
 
 # Ignore all .env files
 *.env
