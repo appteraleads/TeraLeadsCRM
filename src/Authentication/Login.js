@@ -1,51 +1,122 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Form,
   Input,
   Button,
   Checkbox,
-  message,
   Row,
   Col,
   Image,
   Divider,
-  notification
+  notification,
 } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
-import { useParams } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-const Login = ({userEmailId,setuserEmailId}) => {
-  const { token } = useParams(); 
+import axios from "axios";
+import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
+import {
+  auth,
+  facebookProvider,
+  googleProvider,
+} from "../Config/firebaseConfig";
+import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
+
+const Login = ({ userEmailId, setuserEmailId }) => {
   const navigate = useNavigate();
   const [api, contextHolder] = notification.useNotification();
 
-  const openNotificationWithIcon = (type,messageType,message) => {
+  const openNotificationWithIcon = (type, messageType, message) => {
     api[type]({
       message: messageType,
-      description:message,
+      description: message,
     });
   };
 
   const onFinish = (values) => {
     axios
-    .post('http://localhost:8080/api/v1/auth/login',values )
-    .then((res) => {
-      console?.log(res)
-      openNotificationWithIcon('success','Success',res?.data?.message)
-      navigate('/dashboard')
-    })
-    .catch((err) => {
-      console.log(err);
-      openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
-    });
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
+      .then((res) => {
+        localStorage.setItem("authToken", res?.data?.token);
+        navigate("/dashboard");
+      })
+      .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Error",
+          err?.response?.data?.message || err?.message
+        );
+      });
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken(); // Get the Google ID token
 
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login/google`,
+          { idToken }
+        )
+        .then((res) => {
+          // Handle successful response
+          localStorage.setItem("authToken", res?.data?.token);
+          console.log("Login successful:", res.data);
+          navigate("/dashboard");
+          // You can update the UI or store user data here
+        })
+        .catch((error) => {
+          // Handle error response
+          console.error(
+            "Error during login:",
+            error.response ? error.response.data : error.message
+          );
+          // Show error message to the user
+        });
+    } catch (error) {
+      console.error("Google login failed", error);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, facebookProvider);
+
+      // Access the Facebook access token
+      const credential = FacebookAuthProvider.credentialFromResult(result);
+      const accessToken = credential.accessToken; // Get the Facebook access token
+
+      // Make your API call with the access token
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login/facebook`,
+          { accessToken }
+        )
+        .then((res) => {
+          // Handle successful response
+          localStorage.setItem("authToken", res?.data?.token);
+          console.log("Login successful:", res.data);
+          navigate("/dashboard");
+          // You can update the UI or store user data here
+        })
+        .catch((error) => {
+          // Handle error response
+          console.error(
+            "Error during login:",
+            error.response ? error.response.data : error.message
+          );
+          // Show error message to the user
+        });
+    } catch (error) {
+      console.error("Facebook login failed", error);
+    }
+  };
 
   return (
-    <>{contextHolder}
+    <>
+      {contextHolder}
       <Row>
         <Col span={24} md={12}>
           <Row justify="start">
@@ -64,8 +135,20 @@ const Login = ({userEmailId,setuserEmailId}) => {
                 layout="vertical"
               >
                 <Form.Item>
-                  <Button block icon={<Image src={GoogleIcon} />}>
+                  <Button
+                    onClick={handleGoogleLogin}
+                    block
+                    icon={<Image src={GoogleIcon} />}
+                  >
                     Continue with Google
+                  </Button>
+                  <Button
+                    style={{ marginTop: 10 }}
+                    onClick={handleFacebookLogin}
+                    block
+                    icon={<Image src={facebookLogo} style={{ width: 20 }} />}
+                  >
+                    Continue with FaceBook
                   </Button>
                 </Form.Item>
                 <Divider>Or</Divider>
@@ -73,7 +156,11 @@ const Login = ({userEmailId,setuserEmailId}) => {
                   name="email"
                   label="Email"
                   rules={[
-                    { required: true, message: "Please enter your email!" ,type:"email"},
+                    {
+                      required: true,
+                      message: "Please enter your email!",
+                      type: "email",
+                    },
                   ]}
                 >
                   <Input placeholder="Enter your email" />
@@ -130,7 +217,7 @@ const Login = ({userEmailId,setuserEmailId}) => {
               <Col
                 className="footer-links footer-col"
                 span={12}
-                style={{ display: "flex",justifyContent:'end' }}
+                style={{ display: "flex", justifyContent: "end" }}
               >
                 <a
                   className="custom-text1"

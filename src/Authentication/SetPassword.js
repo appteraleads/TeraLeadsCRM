@@ -1,36 +1,33 @@
 import React, { useEffect } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Row,
-  Col,
-  Image,
-  notification,
-} from "antd";
+import { Form, Input, Button, Row, Col, Image, notification } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import { FaArrowLeft } from "react-icons/fa";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 const SetPassword = ({ userEmailId, setuserEmailId }) => {
   const navigate = useNavigate();
-  const { token } = useParams(); 
+  const { token } = useParams();
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
+
   const openNotificationWithIcon = (type, messageType, message) => {
     api[type]({
       message: messageType,
       description: message,
     });
   };
+
   const onFinish = (values) => {
     let data = {
       token: token,
       password: values?.confirmpassword,
     };
     axios
-      .post("http://localhost:8080/api/v1/auth/set-password", data)
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/set-password`,
+        data
+      )
       .then((res) => {
         openNotificationWithIcon(
           "success",
@@ -44,34 +41,39 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
         openNotificationWithIcon("error", "Error", err?.message);
       });
   };
+
   const validateConfirmPassword = (_, value) => {
-    const password = form.getFieldValue('password'); // Get the value of the password field
+    const password = form.getFieldValue("password"); // Get the value of the password field
     if (!value || password === value) {
       return Promise.resolve();
     }
-    return Promise.reject(new Error('Password do not match!'));
+    return Promise.reject(new Error("Password do not match!"));
   };
-  const activationUser = ()=>{
+
+  const activationUser = () => {
     let data = {
-      token:token
-    }
-    if(token){
+      token: token,
+    };
+    if (token) {
       axios
-      .post('http://localhost:8080/api/v1/auth/activate',data )
-      .then((res) => {
-        openNotificationWithIcon('success','Success',res?.data?.message)
-      })
-      .catch((err) => {
-        console.log(err);
-        openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
-
-      });
+        .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/activate`, data)
+        .then((res) => {
+          openNotificationWithIcon("success", "Success", res?.data?.message);
+        })
+        .catch((err) => {
+          console.log(err);
+          openNotificationWithIcon(
+            "error",
+            "Error",
+            err?.response?.data?.message || err?.message
+          );
+        });
     }
-  }
+  };
 
-  useEffect(()=>{
-   activationUser()
-  },[token])
+  useEffect(() => {
+    activationUser();
+  }, [token]);
 
   return (
     <>
@@ -98,7 +100,7 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
               </p>
 
               <Form
-              form={form}
+                form={form}
                 name="resetpassword"
                 initialValues={{ remember: true }}
                 onFinish={onFinish}
@@ -109,15 +111,18 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
                   label="Password"
                   rules={[{ message: "Please enter your password!" }]}
                 >
-                  <Input.Password   placeholder="Enter your password" />
+                  <Input.Password placeholder="Enter your password" />
                 </Form.Item>
                 <Form.Item
                   name="confirmpassword"
                   label="Repeat Password"
-                  dependencies={['password']} 
-                  rules={[{ message: "Please enter your password!" },{ validator: validateConfirmPassword },]}
+                  dependencies={["password"]}
+                  rules={[
+                    { message: "Please enter your password!" },
+                    { validator: validateConfirmPassword },
+                  ]}
                 >
-                  <Input.Password  placeholder="Enter your password" />
+                  <Input.Password placeholder="Enter your password" />
                 </Form.Item>
                 <Form.Item>
                   <Button

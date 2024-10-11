@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Row,
-  Col,
-  Image,
-  notification,
-} from "antd";
+import { Form, Input, Button, Row, Col, Image, notification } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +21,10 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
       newPassword: values?.confirmpassword,
     };
     axios
-      .post("http://localhost:8080/api/v1/auth/reset-password", data)
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/reset-password`,
+        data
+      )
       .then((res) => {
         openNotificationWithIcon(
           "success",
@@ -44,11 +39,11 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
       });
   };
   const validateConfirmPassword = (_, value) => {
-    const password = form.getFieldValue('password'); // Get the value of the password field
+    const password = form.getFieldValue("password"); // Get the value of the password field
     if (!value || password === value) {
       return Promise.resolve();
     }
-    return Promise.reject(new Error('Password do not match!'));
+    return Promise.reject(new Error("Password do not match!"));
   };
   return (
     <>
@@ -75,7 +70,7 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
               </p>
 
               <Form
-              form={form}
+                form={form}
                 name="resetpassword"
                 initialValues={{ remember: true }}
                 onFinish={onFinish}
@@ -86,15 +81,18 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
                   label="Password"
                   rules={[{ message: "Please enter your password!" }]}
                 >
-                  <Input.Password   placeholder="Enter your password" />
+                  <Input.Password placeholder="Enter your password" />
                 </Form.Item>
                 <Form.Item
                   name="confirmpassword"
                   label="Repeat Password"
-                  dependencies={['password']} 
-                  rules={[{ message: "Please enter your password!" },{ validator: validateConfirmPassword },]}
+                  dependencies={["password"]}
+                  rules={[
+                    { message: "Please enter your password!" },
+                    { validator: validateConfirmPassword },
+                  ]}
                 >
-                  <Input.Password  placeholder="Enter your password" />
+                  <Input.Password placeholder="Enter your password" />
                 </Form.Item>
                 <Form.Item>
                   <Button

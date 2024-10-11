@@ -1,11 +1,21 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Checkbox, Row, Col, Image, Select ,notification} from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Checkbox,
+  Row,
+  Col,
+  Image,
+  Select,
+  notification,
+} from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { IoMailUnreadOutline } from "react-icons/io5";
 import { PiCheckBold } from "react-icons/pi";
-import axios from 'axios';
+import axios from "axios";
 
 const CustomButton = ({ service, services, onClick }) => {
   const isSelected = services.includes(service);
@@ -26,13 +36,13 @@ const CustomButton = ({ service, services, onClick }) => {
   );
 };
 
-const Signup = ({userEmailId,setuserEmailId}) => {
+const Signup = ({ userEmailId, setuserEmailId }) => {
   const navigate = useNavigate();
   const [api, contextHolder] = notification.useNotification();
-  const openNotificationWithIcon = (type,messageType,message) => {
+  const openNotificationWithIcon = (type, messageType, message) => {
     api[type]({
       message: messageType,
-      description:message,
+      description: message,
     });
   };
   const serviceList = [
@@ -58,66 +68,73 @@ const Signup = ({userEmailId,setuserEmailId}) => {
     }
   };
 
-  const reSendActivationLink = ()=>{
-    let data = {email:userEmailId?userEmailId:'app@teraleads.com'}
+  const reSendActivationLink = () => {
+    let data = { email: userEmailId ? userEmailId : "app@teraleads.com" };
     axios
-    .post('http://localhost:8080/api/v1/auth/resend-activation-link', data)
-    .then((res) => {
-      console.log(res)
-      openNotificationWithIcon('success','Success',res?.data)
-    })
-    .catch((err) => {
-      console.log(err);
-      openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
-    });
-  }
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/resend-activation-link`,
+        data
+      )
+      .then((res) => {
+        console.log(res);
+        openNotificationWithIcon("success", "Success", res?.data);
+      })
+      .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Error",
+          err?.response?.data?.message || err?.message
+        );
+      });
+  };
 
-  const onFinish = async() => {
+  const onFinish = async () => {
     if (signupSteps === 4) {
       navigate("/login");
       setsignupSteps(0);
     }
     if (signupSteps === 3) {
-      
-      const data = 
-        {
-          clinic_name: form.getFieldValue(["clinicName"]),
-          dentist_full_name: form.getFieldValue(["dentistFullName"]),
-          clinic_website: form.getFieldValue(["clinicWebsite"]),
-          email: form.getFieldValue(["email"]),
-          phone: form.getFieldValue(["phone"]),
-          clinic_size: form.getFieldValue(["clinicSize"]),
-          patients_average_per_week: form.getFieldValue([
-            "patientsAveragePerWeek",
-          ]),
-          services_frequently: services.toString(),
-          in_house_arch_lab_yn:
-            form.getFieldValue(["inHouseArchLabYN"]) === "Y"
-              ? true
-              : form.getFieldValue(["inHouseArchLabYN"]) === "N"
-              ? false
-              : undefined,
-          arch_digital_workflow_yn:
-            form.getFieldValue(["archDigitalWorkFlowYN"]) === "Y"
-              ? true
-              : form.getFieldValue(["archDigitalWorkFlowYN"]) === "N"
-              ? false
-              : undefined,
-          activated_yn: false,
-          staffCount:form.getFieldValue(["staffCount"])
-        }
-      ;
-
+      const data = {
+        clinic_name: form.getFieldValue(["clinicName"]),
+        dentist_full_name: form.getFieldValue(["dentistFullName"]),
+        clinic_website: form.getFieldValue(["clinicWebsite"]),
+        email: form.getFieldValue(["email"]),
+        phone: form.getFieldValue(["phone"]),
+        clinic_size: form.getFieldValue(["clinicSize"]),
+        patients_average_per_week: form.getFieldValue([
+          "patientsAveragePerWeek",
+        ]),
+        services_frequently: services.toString(),
+        in_house_arch_lab_yn:
+          form.getFieldValue(["inHouseArchLabYN"]) === "Y"
+            ? true
+            : form.getFieldValue(["inHouseArchLabYN"]) === "N"
+            ? false
+            : undefined,
+        arch_digital_workflow_yn:
+          form.getFieldValue(["archDigitalWorkFlowYN"]) === "Y"
+            ? true
+            : form.getFieldValue(["archDigitalWorkFlowYN"]) === "N"
+            ? false
+            : undefined,
+        activated_yn: false,
+        staffCount: form.getFieldValue(["staffCount"]),
+      };
       axios
-      .post('http://localhost:8080/api/v1/auth/user', data)
-      .then((res) => {
-        console.log(res)
-        setsignupSteps(signupSteps + 1);
-      })
-      .catch((err) => {
-        console.log(err);
-        openNotificationWithIcon('error','Error',err?.response?.data?.message || err?.message)
-      });
+        .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/user`, data)
+        .then((res) => {
+          console.log(res);
+          setsignupSteps(signupSteps + 1);
+        })
+        .catch((err) => {
+          console.log(err);
+          openNotificationWithIcon(
+            "error",
+            "Error",
+            err?.response?.data?.message || err?.message
+          );
+        });
     } else {
       setsignupSteps(signupSteps + 1);
     }
@@ -170,13 +187,15 @@ const Signup = ({userEmailId,setuserEmailId}) => {
   ];
 
   return (
-    <> {contextHolder}
+    <>
+      {" "}
+      {contextHolder}
       <Row>
         <Col span={24} md={12}>
           <Row justify="start">
             <Image style={{ margin: 20 }} width={100} src={TeraLogo} />
           </Row>
-          <div className="login-container-left" > 
+          <div className="login-container-left">
             <div style={{ maxWidth: "410px", margin: "auto", padding: "10px" }}>
               {signupSteps !== 1 && signupSteps !== 4 ? (
                 <>
@@ -251,13 +270,16 @@ const Signup = ({userEmailId,setuserEmailId}) => {
                     >
                       <Input placeholder="Please enter clinic phone number" />
                     </Form.Item>
-                    <Form.Item name="clinicName" label="Clinic  Name"
-                     rules={[
-                      {
-                        required: true,
-                        message: "Please enter clinic name!",
-                      },
-                    ]}>
+                    <Form.Item
+                      name="clinicName"
+                      label="Clinic  Name"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter clinic name!",
+                        },
+                      ]}
+                    >
                       <Input placeholder="Please enter clinic name" />
                     </Form.Item>
 
@@ -302,7 +324,7 @@ const Signup = ({userEmailId,setuserEmailId}) => {
                         options={clinicSizeOption}
                       />
                     </Form.Item>
-                    
+
                     <Form.Item
                       name="patientsAveragePerWeek"
                       label="How many patients do you see on average per week?"
@@ -334,23 +356,23 @@ const Signup = ({userEmailId,setuserEmailId}) => {
                   </>
                 ) : signupSteps === 3 ? (
                   <>
-                    <h2>Digital Workflow & Lab Resources
-                    </h2>
+                    <h2>Digital Workflow & Lab Resources</h2>
                     <p className="custom-text1">
                       Let us know about your digital workflow and lab resources.
                     </p>
-                    {
-                      services.includes('Full Arch')? <Form.Item
-                      name="inHouseArchLabYN"
-                      label="Do you have an in-house full arch lab?"
-                    >
-                      <Row>
-                        <Checkbox value="Y">Yes</Checkbox>
-                        <Checkbox value="N">No</Checkbox>
-                      </Row>
-                    </Form.Item>:''
-                    }
-                   
+                    {services.includes("Full Arch") ? (
+                      <Form.Item
+                        name="inHouseArchLabYN"
+                        label="Do you have an in-house full arch lab?"
+                      >
+                        <Row>
+                          <Checkbox value="Y">Yes</Checkbox>
+                          <Checkbox value="N">No</Checkbox>
+                        </Row>
+                      </Form.Item>
+                    ) : (
+                      ""
+                    )}
 
                     <Form.Item
                       name="archDigitalWorkFlowYN"
@@ -372,7 +394,12 @@ const Signup = ({userEmailId,setuserEmailId}) => {
 
                     <p style={{ paddingBottom: 10 }}>
                       Didn’t get the email?{" "}
-                      <span className="custom-text-link" onClick={()=>{reSendActivationLink()}}>
+                      <span
+                        className="custom-text-link"
+                        onClick={() => {
+                          reSendActivationLink();
+                        }}
+                      >
                         Resend
                       </span>{" "}
                     </p>
@@ -408,7 +435,7 @@ const Signup = ({userEmailId,setuserEmailId}) => {
                 <>
                   {" "}
                   <p style={{ display: "flex", justifyContent: "center" }}>
-                    Do you have an account?&nbsp; 
+                    Do you have an account?&nbsp;
                     <a href="/login" className="custom-text-link">
                       Login
                     </a>
@@ -445,7 +472,7 @@ const Signup = ({userEmailId,setuserEmailId}) => {
               <Col
                 className="footer-links footer-col"
                 span={12}
-                style={{ display: "flex" ,justifyContent:'end'}}
+                style={{ display: "flex", justifyContent: "end" }}
               >
                 <a
                   className="custom-text1"

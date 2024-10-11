@@ -1,0 +1,35 @@
+/* src/Layout.css */
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Full height of the viewport */
+  }
+  
+  .header, .footer {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .main-content {
+    display: flex;
+    flex: 1; /* Take the remaining space */
+  }
+  
+
+  
+  .right-content {
+    flex: 1; /* Take the remaining space */
+    background: url('https://via.placeholder.com/800') no-repeat center center;
+    background-size: cover; /* Cover the right side with the background */
+    padding: 1rem;
+    color: white; /* Text color */
+  }
+  
+  .footer {
+    position: relative;
+    bottom: 0;
+  }
+  

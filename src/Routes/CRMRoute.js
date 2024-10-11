@@ -7,6 +7,7 @@ import VerifyOtp from '../Authentication/VerifyOtp';
 import ResetPassword from '../Authentication/ResetPassword';
 import Dashboard from '../Dashboard';
 import SetPassword from '../Authentication/SetPassword';
+import Leads from '../Leads';
 import './Auth.css'
 
 const CRMRoute =()=>{
@@ -21,7 +22,11 @@ const CRMRoute =()=>{
         <Route path="/forgot-password" element={<ForgotPassword userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
         <Route path="/verify-otp" element={<VerifyOtp userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
         <Route path="/reset-password" element={<ResetPassword userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
-        <Route path="/dashboard" element={<Dashboard userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
+        
+        {/* Below url comes in auth token without auth token redirect to login page */}
+        
+        <Route path="/dashboard" element={<Leads userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
+        
       </Routes>
     </Router>
   );

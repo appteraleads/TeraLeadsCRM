@@ -102,3 +102,8 @@ margin: 5px;
   border-color:#3900DB;
   background-color: #3900DB;
 }
+
+.ant-menu .ant-menu-item-selected{
+  background-color: #EFEEFF;
+  color: #3900DB;
+}
