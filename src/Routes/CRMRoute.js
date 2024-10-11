@@ -5,7 +5,6 @@ import Signup from '../Authentication/Signup';
 import ForgotPassword from '../Authentication/ForgotPassword';
 import VerifyOtp from '../Authentication/VerifyOtp';
 import ResetPassword from '../Authentication/ResetPassword';
-import Dashboard from '../Dashboard';
 import SetPassword from '../Authentication/SetPassword';
 import Leads from '../Leads';
 import './Auth.css'
