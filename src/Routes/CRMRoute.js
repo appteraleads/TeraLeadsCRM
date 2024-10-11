@@ -24,9 +24,9 @@ const CRMRoute =()=>{
         <Route path="/reset-password" element={<ResetPassword userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
         
         {/* Below url comes in auth token without auth token redirect to login page */}
-        
+        {localStorage?.getItem('autyh')}
         <Route path="/dashboard" element={<Leads userEmailId={userEmailId} setuserEmailId={setuserEmailId}/>} />
-        
+
       </Routes>
     </Router>
   );
