@@ -1,9 +1,9 @@
-import './App.css';
-import CRMRoute from './Routes/CRMRoute';
+import "./App.css";
+import AuthRoute from "./Routes/AuthRoute";
 function App() {
   return (
     <>
-      <CRMRoute/>
+      <AuthRoute />
     </>
   );
 }

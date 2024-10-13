@@ -1,18 +1,6 @@
-import React from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Checkbox,
-  Row,
-  Col,
-  Image,
-  Divider,
-  notification,
-} from "antd";
-import TeraLogo from "../assets/logo/teraleadslogo.jpg";
+import React, { useState } from "react";
+import { Form, Input, Button, Checkbox, Image, Divider, Alert } from "antd";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
 import {
@@ -22,31 +10,26 @@ import {
 } from "../Config/firebaseConfig";
 import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
 
-const Login = ({ userEmailId, setuserEmailId }) => {
-  const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
+const Login = () => {
+ 
 
-  const openNotificationWithIcon = (type, messageType, message) => {
-    api[type]({
-      message: messageType,
-      description: message,
-    });
-  };
+  const [alertMsg, setalertMsg] = useState("");
+  const [alertDes, setalertDes] = useState("");
+  const [alertType, setalertType] = useState("");
+  const [alertDisplay, setalertDisplay] = useState(false);
 
   const onFinish = (values) => {
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
         localStorage.setItem("authToken", res?.data?.token);
-        navigate("/dashboard");
+        window.location.replace("/dashboard");
       })
       .catch((err) => {
-        console.log(err);
-        openNotificationWithIcon(
-          "error",
-          "Error",
-          err?.response?.data?.message || err?.message
-        );
+        setalertMsg("Invalid Credential");
+        setalertDes(err?.response?.data?.message || err?.message);
+        setalertType("error");
+        setalertDisplay(true);
       });
   };
 
@@ -64,7 +47,7 @@ const Login = ({ userEmailId, setuserEmailId }) => {
           // Handle successful response
           localStorage.setItem("authToken", res?.data?.token);
           console.log("Login successful:", res.data);
-          navigate("/dashboard");
+          window.location.replace("/dashboard");
           // You can update the UI or store user data here
         })
         .catch((error) => {
@@ -98,7 +81,7 @@ const Login = ({ userEmailId, setuserEmailId }) => {
           // Handle successful response
           localStorage.setItem("authToken", res?.data?.token);
           console.log("Login successful:", res.data);
-          navigate("/dashboard");
+          window.location.replace("/dashboard");
           // You can update the UI or store user data here
         })
         .catch((error) => {
@@ -116,125 +99,103 @@ const Login = ({ userEmailId, setuserEmailId }) => {
 
   return (
     <>
-      {contextHolder}
-      <Row>
-        <Col span={24} md={12}>
-          <Row justify="start">
-            <Image style={{ margin: 35 }} width={100} src={TeraLogo} />
-          </Row>
-          <div className="login-container-left">
-            <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
-              <h2>Log In to Your Account</h2>
-              <p className="custom-text1">
-                Welcome back! Enter your email and password to proceed.
-              </p>
-              <Form
-                name="login"
-                initialValues={{ remember: true }}
-                onFinish={onFinish}
-                layout="vertical"
+      <div className="login-container-left">
+        <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
+          {alertDisplay ? (
+            <Alert
+              message={alertMsg}
+              description={alertDes}
+              type={alertType}
+              showIcon
+              closable={alertDisplay}
+              onClose={() => setalertDisplay(false)}
+              style={{ width: "100%" }}
+            />
+          ) : (
+            ""
+          )}
+          <h2>Log In to Your Account</h2>
+          <p className="custom-text1">
+            Welcome back! Enter your email and password to proceed.
+          </p>
+          <Form
+            name="login"
+            initialValues={{ remember: true }}
+            onFinish={onFinish}
+            layout="vertical"
+          >
+            <Form.Item>
+              <Button
+                onClick={handleGoogleLogin}
+                block
+                icon={<Image src={GoogleIcon} />}
               >
-                <Form.Item>
-                  <Button
-                    onClick={handleGoogleLogin}
-                    block
-                    icon={<Image src={GoogleIcon} />}
-                  >
-                    Continue with Google
-                  </Button>
-                  <Button
-                    style={{ marginTop: 10 }}
-                    onClick={handleFacebookLogin}
-                    block
-                    icon={<Image src={facebookLogo} style={{ width: 20 }} />}
-                  >
-                    Continue with FaceBook
-                  </Button>
-                </Form.Item>
-                <Divider>Or</Divider>
-                <Form.Item
-                  name="email"
-                  label="Email"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter your email!",
-                      type: "email",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Enter your email" />
-                </Form.Item>
-
-                <Form.Item
-                  name="password"
-                  label="Password"
-                  rules={[
-                    { required: true, message: "Please enter your password!" },
-                  ]}
-                >
-                  <Input.Password placeholder="Enter your password" />
-                </Form.Item>
-
-                <Form.Item>
-                  <Form.Item name="remember" valuePropName="checked" noStyle>
-                    <Checkbox className="custom-text1">Remember me</Checkbox>
-                  </Form.Item>
-                  <a
-                    className="custom-text1"
-                    style={{ float: "right" }}
-                    href="/forgot-password"
-                  >
-                    Forgot password?
-                  </a>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button
-                    className="custom-primary-button"
-                    htmlType="submit"
-                    block
-                  >
-                    Login
-                  </Button>
-                </Form.Item>
-              </Form>
-              <p>
-                Don’t have an account yet?{" "}
-                <a href="/signup" className="custom-text-link">
-                  Create an account
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="auth-custom-footer">
-            <Row className="auth-footer-content">
-              <Col span={11} className="footer-col" style={{ marginLeft: 15 }}>
-                <p className="custom-text1">
-                  All rights reserved Teraleads 2024
-                </p>
-              </Col>
-              <Col
-                className="footer-links footer-col"
-                span={12}
-                style={{ display: "flex", justifyContent: "end" }}
+                Continue with Google
+              </Button>
+              <Button
+                style={{ marginTop: 10 }}
+                onClick={handleFacebookLogin}
+                block
+                icon={<Image src={facebookLogo} style={{ width: 20 }} />}
               >
-                <a
-                  className="custom-text1"
-                  href="/terms"
-                  style={{ marginRight: 10 }}
-                >
-                  <p>Terms & Conditions</p>
-                </a>
-                <a className="custom-text1" href="/privacy">
-                  <p>Privacy Policy</p>
-                </a>
-              </Col>
-            </Row>
-          </div>
-        </Col>
-        <Col span={24} md={12} className="container-right"></Col>
-      </Row>
+                Continue with FaceBook
+              </Button>
+            </Form.Item>
+            <Divider>Or</Divider>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter your email!",
+                  type: "email",
+                },
+              ]}
+            >
+              <Input placeholder="Enter your email" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter your password!",
+                },
+              ]}
+            >
+              <Input.Password placeholder="Enter your password" />
+            </Form.Item>
+
+            <Form.Item>
+              <Form.Item name="remember" valuePropName="checked" noStyle>
+                <Checkbox className="custom-text1">Remember me</Checkbox>
+              </Form.Item>
+              <a
+                className="custom-text1"
+                style={{ float: "right" }}
+                href="/forgot-password"
+              >
+                Forgot password?
+              </a>
+            </Form.Item>
+
+            <Form.Item>
+              <Button className="custom-primary-button" htmlType="submit" block>
+                Login
+              </Button>
+            </Form.Item>
+          </Form>
+          <p>
+            Don’t have an account yet?{" "}
+            <a href="/signup" className="custom-text-link">
+              Create an account
+            </a>
+          </p>
+        </div>
+      </div>
     </>
   );
 };

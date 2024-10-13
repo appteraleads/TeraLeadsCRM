@@ -33,20 +33,22 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
-.custom-primary-button{
+.custom-primary-button {
   background-color: #3900DB;
   color: #FFFFFF;
 }
 
-.custom-text1{
+.custom-text1 {
   color: #72779E;
 }
-.custom-text-link{
+
+.custom-text-link {
   color: #3900DB;
   cursor: pointer;
 }
@@ -54,60 +56,98 @@
 .login-container-left {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center-align the container */
+  align-items: center;
+  /* Center-align the container */
 }
 
 .auth-custom-footer {
-  bottom: 0; 
-  left: 0; 
-  right: 0; 
-  padding: 10px 20px; 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 20px;
   position: absolute;
-  margin-top: 20px    ;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {
   .login-container-left {
-    padding: 10px; /* Reduce padding for smaller screens */
+    padding: 10px;
+    /* Reduce padding for smaller screens */
   }
 
   .auth-footer-content {
-    flex-direction: column; /* Stack footer content on smaller screens */
-    align-items: center; /* Center-align footer content */
+    flex-direction: column;
+    /* Stack footer content on smaller screens */
+    align-items: center;
+    /* Center-align footer content */
   }
 
   .footer-links {
-    margin-top: 10px; /* Add space above links in footer */
-   
+    margin-top: 10px;
+    /* Add space above links in footer */
+
   }
 }
+
 .ant-btn-color-primary.ant-btn-background-ghost {
   color: #3900DB !important;
   border-color: #3900DB !important;
   margin: 10px;
 }
-.custom-btn{
-margin: 5px;
+
+.custom-btn {
+  margin: 5px;
 }
-.ant-form-item{
+
+.ant-form-item {
   margin-bottom: 10px !important;
 }
-.ant-input-outlined:focus-within{
-  border-color:#3900DB
+
+.ant-input-outlined:focus-within {
+  border-color: #3900DB
 }
-.ant-input-outlined:hover{
-  border-color:#3900DB
+
+.ant-input-outlined:hover {
+  border-color: #3900DB
 }
-.ant-checkbox-checked .ant-checkbox-inner{
-  border-color:#3900DB;
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  border-color: #3900DB;
   background-color: #3900DB;
 }
 
-.ant-menu .ant-menu-item-selected{
+.ant-menu .ant-menu-item-selected {
   background-color: #EFEEFF;
   color: #3900DB;
 }
 
-.ant-btn-variant-solid{
-   background-color: #3900DB;
+.ant-btn-variant-solid {
+  background-color: #3900DB;
+}
+
+.ant-alert {
+  align-items: center;
+  display: flex;
+}
+
+.ant-alert-with-description {
+  padding: 5px 15px;
+}
+
+.ant-alert-message {
+  margin-bottom: 0px !important;
+}
+
+@media only screen and (max-width: 600px) {
+  .container-right {
+    display: none;
+  }
+}
+
+.ant-btn-variant-solid:hover {
+  background-color: #3900DB !important;
+}
+
+a:hover{
+  color: #3900DB;
 }

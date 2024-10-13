@@ -5,12 +5,10 @@ import {
   Button,
   Checkbox,
   Row,
-  Col,
-  Image,
   Select,
   notification,
 } from "antd";
-import TeraLogo from "../assets/logo/teraleadslogo.jpg";
+
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { IoMailUnreadOutline } from "react-icons/io5";
@@ -188,308 +186,266 @@ const Signup = ({ userEmailId, setuserEmailId }) => {
 
   return (
     <>
-      {" "}
       {contextHolder}
-      <Row>
-        <Col span={24} md={12}>
-          <Row justify="start">
-            <Image style={{ margin: 20 }} width={100} src={TeraLogo} />
-          </Row>
-          <div className="login-container-left">
-            <div style={{ maxWidth: "410px", margin: "auto", padding: "10px" }}>
-              {signupSteps !== 1 && signupSteps !== 4 ? (
-                <>
-                  <Button
-                    icon={<FaArrowLeft />}
-                    style={{ marginBottom: "10px" }}
-                    onClick={() => {
-                      setsignupSteps(signupSteps - 1);
-                    }}
-                  >
-                    Back
-                  </Button>
-                </>
-              ) : (
-                ""
-              )}
-              {signupSteps === 4 ? (
-                <>
-                  <IoMailUnreadOutline size={30} />
-                </>
-              ) : (
-                ""
-              )}
-
-              <Form
-                name="signup"
-                form={form}
-                initialValues={{ remember: true }}
-                onFinish={onFinish}
-                layout="vertical"
+      <div className="login-container-left">
+        <div style={{ maxWidth: "410px", margin: "auto", padding: "10px" }}>
+          {signupSteps !== 1 && signupSteps !== 4 ? (
+            <>
+              <Button
+                icon={<FaArrowLeft />}
+                style={{ marginBottom: "10px" }}
+                onClick={() => {
+                  setsignupSteps(signupSteps - 1);
+                }}
               >
-                {signupSteps === 1 ? (
-                  <>
-                    <h2>Set Up Your Clinic Profile</h2>
-                    <p className="custom-text1">
-                      Enter your clinic’s details to get everything in place.
-                    </p>
-                    <Form.Item
-                      name="dentistFullName"
-                      label="Dentist Full Name"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter dentist full name!",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter dentist full name" />
-                    </Form.Item>
-                    <Form.Item
-                      name="email"
-                      label="Email"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter valid email!",
-                          type: "email",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter your email" />
-                    </Form.Item>
-                    <Form.Item
-                      name="phone"
-                      label="Phone  Number"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter clinic phone number!",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter clinic phone number" />
-                    </Form.Item>
-                    <Form.Item
-                      name="clinicName"
-                      label="Clinic  Name"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter clinic name!",
-                        },
-                      ]}
-                    >
-                      <Input placeholder="Please enter clinic name" />
-                    </Form.Item>
+                Back
+              </Button>
+            </>
+          ) : (
+            ""
+          )}
+          {signupSteps === 4 ? (
+            <>
+              <IoMailUnreadOutline size={30} />
+            </>
+          ) : (
+            ""
+          )}
 
-                    <Form.Item name="clinicWebsite" label="Clinic Website">
-                      <Input placeholder="Please enter clinic website" />
-                    </Form.Item>
-                  </>
-                ) : signupSteps === 2 ? (
-                  <>
-                    <h2>Get to Know Your Clinic</h2>
-                    <p className="custom-text1">
-                      Help us understand your clinic’s size, patient flow, and
-                      services.
-                    </p>
-                    <Form.Item
-                      name="clinicSize"
-                      label="What is your clinic size?"
-                    >
-                      <Select
-                        showSearch
-                        placeholder="Select a person"
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={clinicSizeOption}
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="staffCount"
-                      label="how much staff do you have? "
-                    >
-                      <Select
-                        showSearch
-                        placeholder="Select a person"
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={clinicSizeOption}
-                      />
-                    </Form.Item>
+          <Form
+            name="signup"
+            form={form}
+            initialValues={{ remember: true }}
+            onFinish={onFinish}
+            layout="vertical"
+          >
+            {signupSteps === 1 ? (
+              <>
+                <h2>Set Up Your Clinic Profile</h2>
+                <p className="custom-text1">
+                  Enter your clinic’s details to get everything in place.
+                </p>
+                <Form.Item
+                  name="dentistFullName"
+                  label="Dentist Full Name"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter dentist full name!",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Please enter dentist full name" />
+                </Form.Item>
+                <Form.Item
+                  name="email"
+                  label="Email"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter valid email!",
+                      type: "email",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Please enter your email" />
+                </Form.Item>
+                <Form.Item
+                  name="phone"
+                  label="Phone  Number"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter clinic phone number!",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Please enter clinic phone number" />
+                </Form.Item>
+                <Form.Item
+                  name="clinicName"
+                  label="Clinic  Name"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter clinic name!",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Please enter clinic name" />
+                </Form.Item>
 
-                    <Form.Item
-                      name="patientsAveragePerWeek"
-                      label="How many patients do you see on average per week?"
-                    >
-                      <Select
-                        showSearch
-                        placeholder="Select a person"
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={patientsAveragePerWeekOption}
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="servicesFrequently"
-                      label="What type of dental services do you offer most frequently?"
-                    >
-                      {serviceList.map((service) => (
-                        <CustomButton
-                          key={service}
-                          service={service}
-                          services={services}
-                          onClick={() => addServices(service)}
-                        />
-                      ))}
-                    </Form.Item>
-                  </>
-                ) : signupSteps === 3 ? (
-                  <>
-                    <h2>Digital Workflow & Lab Resources</h2>
-                    <p className="custom-text1">
-                      Let us know about your digital workflow and lab resources.
-                    </p>
-                    {services.includes("Full Arch") ? (
-                      <Form.Item
-                        name="inHouseArchLabYN"
-                        label="Do you have an in-house full arch lab?"
-                      >
-                        <Row>
-                          <Checkbox value="Y">Yes</Checkbox>
-                          <Checkbox value="N">No</Checkbox>
-                        </Row>
-                      </Form.Item>
-                    ) : (
-                      ""
-                    )}
+                <Form.Item name="clinicWebsite" label="Clinic Website">
+                  <Input placeholder="Please enter clinic website" />
+                </Form.Item>
+              </>
+            ) : signupSteps === 2 ? (
+              <>
+                <h2>Get to Know Your Clinic</h2>
+                <p className="custom-text1">
+                  Help us understand your clinic’s size, patient flow, and
+                  services.
+                </p>
+                <Form.Item name="clinicSize" label="What is your clinic size?">
+                  <Select
+                    showSearch
+                    placeholder="Select a person"
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={clinicSizeOption}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="staffCount"
+                  label="how much staff do you have? "
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select a person"
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={clinicSizeOption}
+                  />
+                </Form.Item>
 
-                    <Form.Item
-                      name="archDigitalWorkFlowYN"
-                      label="Is your clinic set up for digital workflow?"
-                    >
-                      <Row>
-                        <Checkbox value="Y">Yes</Checkbox>
-                        <Checkbox value="N">No</Checkbox>
-                      </Row>
-                    </Form.Item>
-                  </>
-                ) : signupSteps === 4 ? (
-                  <>
-                    <h2>Check Your Inbox!</h2>
-                    <p className="custom-text1">
-                      An activation email has been sent. Please confirm to
-                      complete your setup.
-                    </p>
-
-                    <p style={{ paddingBottom: 10 }}>
-                      Didn’t get the email?{" "}
-                      <span
-                        className="custom-text-link"
-                        onClick={() => {
-                          reSendActivationLink();
-                        }}
-                      >
-                        Resend
-                      </span>{" "}
-                    </p>
-                  </>
+                <Form.Item
+                  name="patientsAveragePerWeek"
+                  label="How many patients do you see on average per week?"
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select a person"
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={patientsAveragePerWeekOption}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="servicesFrequently"
+                  label="What type of dental services do you offer most frequently?"
+                >
+                  {serviceList.map((service) => (
+                    <CustomButton
+                      key={service}
+                      service={service}
+                      services={services}
+                      onClick={() => addServices(service)}
+                    />
+                  ))}
+                </Form.Item>
+              </>
+            ) : signupSteps === 3 ? (
+              <>
+                <h2>Digital Workflow & Lab Resources</h2>
+                <p className="custom-text1">
+                  Let us know about your digital workflow and lab resources.
+                </p>
+                {services.includes("Full Arch") ? (
+                  <Form.Item
+                    name="inHouseArchLabYN"
+                    label="Do you have an in-house full arch lab?"
+                  >
+                    <Row>
+                      <Checkbox value="Y">Yes</Checkbox>
+                      <Checkbox value="N">No</Checkbox>
+                    </Row>
+                  </Form.Item>
                 ) : (
-                  <></>
+                  ""
                 )}
 
-                <Form.Item>
-                  <Button
-                    className="custom-primary-button"
-                    htmlType="submit"
-                    block
-                  >
-                    {signupSteps === 3
-                      ? "Create Account"
-                      : signupSteps === 4
-                      ? "Login"
-                      : "Next"}
-                  </Button>
-                  {signupSteps === 4 ? (
-                    <>
-                      <Button block style={{ marginTop: 10 }}>
-                        Contact Us
-                      </Button>
-                    </>
-                  ) : (
-                    ""
-                  )}
+                <Form.Item
+                  name="archDigitalWorkFlowYN"
+                  label="Is your clinic set up for digital workflow?"
+                >
+                  <Row>
+                    <Checkbox value="Y">Yes</Checkbox>
+                    <Checkbox value="N">No</Checkbox>
+                  </Row>
                 </Form.Item>
-              </Form>
-              {signupSteps === 1 ? (
-                <>
-                  {" "}
-                  <p style={{ display: "flex", justifyContent: "center" }}>
-                    Do you have an account?&nbsp;
-                    <a href="/login" className="custom-text-link">
-                      Login
-                    </a>
-                  </p>
-                </>
-              ) : signupSteps === 3 ? (
-                <>
-                  By Creating and account you agree to our{" "}
-                  <a
+              </>
+            ) : signupSteps === 4 ? (
+              <>
+                <h2>Check Your Inbox!</h2>
+                <p className="custom-text1">
+                  An activation email has been sent. Please confirm to complete
+                  your setup.
+                </p>
+
+                <p style={{ paddingBottom: 10 }}>
+                  Didn’t get the email?{" "}
+                  <span
                     className="custom-text-link"
-                    href="/terms"
-                    style={{ marginRight: 10 }}
+                    onClick={() => {
+                      reSendActivationLink();
+                    }}
                   >
-                    Terms & Conditions
-                  </a>
-                  and{" "}
-                  <a className="custom-text-link" href="/privacy">
-                    Privacy Policy
-                  </a>
+                    Resend
+                  </span>{" "}
+                </p>
+              </>
+            ) : (
+              <></>
+            )}
+
+            <Form.Item>
+              <Button className="custom-primary-button" htmlType="submit" block>
+                {signupSteps === 3
+                  ? "Create Account"
+                  : signupSteps === 4
+                  ? "Login"
+                  : "Next"}
+              </Button>
+              {signupSteps === 4 ? (
+                <>
+                  <Button block style={{ marginTop: 10 }}>
+                    Contact Us
+                  </Button>
                 </>
               ) : (
                 ""
               )}
-            </div>
-          </div>
-
-          <div className="auth-custom-footer">
-            <Row className="auth-footer-content">
-              <Col span={11} className="footer-col" style={{ marginLeft: 15 }}>
-                <p className="custom-text1">
-                  All rights reserved Teraleads 2024
-                </p>
-              </Col>
-              <Col
-                className="footer-links footer-col"
-                span={12}
-                style={{ display: "flex", justifyContent: "end" }}
+            </Form.Item>
+          </Form>
+          {signupSteps === 1 ? (
+            <>
+              {" "}
+              <p style={{ display: "flex", justifyContent: "center" }}>
+                Do you have an account?&nbsp;
+                <a href="/login" className="custom-text-link">
+                  Login
+                </a>
+              </p>
+            </>
+          ) : signupSteps === 3 ? (
+            <>
+              By Creating and account you agree to our{" "}
+              <a
+                className="custom-text-link"
+                href="/terms"
+                style={{ marginRight: 10 }}
               >
-                <a
-                  className="custom-text1"
-                  href="/terms"
-                  style={{ marginRight: 10 }}
-                >
-                  <p>Terms & Conditions</p>
-                </a>
-                <a className="custom-text1" href="/privacy">
-                  <p>Privacy Policy</p>
-                </a>
-              </Col>
-            </Row>
-          </div>
-        </Col>
-        <Col span={12} className="container-right"></Col>
-      </Row>
+                Terms & Conditions
+              </a>
+              and{" "}
+              <a className="custom-text-link" href="/privacy">
+                Privacy Policy
+              </a>
+            </>
+          ) : (
+            ""
+          )}
+        </div>
+      </div>
     </>
   );
 };
