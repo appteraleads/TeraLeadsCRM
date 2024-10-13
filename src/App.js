@@ -3,7 +3,6 @@ import CRMRoute from './Routes/CRMRoute';
 function App() {
   return (
     <>
-    {/* <Layout/> */}
       <CRMRoute/>
     </>
   );

@@ -107,3 +107,7 @@ margin: 5px;
   background-color: #EFEEFF;
   color: #3900DB;
 }
+
+.ant-btn-variant-solid{
+   background-color: #3900DB;
+}
