@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "teraleadscrm-d99ea"
-  }
+  },
+  "targets": {
+    "teraleadscrm-d99ea": {
+      "hosting": {
+        "second-host": [
+          "teracrm"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
