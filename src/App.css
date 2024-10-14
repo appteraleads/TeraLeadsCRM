@@ -148,6 +148,14 @@
   background-color: #3900DB !important;
 }
 
-a:hover{
+a:hover {
   color: #3900DB;
+}
+
+.ant-form-item-required::before {
+  display: none;
+}
+
+label:before {
+  display: none !important;
 }

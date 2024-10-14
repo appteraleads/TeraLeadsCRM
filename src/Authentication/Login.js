@@ -138,7 +138,7 @@ const Login = () => {
                 block
                 icon={<Image src={facebookLogo} style={{ width: 20 }} />}
               >
-                Continue with FaceBook
+                Continue with Facebook
               </Button>
             </Form.Item>
             <Divider>Or</Divider>
