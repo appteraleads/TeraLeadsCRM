@@ -893,7 +893,7 @@ const Leads = () => {
       label: "Kanban",
       children: (
         <DndProvider backend={HTML5Backend}>
-          <div
+          <div  
             style={{
               background: "#F5F5FA",
               minHeight: "600px",
