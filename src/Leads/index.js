@@ -54,7 +54,8 @@ import { FiEye } from "react-icons/fi";
 import { GoMail } from "react-icons/go";
 import { HiOutlineChatBubbleLeft } from "react-icons/hi2";
 import { IoCallOutline } from "react-icons/io5";
-
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 const { Text } = Typography;
 const { Header, Sider, Content } = Layout;
 
@@ -162,6 +163,12 @@ const kanbanData = {
   ],
 };
 
+const getInitials = (name) => {
+  const nameParts = name.split(" ");
+  const initials = nameParts.map((part) => part[0].toUpperCase()).join("");
+  return initials;
+};
+
 const sidebaritems = [
   {
     key: "Home",
@@ -265,12 +272,6 @@ const pagedata = [
   },
   // Add more data entries...
 ];
-
-const getInitials = (name) => {
-  const nameParts = name.split(" ");
-  const initials = nameParts.map((part) => part[0].toUpperCase()).join("");
-  return initials;
-};
 
 const columns = [
   {
@@ -419,11 +420,385 @@ const columns = [
   },
 ];
 
+// Draggable Card Component
+const DraggableCard = ({ item, columnId, index, moveCard }) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: "CARD",
+    item: { ...item, columnId, index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  return (
+    <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
+      <Card
+        key={index}
+        style={{
+          marginBottom: "16px",
+          width: 280,
+          backgroundColor: "#fff",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
+          minWidth: 280,
+        }}
+        className="kanbanCard"
+      >
+        <Card.Meta
+          avatar={<Avatar> {getInitials(item.name[0])}</Avatar>}
+          title={
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "grid" }}>
+                <Text>{item.name}</Text>
+                <Text className="custom-text1">{item.phone}</Text>
+              </div>
+              <div>
+                <BsThreeDots style={{ cursor: "pointer" }} />
+              </div>
+            </div>
+          }
+        />
+        <br />
+        <Divider style={{ margin: 0, padding: 0 }} />
+        {/* Row for email */}
+        <Row
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Col span={2}>
+            <MdEmail
+              className="custom-text1"
+              style={{
+                fontSize: 16,
+                color: "#72779E",
+                display: "flex",
+              }}
+            />
+          </Col>
+          <Col span={22}>
+            <Text>{item.email}</Text>
+          </Col>
+        </Row>
+        <Divider style={{ margin: 0, padding: 0 }} />
+        {/* Row for info */}
+        <Row
+          align="middle"
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Col span={2}>
+            <Tooth
+              style={{
+                fontSize: 16,
+                color: "#72779E",
+                display: "flex",
+              }}
+            />
+          </Col>
+          <Col span={22}>
+            <Text>{item.info}</Text>
+          </Col>
+        </Row>
+        <Divider style={{ margin: 0, padding: 0 }} />
+        {/* Row for type */}
+        <Row
+          align="middle"
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Col span={2}>
+            <RiUserFill
+              style={{
+                fontSize: 16,
+                color: "#72779E",
+                display: "flex",
+              }}
+            />
+          </Col>
+          <Col span={22}>
+            <Text type="secondary">{item.type}</Text>
+          </Col>
+        </Row>
+
+        <Divider style={{ margin: 0, padding: 3 }} />
+        <Row
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <IoCallOutline
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              height: 30,
+              width: 30,
+              padding: 5,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
+
+          <HiOutlineChatBubbleLeft
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              height: 30,
+              width: 30,
+              padding: 5,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
+
+          <GoMail
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              height: 30,
+              padding: 5,
+              width: 30,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
+
+          <div
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              height: 30,
+              width: 50,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Avatar size={"small"}> A</Avatar>
+            <MdOutlineKeyboardArrowDown />
+          </div>
+
+          <FiEye
+            size={12}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              height: 30,
+              padding: 5,
+              width: 30,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
+        </Row>
+      </Card>
+    </div>
+  );
+};
+
+// Column Component
+const Column = ({ columnId, kanbanData, setKanbanData }) => {
+  const [, drop] = useDrop({
+    accept: "CARD",
+    drop: (draggedItem) => {
+      handleDrop(draggedItem, columnId);
+    },
+  });
+
+  const handleDrop = (draggedItem, targetColumnId) => {
+    const sourceColumnId = draggedItem.columnId;
+    const sourceIndex = draggedItem.index;
+
+    // Remove the dragged item from the source column
+    const updatedSourceColumn = [...kanbanData[sourceColumnId]];
+    const [movedItem] = updatedSourceColumn.splice(sourceIndex, 1);
+
+    // Add the dragged item to the target column
+    const updatedTargetColumn = [...kanbanData[targetColumnId], movedItem];
+
+    // Update the state with new columns
+    setKanbanData({
+      ...kanbanData,
+      [sourceColumnId]: updatedSourceColumn,
+      [targetColumnId]: updatedTargetColumn,
+    });
+  };
+
+  return (
+    <div ref={drop} style={{ flex: "0 0 300px" }}>
+      <div
+        style={{
+          marginBottom: "10px",
+          padding: "10px",
+          backgroundColor: "#fff",
+          borderBottom: "1px solid #ddd",
+          borderRight: "1px solid #ddd",
+        }}
+      >
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Text strong style={{ fontSize: "16px", display: "block" }}>
+              {columnId}
+            </Text>
+            <Text
+              style={{
+                color: "#a0a0a0",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Moneysvg style={{ width: 16, marginRight: 10 }} />
+              <span className="custom-text1">$140,330.00</span>
+            </Text>
+          </Col>
+          <Col>
+            <Badge
+              className="custom-badge-primary"
+              count={kanbanData[columnId].length}
+            />
+          </Col>
+        </Row>
+      </div>
+      <div
+        style={{
+          maxHeight: "600px",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            marginBottom: "16px",
+            width: "90%",
+            borderRadius: "8px",
+            background: "#F5F5FA",
+          }}
+        >
+          <Button type="dashed" block style={{ background: "#F5F5FA" }}>
+            <FaPlus />
+          </Button>
+        </div>
+        {kanbanData[columnId].map((item, index) => (
+          <DraggableCard
+            key={index}
+            item={item}
+            columnId={columnId}
+            index={index}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Leads = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [kanbanData, setKanbanData] = useState({
+    Leads: [
+      {
+        name: "Alexander Lopez",
+        phone: "(702) 555-3456",
+        email: "Alexander@gmail.com",
+        info: "Other",
+        type: "#Form_Lead",
+      },
+      {
+        name: "Sophia Garcia",
+        phone: "(214) 555-7890",
+        email: "Alexander@gmail.com",
+        info: "Other",
+        type: "#Call_Lead",
+      },
+    ],
+    Appointment: [
+      {
+        name: "Michael Johnson",
+        phone: "(213) 555-2345",
+        email: "JohnsonML@gmail.com",
+        info: "All On 4 Implants - $15,995",
+        type: "#Form_Lead",
+      },
+      {
+        name: "Ethan Jones",
+        phone: "(305) 555-4567",
+        email: "Ethan@gmail.com",
+        info: "All On 4 Implants Single Arch - $15,995",
+        type: "#Form_Lead",
+      },
+    ],
+    CantReach: [
+      {
+        name: "Michael Johnson",
+        phone: "(213) 555-2345",
+        email: "JohnsonML@gmail.com",
+        info: "All On 4 Implants - $15,995",
+        type: "#Form_Lead",
+      },
+      {
+        name: "Ethan Jones",
+        phone: "(305) 555-4567",
+        email: "Ethan@gmail.com",
+        info: "All On 4 Implants Single Arch - $15,995",
+        type: "#Form_Lead",
+      },
+    ],
+    NoShow: [
+      {
+        name: "Michael Johnson",
+        phone: "(213) 555-2345",
+        email: "JohnsonML@gmail.com",
+        info: "All On 4 Implants - $15,995",
+        type: "#Form_Lead",
+      },
+      {
+        name: "Ethan Jones",
+        phone: "(305) 555-4567",
+        email: "Ethan@gmail.com",
+        info: "All On 4 Implants Single Arch - $15,995",
+        type: "#Form_Lead",
+      },
+    ],
+    FakeLeads: [
+      {
+        name: "Michael Johnson",
+        phone: "(213) 555-2345",
+        email: "JohnsonML@gmail.com",
+        info: "All On 4 Implants - $15,995",
+        type: "#Form_Lead",
+      },
+      {
+        name: "Ethan Jones",
+        phone: "(305) 555-4567",
+        email: "Ethan@gmail.com",
+        info: "All On 4 Implants Single Arch - $15,995",
+        type: "#Form_Lead",
+      },
+    ],
+  });
 
   const pageSize = 10;
   const onClick = (e) => {
@@ -517,269 +892,26 @@ const Leads = () => {
       key: "2",
       label: "Kanban",
       children: (
-        <div
-          style={{
-            background: "#F5F5FA",
-            minHeight: "600px",
-            overflowX: "auto",
-          }}
-          className="custom-scroll-container"
-        >
-          <Row style={{ display: "flex", flexWrap: "nowrap" }}>
-            {Object.keys(kanbanData).map((column) => (
-              <Col key={column} style={{ flex: "0 0 300px" }}>
-                <div
-                  style={{
-                    marginBottom: "10px",
-                    padding: "10px",
-                    backgroundColor: "#fff",
-                    borderBottom: "1px solid #ddd",
-                    borderRight: "1px solid #ddd",
-                  }}
-                >
-                  <Row justify="space-between" align="middle">
-                    <Col>
-                      <Text
-                        strong
-                        style={{ fontSize: "16px", display: "block" }}
-                      >
-                        {column}
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#a0a0a0",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Moneysvg style={{ width: 16, marginRight: 10 }} />
-                        <span className="custom-text1">$140,330.00</span>
-                      </Text>
-                    </Col>
-                    <Col>
-                      <Badge
-                        className="custom-badge-primary"
-                        count={kanbanData[column].length}
-                      />
-                    </Col>
-                  </Row>
-                </div>
-
-                <div
-                  style={{
-                    maxHeight: "600px",
-                    overflowY: "auto",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      marginBottom: "16px",
-                      width: "90%",
-
-                      borderRadius: "8px",
-                      background: "#F5F5FA",
-                    }}
-                  >
-                    <Button
-                      type="dashed"
-                      block
-                      style={{ background: "#F5F5FA" }}
-                    >
-                      <FaPlus />
-                    </Button>
-                  </div>
-
-                  {kanbanData[column].map((item, index) => (
-                    <>
-                      <Card
-                        key={index}
-                        style={{
-                          marginBottom: "16px",
-                          width: "90%",
-                          backgroundColor: "#fff",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                          borderRadius: "8px",
-                        }}
-                        className="kanbanCard"
-                      >
-                        <Card.Meta
-                          avatar={<Avatar>{item.name[0]}</Avatar>}
-                          title={
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              <div style={{ display: "grid" }}>
-                                <Text>{item.name}</Text>
-                                <Text className="custom-text1">
-                                  {item.phone}
-                                </Text>
-                              </div>
-                              <div>
-                                <BsThreeDots style={{ cursor: "pointer" }} />
-                              </div>
-                            </div>
-                          }
-                        />
-                        <br />
-                        <Divider style={{ margin: 0, padding: 0}} />
-                        {/* Row for email */}
-                        <Row
-                          style={{
-                            marginTop: "8px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Col span={2}>
-                            <MdEmail
-                              className="custom-text1"
-                              style={{
-                                fontSize: 16,
-                                color: "#72779E",
-                                display: "flex",
-                              }}
-                            />
-                          </Col>
-                          <Col span={22}>
-                            <Text>{item.email}</Text>
-                          </Col>
-                        </Row>
-                        <Divider style={{ margin: 0, padding: 0}} />
-                        {/* Row for info */}
-                        <Row
-                          align="middle"
-                          style={{
-                            marginTop: "8px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Col span={2}>
-                            <Tooth
-                              style={{
-                                fontSize: 16,
-                                color: "#72779E",
-                                display: "flex",
-                              }}
-                            />
-                          </Col>
-                          <Col span={22}>
-                            <Text>{item.info}</Text>
-                          </Col>
-                        </Row>
-                        <Divider style={{ margin: 0, padding: 0}} />
-                        {/* Row for type */}
-                        <Row
-                          align="middle"
-                          style={{
-                            marginTop: "8px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            marginBottom:10
-                          }}
-                        >
-                          <Col span={2}>
-                            <RiUserFill
-                              style={{
-                                fontSize: 16,
-                                color: "#72779E",
-                                display: "flex",
-                              }}
-                            />
-                          </Col>
-                          <Col span={22}>
-                            <Text type="secondary">{item.type}</Text>
-                          </Col>
-                        </Row>
-
-                        <Divider style={{ margin: 0, padding: 3 }} />
-                        <Row
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <IoCallOutline
-                            style={{
-                              border: "1px solid #ddd",
-                              borderRadius: 8,
-                              height: 30,
-                              width: 30,
-                              padding: 5,
-                              display: "flex",
-                              justifyContent: "center",
-                            }}
-                          />
-
-                          <HiOutlineChatBubbleLeft
-                            style={{
-                              border: "1px solid #ddd",
-                              borderRadius: 8,
-                              height: 30,
-                              width: 30,
-                              padding: 5,
-                              display: "flex",
-                              justifyContent: "center",
-                            }}
-                          />
-
-                          <GoMail
-                            style={{
-                              border: "1px solid #ddd",
-                              borderRadius: 8,
-                              height: 30,
-                              padding: 5,
-                              width: 30,
-                              display: "flex",
-                              justifyContent: "center",
-                            }}
-                          />
-
-                          <div
-                            style={{
-                              border: "1px solid #ddd",
-                              borderRadius: 8,
-                              height: 30,
-                              width: 50,
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems:'center'
-                            }}
-                          >
-                            <Avatar size={"small"}> A</Avatar>
-                            <MdOutlineKeyboardArrowDown />
-                          </div>
-
-                          <FiEye
-                            size={12}
-                            style={{
-                              border: "1px solid #ddd",
-                              borderRadius: 8,
-                              height: 30,
-                              padding: 5,
-                              width: 30,
-                              display: "flex",
-                              justifyContent: "center",
-                            }}
-                          />
-                        </Row>
-                      </Card>
-                    </>
-                  ))}
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </div>
+        <DndProvider backend={HTML5Backend}>
+          <div
+            style={{
+              background: "#F5F5FA",
+              minHeight: "600px",
+              overflowX: "auto",
+            }}
+          >
+            <Row style={{ display: "flex", flexWrap: "nowrap" }}>
+              {Object.keys(kanbanData).map((columnId) => (
+                <Column
+                  key={columnId}
+                  columnId={columnId}
+                  kanbanData={kanbanData}
+                  setKanbanData={setKanbanData}
+                />
+              ))}
+            </Row>
+          </div>
+        </DndProvider>
       ),
     },
     {
@@ -794,7 +926,7 @@ const Leads = () => {
   };
 
   const onChange = (newActiveKey) => {
-    setCurrentPage(1)
+    setCurrentPage(1);
   };
 
   return (

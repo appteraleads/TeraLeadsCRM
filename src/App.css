@@ -41,13 +41,6 @@
   /* Rounded corners for the track */
 }
 
-/* Firefox scrollbar styles */
-* {
-  scrollbar-width: thin;
-  /* For Firefox */
-  scrollbar-color: #888 #f1f1f1;
-  /* thumb color, track color */
-}
 
 /* Style the scrollbars */
 .custom-scroll-container::-webkit-scrollbar {
