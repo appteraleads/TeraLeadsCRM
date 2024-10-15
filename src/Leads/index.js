@@ -793,7 +793,9 @@ const Leads = () => {
     console.log("handle clinic");
   };
 
-  const onChange = (newActiveKey) => {};
+  const onChange = (newActiveKey) => {
+    setCurrentPage(1)
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
