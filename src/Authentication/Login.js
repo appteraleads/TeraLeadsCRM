@@ -11,8 +11,6 @@ import {
 import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
 
 const Login = () => {
- 
-
   const [alertMsg, setalertMsg] = useState("");
   const [alertDes, setalertDes] = useState("");
   const [alertType, setalertType] = useState("");
@@ -23,7 +21,7 @@ const Login = () => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
         localStorage.setItem("authToken", res?.data?.token);
-        window.location.replace("/dashboard");
+        window.location.replace("/leads");
       })
       .catch((err) => {
         setalertMsg("Invalid Credential");
@@ -47,7 +45,7 @@ const Login = () => {
           // Handle successful response
           localStorage.setItem("authToken", res?.data?.token);
           console.log("Login successful:", res.data);
-          window.location.replace("/dashboard");
+          window.location.replace("/leads");
           // You can update the UI or store user data here
         })
         .catch((error) => {
@@ -81,7 +79,7 @@ const Login = () => {
           // Handle successful response
           localStorage.setItem("authToken", res?.data?.token);
           console.log("Login successful:", res.data);
-          window.location.replace("/dashboard");
+          window.location.replace("/leads");
           // You can update the UI or store user data here
         })
         .catch((error) => {

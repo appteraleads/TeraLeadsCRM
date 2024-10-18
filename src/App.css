@@ -41,6 +41,13 @@
   /* Rounded corners for the track */
 }
 
+/* Firefox scrollbar styles */
+* {
+  scrollbar-width: thin;
+  /* For Firefox */
+  scrollbar-color: #888 #f1f1f1;
+  /* thumb color, track color */
+}
 
 /* Style the scrollbars */
 .custom-scroll-container::-webkit-scrollbar {
@@ -174,8 +181,12 @@
 }
 
 .ant-menu .ant-menu-item-selected {
-  background-color: #EFEEFF;
-  color: #3900DB;
+  background-color: #EFEEFF !important;
+  color: #3900DB !important;
+}
+
+.ant-menu-item .ant-menu-item-selected .ant-menu-title-content .custom-text1 {
+  color: #3900DB !important;
 }
 
 .ant-btn-variant-solid {
@@ -269,6 +280,10 @@ svg {
   color: #3900DB !important;
 }
 
+.pagination-link a:hover {
+  color: #3900DB !important;
+}
+
 .ant-pagination .ant-pagination-item-active a {
   color: #000 !important;
 }
@@ -292,4 +307,115 @@ svg {
 
 .kanbanCard.ant-card .ant-card-body {
   padding: 15px;
+}
+
+.ant-select-selection-item {
+  color: #72779E;
+}
+
+.custom-modal .ant-modal-content {
+  border-radius: 10px;
+  padding: 0px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.custom-modal .ant-modal-header {
+  background-color: #E8EBEF;
+  padding: 10px;
+}
+
+.custom-modal .ant-modal-body {
+  padding: 0px 24px 10px 24px;
+}
+
+
+.ant-input:focus,
+.ant-select-selector:focus {
+  border-color: #3900DB;
+  box-shadow: 0 0 6px rgba(24, 144, 255, 0.3);
+}
+
+.ant-switch.ant-switch-checked {
+  background-color: #3900DB;
+}
+
+.ant-switch.ant-switch-checked:hover {
+  background-color: #3900DB !important;
+}
+
+.ant-btn-variant-outlined:hover {
+  color: #3900DB !important;
+  border-color: #3900DB !important;
+}
+
+.ant-picker-outlined:focus-within {
+  border-color: #3900DB
+}
+
+li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background: #EFEEFF !important
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  border: 1px solid #3900DB;
+}
+
+.ant-table-wrapper .ant-table-thead>tr>td {
+  background: #fff !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-selected:not(.ant-picker-cell-disabled) .ant-picker-cell-inner,
+:where(.css-dev-only-do-not-override-ccdg5a).ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-start:not(.ant-picker-cell-disabled) .ant-picker-cell-inner,
+:where(.css-dev-only-do-not-override-ccdg5a).ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-end:not(.ant-picker-cell-disabled) .ant-picker-cell-inner {
+  background: #3900DB
+}
+
+.custom-IoCallOutline:hover {
+  background-color: #C5FFB7 !important;
+  border: none !important;
+}
+
+.custom-HiOutlineChatBubbleLeft:hover {
+  background-color: #FFF2AF !important;
+  border: none !important;
+}
+
+.custom-GoMail:hover {
+  background-color: #E0E4FF !important;
+  border: none !important;
+}
+
+.DraggableCard {
+  border: 2px solid black;
+  padding: 10px;
+  margin: 20px;
+}
+
+
+
+
+.kanban-board {
+  display: flex;
+  justify-content: space-between;
+}
+
+.kanban-section {
+  width: 30%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.kanban-item {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: move;
+}
+
+.dragging {
+  opacity: 0.5;
 }

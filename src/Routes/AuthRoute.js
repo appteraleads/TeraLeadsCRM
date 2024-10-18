@@ -162,7 +162,7 @@ const AuthRoute = () => {
         />
 
         <Route
-          path="/dashboard"
+          path="/leads"
           element={
             <Leads userEmailId={userEmailId} setuserEmailId={setuserEmailId} />
           }
