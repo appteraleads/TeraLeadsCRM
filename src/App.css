@@ -23,14 +23,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #AEAEB5;
   /* Color of the scrollbar thumb */
   border-radius: 10px;
   /* Rounded corners for the thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #AEAEB5;
   /* Color of the thumb on hover */
 }
 
@@ -45,7 +45,7 @@
 * {
   scrollbar-width: thin;
   /* For Firefox */
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-color: #AEAEB5 #f1f1f1;
   /* thumb color, track color */
 }
 
@@ -159,6 +159,10 @@
   margin: 10px;
 }
 
+.custom-select .ant-select-selector:hover {
+  border: 0px solid #d9d9d9 !important;
+}
+
 .custom-btn {
   margin: 5px;
 }
@@ -178,6 +182,11 @@
 .ant-checkbox-checked .ant-checkbox-inner {
   border-color: #3900DB;
   background-color: #3900DB;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner:hover {
+
+  background-color: #3900DB !important;
 }
 
 .ant-menu .ant-menu-item-selected {
@@ -266,7 +275,7 @@ svg {
 }
 
 .ant-tabs-nav-wrap {
-  margin-left: 25px;
+  margin-left: 15px;
 }
 
 .custom-badge-primary .ant-badge-count {
@@ -418,4 +427,141 @@ li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
 
 .dragging {
   opacity: 0.5;
+}
+
+.ant-notification-notice-error {
+  background: #FFF2F2;
+  border-radius: 10px;
+}
+
+.ant-notification-notice-error .ant-notification-notice-message {
+  color: red !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-description {
+  color: red !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-close span svg {
+  color: red !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-with-icon svg {
+  color: red !important;
+}
+
+
+.ant-notification-notice-success {
+  background: #F3FFF2;
+  border-radius: 10px;
+}
+
+.ant-notification-notice-success .ant-notification-notice-message {
+  color: #088D0D !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-description {
+  color: #088D0D !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-close span svg {
+  color: #088D0D !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-with-icon svg {
+  color: #088D0D !important;
+}
+
+.ant-table-wrapper .ant-table-tbody .ant-table-row.ant-table-row-selected .ant-table-cell {
+  background-color: #EFEEFF;
+}
+
+.ant-table-cell-row-hover {
+  background-color: #EFEEFF !important;
+}
+
+.ant-checkbox-indeterminate .ant-checkbox-inner:after,
+.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
+  background-color: #3900DB;
+}
+
+.ant-input-group-wrapper-outlined .ant-input-group-addon {
+  background-color: #fff;
+}
+
+.custom-search.ant-input-outlined {
+  border-left: none;
+  border-right: none;
+}
+
+.custom-search .ant-input:focus,
+.ant-select-selector:focus {
+  border-top: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  box-shadow: none;
+}
+
+.custom-search .ant-input:hover,
+.ant-select-selector:focus {
+  border-top: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  box-shadow: none;
+}
+
+/* App.css */
+.droppable-hover {
+  border: 2px dashed #007bff;
+  /* Dotted border style */
+}
+
+.lead-details-modal .ant-modal-content {
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.custom-card-notes.ant-card .ant-card-body {
+  padding: 0px !important;
+}
+
+.custom-modal-lead-details .ant-modal-header {
+  background: linear-gradient(90deg, #F5F8FF 0%, #FEF7FE 51.48%, #FFFBFE 100%) !important;
+  padding: 15px;
+  border-bottom: 1px solid #E8EBEF;
+}
+
+.custom-modal-lead-details .ant-modal-content {
+  padding: 0px 0px 15px 0px;
+}
+
+.custom-modal-lead-details .ant-modal-body {
+  padding: 0px 15px 15px 15px;
+}
+
+.editableTextContainer {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+
+
+.mention-text {
+  color: red !important;
+  /* Ensure the text is red */
+}
+
+a {
+  color: #3900DB;
+}
+
+.ant-btn-variant-link {
+  color: #3900DB;
+}
+
+.ant-btn-variant-link:hover {
+  color: #3900DB !important;
+}
+
+.float-button .ant-float-btn-body{
+  background-color: '#1B0756' !important
 }

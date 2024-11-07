@@ -1,12 +1,11 @@
 import "./App.css";
-import DemoTest from "./Leads/demoappend";
 import AuthRoute from "./Routes/AuthRoute";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+
 function App() {
   return (
     <>
-      {/* <AuthRoute /> */}
-
-      <DemoTest/>
+      <AuthRoute />
     </>
   );
 }

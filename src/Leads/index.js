@@ -1,402 +1,83 @@
+/* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useState } from "react";
 import {
   Layout,
-  theme,
-  Menu,
   Table,
   Row,
   Col,
-  Image,
   Space,
   Dropdown,
   Divider,
   Typography,
-  Avatar,
   Button,
   Select,
   Tabs,
   Badge,
-  Tag,
   Pagination,
   Checkbox,
-  Card,
-  Modal,
   Form,
-  Input,
   Switch,
-  Tooltip,
   Spin,
-  TimePicker,
-  DatePicker,
+  notification,
+  Empty,
 } from "antd";
 import axios from "axios";
-import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
-import { UserOutlined } from "@ant-design/icons";
-import TeraleadsLogo from "../assets/logo/TeraleadsRemoveBg.png";
 import { ReactComponent as Usersvg } from "../assets/IconSvg/solar_user-broken.svg";
-import { ReactComponent as Dashboardsvg } from "../assets/IconSvg/icons8-home 1.svg";
-import { ReactComponent as Appointmentssvg } from "../assets/IconSvg/basil_calendar-outline.svg";
-import { ReactComponent as Reportsvg } from "../assets/IconSvg/hugeicons_analytics-up.svg";
-import { ReactComponent as Callsvg } from "../assets/IconSvg/Vector.svg";
-import { ReactComponent as Chatsvg } from "../assets/IconSvg/fluent_chat-16-regular.svg";
-import { ReactComponent as Dentalsvg } from "../assets/IconSvg/Frame 2.svg";
-import { ReactComponent as Moneysvg } from "../assets/IconSvg/Vector(1).svg";
-import { ReactComponent as Tooth } from "../assets/IconSvg/mdi_tooth.svg";
-import { ReactComponent as Moneybagsvg } from "../assets/IconSvg/Vector (2).svg";
-import { IoIosNotificationsOutline } from "react-icons/io";
-import { MdZoomOutMap } from "react-icons/md";
-import { FiPlusCircle } from "react-icons/fi";
-import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { HiDotsVertical } from "react-icons/hi";
 import { FiCalendar } from "react-icons/fi";
 import { LuPlus } from "react-icons/lu";
 import { PiExportBold } from "react-icons/pi";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { FaPlus } from "react-icons/fa6";
-import { BsThreeDots } from "react-icons/bs";
-import { MdEmail } from "react-icons/md";
-import { RiUserFill } from "react-icons/ri";
-import { FiEye } from "react-icons/fi";
-import { GoMail } from "react-icons/go";
-import { HiOutlineChatBubbleLeft } from "react-icons/hi2";
-import { IoCallOutline } from "react-icons/io5";
-// import { DndProvider, useDrag, useDrop } from "react-dnd";
-// import { HTML5Backend } from "react-dnd-html5-backend";
-import { IoChevronBackSharp } from "react-icons/io5";
-import {
-  mixedColors,
-  leadStatusColorAndTextList,
-} from "../Common/ColorHexCodeList";
-import { FaCalendar } from "react-icons/fa";
-import { RiCalendarScheduleLine } from "react-icons/ri";
-import { IoEyeOutline } from "react-icons/io5";
-import { CiEdit } from "react-icons/ci";
-import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
+import moment from "moment";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { mixedColors } from "../Common/ColorHexCodeList";
 import { RiDeleteBin5Line } from "react-icons/ri";
-const { Text } = Typography;
-const { Header, Sider, Content } = Layout;
-const { Option } = Select;
+import { FaMicrophone } from "react-icons/fa6";
+import { MdSpaceDashboard } from "react-icons/md";
+import { RxDragHandleDots2 } from "react-icons/rx";
+import { leadsColumns } from "../Common/ReturnColumnValue";
+import KanbanView from "./KanbanView";
+import {
+  ViewUpdateLeadDetails,
+  CloseLeadPayment,
+  AppointmentDateTime,
+  CreateLeads,
+  DeleteLead,
+  CreateDuplicateLead,
+} from "./Modals";
+const { Header, Content } = Layout;
 
-const leadsStatusList = [
-  {
-    label: "All Leads",
-    value: "AllLeads",
-  },
-  {
-    label: "Appointment",
-    value: "Appointment",
-  },
-  {
-    label: "Reschedule Requested",
-    value: "RescheduleRequested",
-  },
-
-  {
-    label: "No Show",
-    value: "NoShow",
-  },
-  {
-    label: "No Money",
-    value: "NoMoney",
-  },
-  {
-    label: "Undecided",
-    value: "Undecided",
-  },
-  {
-    label: "Lost",
-    value: "Lost",
-  },
-  {
-    lable: "Closed",
-    value: "Closed",
-  },
-  {
-    label: "Live Agent",
-    value: "Live Agent",
-  },
-];
-
-const creditScoreList = [
-  {
-    label: "Below 549",
-    value: "Below 549",
-  },
-  {
-    label: "550-599",
-    value: "550-599",
-  },
-  {
-    label: "600-649",
-    value: "600-649",
-  },
-  {
-    label: "650-699",
-    value: "650-699",
-  },
-  {
-    label: "Above 700",
-    value: "Above 700",
-  },
-];
-
-const getInitials = (name) => {
-  const nameParts = name?.split(" ");
-  const initials = nameParts?.map((part) => part[0]?.toUpperCase())?.join("");
-
-  return initials;
-};
-
-const sidebaritems = [
-  {
-    key: "Home",
-    label: "Home",
-    type: "group",
-    children: [
-      {
-        key: "1",
-        icon: <Dashboardsvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Dashboard</span>,
-      },
-      {
-        key: "2",
-        icon: <Appointmentssvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Appointments</span>,
-      },
-      {
-        key: "3",
-        icon: <Reportsvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Reports</span>,
-      },
-    ],
-  },
-  {
-    key: "grp",
-    label: "Group",
-    type: "group",
-    children: [
-      {
-        key: "4",
-        icon: <Usersvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Leads</span>,
-      },
-      {
-        key: "5",
-        icon: <Callsvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Calls</span>,
-      },
-      {
-        key: "6",
-        icon: <Chatsvg style={{ width: 20 }} />,
-        label: <span className="custom-text1">Conversations</span>,
-      },
-    ],
-  },
-];
-
-const commondropitems = [
-  {
-    key: "1",
-    icon: <PiExportBold size={15} />,
-    label: "Export",
-  },
-];
-
-const clinicdropitems = [
-  {
-    label: "Clicic 1",
-    key: "1",
-  },
-  {
-    label: "Clicic 2",
-    key: "2",
-  },
-  {
-    label: "Clicic 3",
-    key: "3",
-  },
-];
-const kanbanCardMenu = [
-  {
-    label: <>View Details</>,
-    icon: <IoEyeOutline style={{ fontSize: 16 }} />,
-    key: "1",
-  },
-  {
-    label: <>Edit</>,
-    icon: <CiEdit style={{ fontSize: 16 }} />,
-    key: "2",
-  },
-  {
-    label: <>Duplicate</>,
-    icon: <HiOutlineDocumentDuplicate style={{ fontSize: 16 }} />,
-    key: "3",
-  },
-  {
-    label: <>Delete</>,
-    icon: <RiDeleteBin5Line style={{ fontSize: 16 }} />,
-    key: "4",
-  },
-];
-
-const LeadsListcolumns = [
-  {
-    title: <Checkbox />,
-    width: 50,
-    render: (text) => (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <Checkbox />
-      </div>
-    ),
-  },
-
-  {
-    title: "Name",
-    width: 200,
-    render: (text) => (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <Avatar
-          style={{
-            backgroundColor: mixedColors[Math.floor(Math.random() * 14) + 1],
-          }}
-        >
-          {getInitials(text?.FirstName + " " + text?.LastName)}
-        </Avatar>
-        <span style={{ marginLeft: 10 }}>
-          {text?.FirstName + "" + text?.LastName}
-        </span>
-      </div>
-    ),
-    sorter: {
-      compare: (a, b) => a?.name - b?.name,
-      multiple: 3,
-    },
-  },
-  {
-    title: "Phone Number",
-    dataIndex: "Phone",
-    width: 180,
-    sorter: {
-      compare: (a, b) => a?.phoneNumber - b?.phoneNumber,
-      multiple: 3,
-    },
-  },
-  {
-    title: "Email",
-    dataIndex: "Email",
-    width: 180,
-    sorter: {
-      compare: (a, b) => a?.email - b?.email,
-      multiple: 3,
-    },
-  },
-  {
-    title: "Lead Status",
-
-    width: 150,
-    render: (text) => (
-      <Tag
-        style={{
-          backgroundColor: leadStatusColorAndTextList.find(
-            (item) => item.status === text?.LeadStatus
-          )?.backgroud,
-          color: leadStatusColorAndTextList.find(
-            (item) => item.status === text?.LeadStatus
-          )?.color,
-          border: "none",
-        }}
-      >
-        {
-          leadStatusColorAndTextList.find(
-            (item) => item.status === text?.LeadStatus
-          )?.text
-        }
-      </Tag>
-    ),
-    sorter: {
-      compare: (a, b) => a?.status - b?.status,
-      multiple: 3,
-    },
-  },
-
-  {
-    title: "Treatment",
-    dataIndex: "Treatment",
-    width: 150,
-    render: (treatment) => (
-      <div style={{ display: "flex", alignItems: "center" }}>{treatment}</div>
-    ),
-    sorter: {
-      compare: (a, b) => a?.treatment - b?.treatment,
-      multiple: 3,
-    },
-  },
-
-  {
-    title: "Financing/Score	",
-    dataIndex: "financingScoreYN",
-    key: "financingScoreYN",
-    width: 150,
-    render: (financingScoreYN) => (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        {financingScoreYN === "Y" ? "Yes" : "No"}
-      </div>
-    ),
-    sorter: {
-      compare: (a, b) => a?.financingScoreYN - b?.financingScoreYN,
-      multiple: 3,
-    },
-  },
-  {
-    title: "Lead Type",
-    dataIndex: "leadType",
-    key: "leadType",
-    width: 150,
-    render: (leadType) => (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        {leadType?.icon}
-        <span style={{ marginLeft: 10 }}>{leadType?.type}</span>
-      </div>
-    ),
-    sorter: {
-      compare: (a, b) => a?.leadType - b?.leadType,
-      multiple: 3,
-    },
-  },
-  {
-    title: "Assigned",
-    width: 180,
-    render: (text) => (
-      <div style={{ display: "flex", alignItems: "center" }}>
-        {text?.AssignTo ? (
-          <>
-            <Avatar
-              style={{ backgroundColor: "#87d068" }}
-              icon={<UserOutlined />}
-            ></Avatar>
-            <span style={{ marginLeft: 10 }}>{text?.AssignTo}</span>
-          </>
-        ) : (
-          <Tag />
-        )}
-      </div>
-    ),
-    sorter: {
-      compare: (a, b) => a?.assigned - b?.assigned,
-      multiple: 3,
-    },
-  },
+const defaultColunmList = [
+  "Name",
+  "PhoneNumber",
+  "Email",
+  "LeadStatus",
+  "Treatment",
+  "FinanceScore",
+  "LeadType",
+  "Assigned",
 ];
 
 const Leads = () => {
+  const [CreateLeadsform] = Form.useForm();
+
+  const [Overview, setOverview] = useState(0);
+  const [isViewLeadModalEditable, setisViewLeadModalEditable] = useState(false);
+  const [AppointmentsCount, setAppointmentsCount] = useState(0);
+  const [ClosedLeadsCount, setClosedLeadsCount] = useState(0);
+  const [RevenueCount, setRevenueCount] = useState(0);
+  const [noShowCount, setnoShowCount] = useState(0);
+  const [selectedItemDetails, setselectedItemDetails] = useState([]);
+  const [api, contextHolder] = notification.useNotification();
+  const [columnsList, setcolumnsList] = useState([]);
+  const [tempcolumnsList, settempcolumnsList] = useState(columnsList);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const location = useLocation();
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-  const [currentPage, setCurrentPage] = useState(1);
+
+  const [leaadActiveTab, setleaadActiveTab] = useState(1);
   const [sidebarkey, setsidebarkey] = useState("1");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isFinancingEnabled, setIsFinancingEnabled] = useState(false);
@@ -405,570 +86,97 @@ const Leads = () => {
   const [buttonLoader, setbuttonLoader] = useState(false);
   const [pagedataList, setpagedataList] = useState([]);
   const [kanbanData, setKanbanData] = useState([]);
+  const [amountList, setamountList] = useState([]);
   const [dragCardItemId, setdragCardItemId] = useState("");
+  const [kanbanAppointment, setkanbanAppointment] = useState(false);
+  const [isDeleteConfirmationVisible, setisDeleteConfirmationVisible] =
+    useState(false);
+  const [isDuplicateConfirmationVisible, setisDuplicateConfirmationVisible] =
+    useState(false);
   const [isAppointmentModalVisible, setisAppointmentModalVisible] =
     useState(false);
+
   const [isCloseLeadsPaymentModalVisible, setisCloseLeadsPaymentModalVisible] =
     useState(false);
+  const [isLeadsDetailsModalVisible, setisLeadsDetailsModalVisible] =
+    useState(false);
   const [totalRecords, settotalRecords] = useState(0);
-  let leadStatusKanbanSelect = "";
+  const [addCustomListColunm, setaddCustomListColunm] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  const [leadsListcolumns, setleadsListcolumns] = useState([]);
+  const openNotificationWithIcon = (type, message, description) => {
+    api[type]({
+      message: message,
+      description: description,
+      duration: 3,
+    });
+  };
+
+  const downloadExcel = async (format) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios({
+        url: `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/export-leads?format=${format?.key}`, // Use your actual API endpoint
+        method: "GET",
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Create a link to download the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Set the download file name based on format
+      link.setAttribute(
+        "download",
+        `leads_data.${format?.key === "csv" ? "csv" : "xlsx"}`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting leads:", error);
+    }
+  };
+
+  const commondropitems = [
+    {
+      key: "excel",
+      icon: <PiExportBold size={15} />,
+
+      label: <Typography>Export As Excel</Typography>,
+    },
+    {
+      key: "csv",
+      icon: <PiExportBold size={15} />,
+      label: <Typography>Export As CSV</Typography>,
+    },
+  ];
+
+  const onSelectChange = (newSelectedRowKeys) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+  const disabledDate = (current) => {
+    // Can not select days before today and today
+    return current && current < moment().startOf("day");
+  };
 
   const handlePageChange = (page, limit) => {
     handleGetAllleads(page, limit);
   };
-  const [form] = Form.useForm();
+
   const showModal = () => {
     setIsModalVisible(true);
-  };
- const [isDragId,setisDragId]=useState(false)
-  // Draggable Card Component
-  // const DraggableCard = ({ item, columnId, index, moveCard,activeTab }) => {
-    
-  //   const [{ isDragging }, drag] = useDrag({
-  //     type: "ITEM",
-  //     item: { ...item, columnId, index, id:item?.id},
-  //     collect: (monitor) => ({
-  //       isDragging: !!monitor.isDragging(),
-  //     }),
-  //   });
-
-  //   return (
-      
-  //     <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
-  //       {
-  //         isDragging?<Card style={{marginBottom: "16px",
-  //           width: 280,
-  //           minHeight:200,
-  //           backgroundColor: "transparent",
-  //           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  //           borderRadius: "10px",
-  //           minWidth: 280,border:'1px dashed #B8BEC7'}}/>
-  //       :
-  //       <Card
-  //         key={index}
-  //         style={{
-  //           marginBottom: "16px",
-  //           width: 280,
-  //           backgroundColor: "#fff",
-  //           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  //           borderRadius: "8px",
-  //           minWidth: 280,
-  //         }}
-  //         className="kanbanCard"
-  //       >
-  //         <Card.Meta
-  //           avatar={
-  //             <Avatar
-  //               style={{
-  //                 backgroundColor:
-  //                   mixedColors[Math.floor(Math.random() * 14) + 1],
-  //               }}
-  //             >
-  //               {getInitials(item?.FirstName + " " + item?.LastName)}
-  //             </Avatar>
-  //           }
-  //           title={
-  //             <div
-  //               style={{
-  //                 display: "flex",
-  //                 justifyContent: "space-between",
-  //               }}
-  //             >
-  //               <div style={{ display: "grid" }}>
-  //                 <Text>{item?.FirstName + " " + item?.LastName}</Text>
-  //                 <Text className="custom-text1">{item.Phone}</Text>
-  //               </div>
-  //               <div>
-  //                 <Dropdown
-  //                   menu={{
-  //                     items: kanbanCardMenu,
-  //                     onSelect: handleclinic,
-  //                   }}
-  //                 >
-  //                   <BsThreeDots style={{ cursor: "pointer" }} />
-  //                 </Dropdown>
-  //               </div>
-  //             </div>
-  //           }
-  //         />
-  //         <br />
-  //         <Divider style={{ margin: 0, padding: 0 }} />
-  //         {/* Row for email */}
-  //         <Row
-  //           style={{
-  //             marginTop: "8px",
-  //             display: "flex",
-  //             alignItems: "center",
-  //             justifyContent: "center",
-  //           }}
-  //         >
-  //           <Col span={2}>
-  //             <MdEmail
-  //               className="custom-text1"
-  //               style={{
-  //                 fontSize: 16,
-  //                 color: "#72779E",
-  //                 display: "flex",
-  //               }}
-  //             />
-  //           </Col>
-  //           <Col span={22}>
-  //             <Text>{item?.Email}</Text>
-  //           </Col>
-  //         </Row>
-
-  //         {item.Treatment ? (
-  //           <>
-  //             <Divider style={{ margin: 0, padding: 0 }} />
-
-  //             <Row
-  //               align="middle"
-  //               style={{
-  //                 marginTop: "8px",
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //                 justifyContent: "center",
-  //               }}
-  //             >
-  //               <Col span={2}>
-  //                 <Tooth
-  //                   style={{
-  //                     fontSize: 16,
-  //                     color: "#72779E",
-  //                     display: "flex",
-  //                   }}
-  //                 />
-  //               </Col>
-  //               <Col span={22}>
-  //                 <Text>{item.Treatment}</Text>
-  //               </Col>
-  //             </Row>
-  //           </>
-  //         ) : (
-  //           <></>
-  //         )}
-
-  //         {item.LeadType ? (
-  //           <>
-  //             <Divider style={{ margin: 0, padding: 0 }} />
-  //             <Row
-  //               align="middle"
-  //               style={{
-  //                 marginTop: "8px",
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //                 justifyContent: "center",
-  //                 marginBottom: 10,
-  //               }}
-  //             >
-  //               <Col span={2}>
-  //                 <RiUserFill
-  //                   style={{
-  //                     fontSize: 16,
-  //                     color: "#72779E",
-  //                     display: "flex",
-  //                   }}
-  //                 />
-  //               </Col>
-  //               <Col span={22}>
-  //                 <Text type="secondary">{item.LeadType}</Text>
-  //               </Col>
-  //             </Row>
-  //           </>
-  //         ) : (
-  //           <></>
-  //         )}
-
-  //         {item?.AppointmentDate || item?.AppointmentTime ? (
-  //           <>
-  //             <Divider style={{ margin: 0, padding: 0 }} />
-  //             <Row
-  //               align="middle"
-  //               style={{
-  //                 marginTop: "8px",
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //                 justifyContent: "center",
-  //                 marginBottom: 10,
-  //               }}
-  //             >
-  //               <Col span={2}>
-  //                 <RiCalendarScheduleLine
-  //                   style={{
-  //                     fontSize: 16,
-  //                     color: "#72779E",
-  //                     display: "flex",
-  //                   }}
-  //                 />
-  //               </Col>
-  //               <Col span={22}>
-  //                 <Text>
-  //                   {item?.AppointmentDate + " " + item?.AppointmentTime}
-  //                 </Text>
-  //               </Col>
-  //             </Row>
-  //           </>
-  //         ) : (
-  //           <></>
-  //         )}
-  //         {item?.CloseAmount ? (
-  //           <>
-  //             <Divider style={{ margin: 0, padding: 0 }} />
-  //             <Row
-  //               align="middle"
-  //               style={{
-  //                 marginTop: "8px",
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //                 justifyContent: "center",
-  //                 marginBottom: 10,
-  //               }}
-  //             >
-  //               <Col span={2}>
-  //                 <Moneysvg
-  //                   style={{
-  //                     width: 16,
-  //                     color: "#72779E",
-  //                     display: "flex",
-  //                   }}
-  //                 />
-  //               </Col>
-  //               <Col span={22}>
-  //                 <Text>${item?.CloseAmount}</Text>
-  //               </Col>
-  //             </Row>
-  //           </>
-  //         ) : (
-  //           <></>
-  //         )}
-
-  //         <Divider style={{ margin: 0, padding: 3 }} />
-  //         <Row
-  //           style={{
-  //             display: "flex",
-  //             justifyContent: "space-between",
-  //           }}
-  //         >
-  //           <Tooltip placement="top" title={"Phone Call"}>
-  //             <IoCallOutline
-  //               style={{
-  //                 border: "1px solid #ddd",
-  //                 borderRadius: 8,
-  //                 height: 30,
-  //                 width: 30,
-  //                 padding: 5,
-  //                 display: "flex",
-  //                 justifyContent: "center",
-  //               }}
-  //               className="custom-IoCallOutline"
-  //             />
-  //           </Tooltip>
-  //           <Tooltip placement="top" title={"Send SMS"}>
-  //             <HiOutlineChatBubbleLeft
-  //               style={{
-  //                 border: "1px solid #ddd",
-  //                 borderRadius: 8,
-  //                 height: 30,
-  //                 width: 30,
-  //                 padding: 5,
-  //                 display: "flex",
-  //                 justifyContent: "center",
-  //               }}
-  //               className="custom-HiOutlineChatBubbleLeft"
-  //             />
-  //           </Tooltip>
-  //           <Tooltip placement="top" title={"Send Mail"}>
-  //             <GoMail
-  //               style={{
-  //                 border: "1px solid #ddd",
-  //                 borderRadius: 8,
-  //                 height: 30,
-  //                 padding: 5,
-  //                 width: 30,
-  //                 display: "flex",
-  //                 justifyContent: "center",
-  //               }}
-  //               className="custom-GoMail"
-  //             />
-  //           </Tooltip>
-
-  //           <div
-  //             style={{
-  //               border: "1px solid #ddd",
-  //               borderRadius: 8,
-  //               height: 30,
-  //               width: 50,
-  //               display: "flex",
-  //               justifyContent: "center",
-  //               alignItems: "center",
-  //             }}
-  //           >
-  //             <Avatar size={"small"}> A</Avatar>
-  //             <MdOutlineKeyboardArrowDown />
-  //           </div>
-
-  //           <FiEye
-  //             size={12}
-  //             style={{
-  //               border: "1px solid #ddd",
-  //               borderRadius: 8,
-  //               height: 30,
-  //               padding: 5,
-  //               width: 30,
-  //               display: "flex",
-  //               justifyContent: "center",
-  //             }}
-  //           />
-  //         </Row>
-  //       </Card>
-  // }
-  //     </div>
-  //   );
-  // };
-
-  // Column Component
-  // const Column = ({ columnId, kanbanData, setKanbanData }) => {
-  //   let activeTab=false
-  //   const [{ canDrop, isOver }, drop] = useDrop({
-  //     accept: "ITEM",
-  //     collect: (monitor) => ({
-  //       canDrop: monitor.canDrop(),
-  //       isOver: monitor.isOver(),
-  //     }),
-  //     drop: (draggedItem) => {
-      
-        
-  //       handleDrop(draggedItem, columnId);
-  //     },
-  //   });
-
-  //   const handleDrop = (draggedItem, targetColumnId) => {
-      
-      
-  //     const sourceColumnId = draggedItem.columnId;
-  //     const sourceIndex = draggedItem.index;
-  //     setdragCardItemId(draggedItem?.id);
-  //     if (targetColumnId === "Appointment") {
-  //       setisAppointmentModalVisible(true);
-  //     } else if (targetColumnId === "Closed") {
-  //       setisCloseLeadsPaymentModalVisible(true);
-  //     } else {
-  //       handleUpdateLeadsTypeForDragItem(draggedItem?.id, targetColumnId);
-  //     }
-
-  //     // Remove the dragged item from the source column
-  //     const updatedSourceColumn = [...kanbanData[sourceColumnId]];
-  //     const [movedItem] = updatedSourceColumn.splice(sourceIndex, 1);
-
-  //     // Add the dragged item to the target column
-  //     const updatedTargetColumn = [...kanbanData[targetColumnId], movedItem];
-
-  //     // Update the state with new columns
-  //     setKanbanData({
-  //       ...kanbanData,
-  //       [sourceColumnId]: updatedSourceColumn,
-  //       [targetColumnId]: updatedTargetColumn,
-  //     });
-  //   };
-
-  //   return (
-  //     <div ref={drop} style={{ flex: "0 0 300px" }}>  
-  //       <div
-  //         style={{
-  //           marginBottom: "10px",
-  //           padding: "10px",
-  //           backgroundColor: "#fff",
-  //           borderBottom: "1px solid #ddd",
-  //           borderRight: "1px solid #ddd",
-  //         }}
-  //       >
-  //         <Row justify="space-between" align="middle">
-  //           <Col>
-  //             <Text strong style={{ fontSize: "16px", display: "block" }}>
-  //               {columnId}
-  //             </Text>
-  //             <Text
-  //               style={{
-  //                 color: "#a0a0a0",
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //               }}
-  //             >
-  //               <Moneysvg style={{ width: 16, marginRight: 10 }} />
-  //               <span className="custom-text1">$140,330.00</span>
-  //             </Text>
-  //           </Col>
-  //           <Col>
-  //             <Badge
-  //               className="custom-badge-primary"
-  //               count={kanbanData[columnId].length}
-  //             />
-  //           </Col>
-  //         </Row>
-  //       </div>
-  //       <div
-  //         style={{
-  //           maxHeight: "600px",
-  //           overflowY: "auto",
-  //           display: "flex",
-  //           flexDirection: "column",
-  //           alignItems: "center",
-  //         }}
-  //       >
-  //         <div
-  //           style={{
-  //             marginBottom: "16px",
-  //             width: "90%",
-  //             borderRadius: "8px",
-  //             background: "#F5F5FA",
-  //           }}
-  //         >
-  //           <Button
-  //             type="dashed"
-  //             block
-  //             style={{ background: "#F5F5FA" }}
-  //             onClick={() => {
-  //               setIsModalVisible(true);
-  //               form.setFieldsValue({
-  //                 LeadStatus: columnId, // Set the value dynamically
-  //               });
-  //             }}
-  //           >
-  //             <FaPlus />
-  //           </Button>
-  //         </div>
-  //         {kanbanData[columnId].map((item, index) => (
-  //           <>
-  //           {isOver&&canDrop && index===0?<Card style={{marginBottom: "16px",
-  //             width: 280,
-  //             minHeight:200,
-  //             backgroundColor: "transparent",
-  //             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  //             borderRadius: "10px",
-  //             minWidth: 280,border:'1px dashed #3900DB'}}/>:
-  //           <DraggableCard
-  //           activeTab={activeTab}
-  //             className=""
-  //             key={index}
-  //             item={item}
-  //             columnId={columnId}
-  //             index={index}
-  //           />}
-  //           </>
-             
-  //         ))}
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-  const handleSubmitCloseleadsPayment = async (values) => {
-    setbuttonLoader(true);
-    const data = {
-      id: dragCardItemId,
-      CloseAmount: values?.CloseAmount,
-      LeadStatus: "Closed",
-    };
-
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-        data
-      )
-      .then((res) => {
-        console.log(res);
-        setisCloseLeadsPaymentModalVisible(false);
-        setbuttonLoader(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setbuttonLoader(false);
-      });
-  };
-
-  const handleCloseLeadPaymentModal = () => {
-    setisCloseLeadsPaymentModalVisible(false);
-  };
-
-  const handleSubmitApointmentDateAndTime = async (values) => {
-    setbuttonLoader(true);
-    const data = {
-      id: dragCardItemId,
-      AppointmentDate: dayjs(values?.AppointmentDate).format("MMM DD YYYY"),
-      AppointmentTime: dayjs(values?.AppointmentTime).format("hh:mm A"), // Example: "02:30 pm"
-      AppointmentNotes: values?.AppointmentNotes,
-      LeadStatus: "Appointment",
-    };
-
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-        data
-      )
-      .then((res) => {
-        setisAppointmentModalVisible(false);
-        setbuttonLoader(false);
-      })
-      .catch((err) => {
-        setbuttonLoader(false);
-        console.log(err);
-      });
-  };
-
-  const handleCancelApointmentDateAndTime = () => {
-    setisAppointmentModalVisible(false);
-  };
-
-  const handleUpdateLeadsTypeForDragItem = (id, type) => {
-    const data = {
-      id: id,
-      LeadStatus: type,
-    };
-    axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-        data
-      )
-      .then((res) => {
-        console.log(res);
-        setisAppointmentModalVisible(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleSubmitCreateleads = async (values) => {
-    setbuttonLoader(true);
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/create-leads`,
-        values
-      )
-      .then((res) => {
-        handleGetAllleads();
-        handleGetAllleadsKanbanView();
-        setIsModalVisible(false);
-        form.resetFields();
-        setbuttonLoader(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    setbuttonLoader(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-  };
-
-  const onFinancingChange = (checked) => {
-    setIsFinancingEnabled(checked);
-  };
-
-  const onClick = (e) => {
-    console.log("click ", e);
   };
 
   const itemRender = (_, type, originalElement) => {
@@ -1006,11 +214,236 @@ const Leads = () => {
     return originalElement;
   };
 
+  const onChange = (newActiveKey) => {
+    setleaadActiveTab(parseInt(newActiveKey));
+  };
+
+  const handleGetAllleads = async (page, limit, search, searchType) => {
+    settableLoader(true);
+    const token = localStorage.getItem("authToken");
+    let data = {
+      page: page || 1,
+      limit: limit || 10,
+      search: search || "",
+      searchType: searchType || "",
+    };
+
+    try {
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-leads`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (localStorage.getItem("userColumn")) {
+        setleadsListcolumns(
+          localStorage
+            .getItem("userColumn")
+            .split(",")
+            .map((item) => {
+              return leadsColumns(
+                item,
+                setisLeadsDetailsModalVisible,
+                setselectedItemDetails
+              );
+            })
+        );
+      } else {
+        setleadsListcolumns(
+          defaultColunmList.map((item) => {
+            return leadsColumns(
+              item,
+              setisLeadsDetailsModalVisible,
+              setselectedItemDetails
+            );
+          })
+        );
+      }
+
+      settotalRecords(res?.data?.totalRecords);
+      const tempResponse = res?.data?.leads?.map((data, index) => {
+        data.Name = `${data?.first_name || ""} ${data?.last_name || ""}`;
+        data.PhoneNumber = data?.Phone || data?.PhoneNumber;
+        data.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+        data.key = index + 1;
+        return data;
+      });
+
+      setOverview(
+        Math.round(parseInt(res?.data?.totalRecords || 0) * (30 / 100))
+      );
+
+      setAppointmentsCount(res?.data?.appointment_total || 0);
+      setClosedLeadsCount(res?.data?.closed_total || 0);
+      setRevenueCount(res?.data?.total_revenue || 0);
+      setnoShowCount(res?.data?.noShow_total || 0);
+      setpagedataList(tempResponse);
+    } catch (err) {
+      openNotificationWithIcon(
+        "error",
+        "Lead",
+        err?.response?.data || err?.message
+      );
+    } finally {
+      settableLoader(false);
+    }
+  };
+
+  const handleGetAllleadsKanbanView = async (search, searchType) => {
+    setpageLoader(true);
+  console.log(search,searchType)
+    const token = localStorage.getItem("authToken");
+    let data = {
+      search: search || "",
+      searchType: searchType || "",
+    };
+    try {
+     await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-kanban-leads`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          const kanbanDetails = {
+            AllLeads: res?.data?.categorizedLeads?.AllLeads?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "All Leads";
+              return item;
+            }),
+            Contacted: res?.data?.categorizedLeads?.Contacted?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "Contacted";
+              return item;
+            }),
+            Appointment: res?.data?.categorizedLeads?.Appointment?.map(
+              (item) => {
+                item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+                item.displayColName = "Appointment";
+                return item;
+              }
+            ),
+            RescheduleRequested:
+              res?.data?.categorizedLeads?.RescheduleRequested?.map((item) => {
+                item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+                item.displayColName = "Reschedule Requested";
+                return item;
+              }),
+            NoShow: res?.data?.categorizedLeads?.NoShow?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "No Show";
+              return item;
+            }),
+            NoMoney: res?.data?.categorizedLeads?.NoMoney?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "No Money";
+              return item;
+            }),
+            Undecided: res?.data?.categorizedLeads?.Undecided?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "Undecided";
+              return item;
+            }),
+            Closed: res?.data?.categorizedLeads?.Closed?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "Closed";
+              return item;
+            }),
+            Lost: res?.data?.categorizedLeads?.Lost?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "Lost";
+              return item;
+            }),
+            LiveAgent: res?.data?.categorizedLeads?.LiveAgent?.map((item) => {
+              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
+              item.displayColName = "Live Agent";
+              return item;
+            }),
+          };
+          setamountList(res?.data?.amountList);
+          setKanbanData(kanbanDetails);
+          setpageLoader(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          setpageLoader(false);
+        });
+    } catch (err) {
+      openNotificationWithIcon(
+        "error",
+        "Lead",
+        err?.response?.data || err?.message
+      );
+    } finally {
+      setpageLoader(false);
+    }
+  };
+
+  const handleSetCustomizeColumn = async () => {
+    settableLoader(true);
+    setVisible(false);
+    const token = localStorage.getItem("authToken");
+    let data = {
+      userColumn: columnsList.join(),
+    };
+    await axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/user-update`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        openNotificationWithIcon(
+          "success",
+          "Customize View",
+          "Customize View has been Successfully  updated!"
+        );
+
+        localStorage?.setItem("userColumn", columnsList);
+        settableLoader(false);
+        handleGetAllleads();
+      })
+      .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Customize View",
+          err?.response?.data || err?.message
+        );
+        settableLoader(false);
+      });
+  };
+
+  const handleOnDragEnd = (result) => {
+    const { source, destination } = result;
+    if (!destination) return;
+    const reorderedColumns = Array.from(columnsList);
+    const [movedColumn] = reorderedColumns.splice(source.index, 1);
+    reorderedColumns.splice(destination.index, 0, movedColumn);
+    setcolumnsList(reorderedColumns);
+  };
+
   const initialItems = [
     {
       key: "1",
       label: (
-        <span>
+        <span
+          onClick={() => {
+            handleGetAllleads();
+          }}
+        >
           All Leads
           <Badge className="custom-badge-primary" count={totalRecords} />
         </span>
@@ -1018,8 +451,9 @@ const Leads = () => {
       children: (
         <div>
           <Table
-            columns={LeadsListcolumns}
+            columns={tableLoader ? [] : leadsListcolumns || []}
             dataSource={pagedataList}
+            rowSelection={rowSelection}
             loading={tableLoader}
             size="small"
             pagination={false}
@@ -1066,43 +500,68 @@ const Leads = () => {
         </Typography>
       ),
       children: (
-        <></>
-        // <DndProvider backend={HTML5Backend}>
-        //   <div
-        //     style={{
-        //       background: "#F5F5FA",
-        //       minHeight: "600px",
-        //       overflowX: "auto",
-        //     }}
-        //   >
-        //     {pageLoader ? (
-        //       <div
-        //         style={{
-        //           display: "flex",
-        //           justifyContent: "center",
-        //           marginTop: 250,
-        //         }}
-        //       >
-        //         <Spin tip="Loading" size="large" />
-        //       </div>
-        //     ) : (
-        //       <>
-        //         <Row style={{ display: "flex", flexWrap: "nowrap" }}>
-        //           {Object.keys(kanbanData).map((columnId) => (
-        //             <Column
-        //               key={columnId}
-        //               columnId={columnId}
-        //               kanbanData={kanbanData}
-        //               setKanbanData={setKanbanData}
-        //             />
-        //           ))}
-        //         </Row>
-        //       </>
-        //     )}
-        //   </div>
-        // </DndProvider>
+        <>
+          {pageLoader ? (
+            <Row
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: 250,
+              }}
+            >
+              <Col>
+                <Spin size="large" />
+              </Col>
+            </Row>
+          ) : (
+            <>
+              {kanbanData?.length <= 0 ? (
+                <>
+                  <Row
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginTop: 250,
+                    }}
+                  >
+                    <Col>
+                      <Empty size="large" />
+                    </Col>
+                  </Row>
+                </>
+              ) : (
+                <KanbanView
+                  handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+                  handleGetAllleads={handleGetAllleads}
+                  openNotificationWithIcon={openNotificationWithIcon}
+                  amountList={amountList}
+                  kanbanData={kanbanData}
+                  setKanbanData={setKanbanData}
+                  setIsModalVisible={setIsModalVisible}
+                  setkanbanAppointment={setkanbanAppointment}
+                  CreateLeadsform={CreateLeadsform}
+                  setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
+                  setselectedItemDetails={setselectedItemDetails}
+                  setdragCardItemId={setdragCardItemId}
+                  setisAppointmentModalVisible={setisAppointmentModalVisible}
+                  setisCloseLeadsPaymentModalVisible={
+                    setisCloseLeadsPaymentModalVisible
+                  }
+                  setisViewLeadModalEditable={setisViewLeadModalEditable}
+                  setisDeleteConfirmationVisible={
+                    setisDeleteConfirmationVisible
+                  }
+                  setisDuplicateConfirmationVisible={
+                    setisDuplicateConfirmationVisible
+                  }
+                />
+              )}
+            </>
+          )}
+        </>
       ),
     },
+
     {
       key: "3",
       label: "Report",
@@ -1110,49 +569,223 @@ const Leads = () => {
     },
   ];
 
-  const handleclinic = ({ key }) => {
-    console.log("handle clinic");
-  };
+  const dropdownContent = (
+    <div
+      style={{
+        padding: "12px",
+        width: "250px",
+        overflow: "auto",
+        Height: "300px",
+        background: "#fff",
+        borderRadius: 5,
+        boxShadow:
+          " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+      }}
+    >
+      <Row
+        style={{ display: "flex", justifyContent: "space-between", padding: 5 }}
+      >
+        <Col>
+          <Typography
+            className="custom-text1"
+            style={{ marginRight: 10, display: "flex", alignItems: "center" }}
+          >
+            <MdSpaceDashboard /> Customize View
+          </Typography>
+        </Col>
+        {!addCustomListColunm ? (
+          <>
+            <Col>
+              <Typography
+                className="custom-text-link"
+                style={{
+                  marginRight: 10,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onClick={() => {
+                  setaddCustomListColunm(true);
+                }}
+              >
+                <LuPlus style={{ color: "#3900DB" }} />
+                Add
+              </Typography>
+            </Col>
+          </>
+        ) : (
+          ""
+        )}
+      </Row>
+      <div style={{ overflow: "auto", minHeight: "250px", height: 250 }}>
+        {!addCustomListColunm ? (
+          <>
+            <DragDropContext onDragEnd={handleOnDragEnd}>
+              <Droppable droppableId="droppable-columns">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {columnsList.map((column, index) => (
+                      <Draggable
+                        key={column}
+                        draggableId={column}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              userSelect: "none",
+                              padding: "5px",
+                              marginBottom: "8px",
+                              backgroundColor: snapshot.isDragging
+                                ? "#e0e0e0"
+                                : "#fff",
+                              border: "1px solid #ddd",
+                              borderRadius: "4px",
+                              boxShadow: snapshot.isDragging
+                                ? "0 2px 8px rgba(0,0,0,0.2)"
+                                : "none",
+                              ...provided.draggableProps.style,
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <RxDragHandleDots2
+                                  style={{ display: "flex" }}
+                                />
+                                <Typography className="custom-text1">
+                                  {column}
+                                </Typography>
+                              </div>
+                              <div>
+                                <RiDeleteBin5Line
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => {
+                                    const newColumnsList = [...columnsList];
+                                    newColumnsList.splice(index, 1);
+                                    setcolumnsList(newColumnsList);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </>
+        ) : (
+          <>
+            <Row>
+              {pagedataList.length > 0 &&
+                Object?.keys(pagedataList[0])
+                  ?.filter(
+                    (i) =>
+                      i !== "first_name" &&
+                      i !== "last_name" &&
+                      i !== "Phone" &&
+                      i !== "avatarColor"
+                  )
+                  ?.map((key) => (
+                    <>
+                      <Space style={{ margin: 3 }}>
+                        <Checkbox
+                          checked={
+                            tempcolumnsList?.filter((fields) => {
+                              return key === fields;
+                            }).length > 0
+                          }
+                          onChange={(e) => {
+                            let tempCol = JSON?.parse(
+                              JSON?.stringify(tempcolumnsList)
+                            );
+                            if (e?.target?.checked) {
+                              tempCol.push(key);
+                            } else {
+                              tempCol = tempCol?.filter((i) => i !== key);
+                            }
+                            settempcolumnsList(tempCol);
+                          }}
+                        />
+                        <Typography>{key}</Typography>
+                      </Space>
+                      <Divider style={{ padding: 0, margin: 0 }} />
+                    </>
+                  ))}
+            </Row>
+          </>
+        )}
+      </div>
 
-  const onChange = (newActiveKey) => {
-    setCurrentPage(1);
-  };
-
-  const handleGetAllleads = async (page, limit) => {
-    settableLoader(true);
-    await axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-leads`, {
-        params: {
-          page: page || 1,
-          limit: limit || 10,
-        },
-      })
-      .then((res) => {
-        settotalRecords(res?.data?.totalRecords);
-        setpagedataList(res?.data?.leadsListData);
-        settableLoader(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        settableLoader(false);
-      });
-  };
-
-  const handleGetAllleadsKanbanView = async () => {
-    setpageLoader(true);
-    await axios
-      .get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth//get-kanban-leads`
-      )
-      .then((res) => {
-        setKanbanData(res?.data);
-        setpageLoader(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setpageLoader(false);
-      });
-  };
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: "16px",
+        }}
+      >
+        {addCustomListColunm ? (
+          <>
+            <Button
+              size="small"
+              onClick={() => {
+                setaddCustomListColunm(false);
+              }}
+              className="custom-text1"
+            >
+              Back
+            </Button>
+            <Button
+              size="small"
+              type="primary"
+              onClick={() => {
+                setcolumnsList(tempcolumnsList);
+                setaddCustomListColunm(false);
+              }}
+            >
+              Add
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              size="small"
+              onClick={() => {
+                setVisible(false);
+              }}
+              className="custom-text1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => {
+                handleSetCustomizeColumn();
+              }}
+            >
+              Save
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (location.pathname === "/leads") {
@@ -1163,89 +796,10 @@ const Leads = () => {
   useEffect(() => {
     handleGetAllleads();
   }, []);
-
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        width={230}
-        style={{
-          background: colorBgContainer,
-          borderRight: "1px solid #E8EBEF",
-        }}
-      >
-        <div style={{ padding: "10px", color: "white" }}>
-          <Image style={{ margin: 10 }} width={100} src={TeraleadsLogo} />
-        </div>
-        <Divider style={{ margin: 0, background: "#E8EBEF" }} />
-        <Menu
-          onClick={onClick}
-          selectedKeys={[sidebarkey]}
-          mode="inline"
-          items={sidebaritems}
-          style={{ padding: 10 }}
-        />
-      </Sider>
+    <div style={{ minHeight: "100vh" }}>
+      {contextHolder}
       <Layout>
-        <Header
-          className="site-layout-sub-header-background"
-          style={{
-            padding: 0,
-            background: "#fff",
-            borderBottom: "1px solid #E8EBEF",
-          }}
-        >
-          <Row style={{ borderLeft: "1px solid #E8EBEF", height: 64 }}>
-            <Col
-              span={12}
-              style={{ display: "flex", alignItems: "center", padding: 10 }}
-            >
-              <Dentalsvg />
-              <Dropdown
-                menu={{
-                  items: clinicdropitems,
-                  onSelect: handleclinic,
-                }}
-              >
-                <Space style={{ margin: 10 }}>
-                  <Typography style={{ fontWeight: "bold" }}>
-                    Chicago implant Clinic
-                  </Typography>
-                  <MdOutlineKeyboardArrowDown
-                    style={{ fontSize: 20, display: "flex" }}
-                  />
-                </Space>
-              </Dropdown>
-            </Col>
-            <Col
-              span={12}
-              style={{ display: "flex", alignItems: "center", padding: 10 }}
-            >
-              <Col
-                span={24}
-                style={{
-                  display: "flex",
-                  justifyContent: "end",
-                  justifyItems: "center",
-                }}
-              >
-                <Space style={{ margin: 10 }}>
-                  <FiPlusCircle style={{ fontSize: 22, display: "flex" }} />
-                  <IoIosNotificationsOutline
-                    style={{ fontSize: 25, display: "flex" }}
-                  />
-                  <MdZoomOutMap style={{ fontSize: 22, display: "flex" }} />
-                  <Avatar>A</Avatar>
-                  <Typography style={{ fontWeight: "bold" }}>
-                    Adam Taimish
-                  </Typography>
-                  <MdOutlineKeyboardArrowDown
-                    style={{ fontSize: 20, display: "flex" }}
-                  />
-                </Space>
-              </Col>
-            </Col>
-          </Row>
-        </Header>
         <Header
           style={{
             padding: 0,
@@ -1256,7 +810,7 @@ const Leads = () => {
         >
           <Row style={{ borderLeft: "1px solid #E8EBEF" }}>
             <Col
-              span={15}
+              span={16}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1282,7 +836,7 @@ const Leads = () => {
                     Overview
                   </Typography>
                   <Typography>
-                    36 Leads last 30 days <span> 3%</span>
+                    {totalRecords} Leads last 30 days <span> {Overview} %</span>
                   </Typography>
                 </div>
               </Space>
@@ -1299,7 +853,23 @@ const Leads = () => {
                   <Typography className="primary-text-color">
                     Appointments
                   </Typography>
-                  <Typography>10 Booked</Typography>
+                  <Typography>{AppointmentsCount} Booked</Typography>
+                </div>
+              </Space>
+              <Space style={{ margin: 10 }}>
+                <div
+                  style={{
+                    width: "auto",
+                    height: 70,
+                    background: "#FBE9E8",
+                    borderRadius: 10,
+                    padding: 10,
+                  }}
+                >
+                  <Typography className="primary-text-color">
+                    No Show
+                  </Typography>
+                  <Typography>{noShowCount} Leads </Typography>
                 </div>
               </Space>
               <Space style={{ margin: 10 }}>
@@ -1315,7 +885,7 @@ const Leads = () => {
                   <Typography className="primary-text-color">
                     Closed Leads
                   </Typography>
-                  <Typography>5 Closed </Typography>
+                  <Typography>{ClosedLeadsCount} Closed </Typography>
                 </div>
               </Space>
               <Space style={{ margin: 10 }}>
@@ -1331,14 +901,12 @@ const Leads = () => {
                   <Typography className="primary-text-color">
                     Revenue{" "}
                   </Typography>
-                  <Typography>
-                    $140,330.00 <span> 5%</span>
-                  </Typography>
+                  <Typography>${RevenueCount}</Typography>
                 </div>
               </Space>
             </Col>
             <Col
-              span={9}
+              span={8}
               style={{ display: "flex", alignItems: "center", padding: 10 }}
             >
               <Col
@@ -1361,46 +929,51 @@ const Leads = () => {
                     style={{
                       width: "200px",
                     }}
+                    onChange={(e) => {
+                      handleGetAllleadsKanbanView(e, "datetime");
+                      handleGetAllleads("", "", e, "datetime");
+                    }}
+                    defaultValue={"All"}
                     options={[
                       {
-                        value: "Custom",
-                        label: "Custom",
+                        value: "All",
+                        label: "All",
                       },
+                      // {
+                      //   value: "Custom",
+                      //   label: "Custom",
+                      // },
                       {
-                        value: "Today",
+                        value: "today",
                         label: "Today",
                       },
                       {
-                        value: "Last 7 days",
+                        value: "Last7days",
                         label: "Last 7 days",
                       },
                       {
-                        value: "Last 14 days",
+                        value: "Last14days",
                         label: "Last 14 days",
                       },
                       {
-                        value: "Last 30 days",
+                        value: "Last30days",
                         label: "Last 30 days",
                       },
                       {
-                        value: "Last 3 months",
+                        value: "Last3months",
                         label: "Last 3 months",
                       },
                       {
-                        value: "Last 6 months",
+                        value: "Last6months",
                         label: "Last 6 months",
                       },
                       {
-                        value: "This month",
+                        value: "Thismonth",
                         label: "This month",
                       },
                       {
-                        value: "This year",
+                        value: "Thisyear",
                         label: "This year",
-                      },
-                      {
-                        value: "All time",
-                        label: "All time",
                       },
                     ]}
                   />
@@ -1410,8 +983,9 @@ const Leads = () => {
                   <Dropdown
                     menu={{
                       items: commondropitems,
-                      onSelect: handleclinic,
+                      onClick: downloadExcel,
                     }}
+                    placement="bottom"
                   >
                     <Button icon={<HiDotsVertical />} size={20} />
                   </Dropdown>
@@ -1431,448 +1005,148 @@ const Leads = () => {
           </Row>
         </Header>
         <Content>
-          <Tabs defaultActiveKey="1" items={initialItems} onChange={onChange} />
-          {/* Create leads  */}
-          <Modal
-            title={
+          <Tabs
+            defaultActiveKey="1"
+            tabBarExtraContent={
               <div style={{ display: "flex", alignItems: "center" }}>
-                <Button
-                  onClick={handleCancel}
-                  icon={<IoChevronBackSharp />}
-                ></Button>
-                <Typography style={{ marginLeft: 10 }}>Create Leads</Typography>
-              </div>
-            }
-            visible={isModalVisible}
-            footer={null}
-            closable={false}
-            width={800}
-            className="custom-modal"
-          >
-            {console.log(leadStatusKanbanSelect)}
-            <Form
-              form={form}
-              onFinish={handleSubmitCreateleads}
-              initialValues={{ remember: true }}
-              layout="vertical"
-            >
-              <Row style={{ margin: "10px 0px 10px 0px" }}>
-                <Col span={12}>
-                  <Space>
-                    <RiUserFill
-                      style={{
-                        fontSize: 16,
-                        color: "#72779E",
-                        display: "flex",
-                      }}
-                    />
-                    <Typography>Details</Typography>
-                  </Space>
-                </Col>
-              </Row>
-              <Row gutter={24}>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        First Name<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="FirstName"
-                    rules={[{ required: true, message: "Please enter name !" }]}
-                  >
-                    <Input placeholder="Enter Name" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Last Name<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="LastName"
-                    rules={[{ required: true, message: "Please enter name !" }]}
-                  >
-                    <Input placeholder="Enter Name" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Lead Status<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="LeadStatus"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select lead status !",
-                      },
-                    ]}
-                  >
-                    <Select
-                      placeholder="Select Lead Status"
-                      suffixIcon={
-                        <MdOutlineKeyboardArrowDown style={{ fontSize: 20 }} />
+                {leaadActiveTab === 1 ? (
+                  <Dropdown
+                    overlay={dropdownContent}
+                    trigger={["click"]}
+                    visible={visible}
+                    onVisibleChange={(flag) => {
+                      setVisible(flag);
+                      if (localStorage?.getItem("userColumn")) {
+                        setcolumnsList(
+                          localStorage?.getItem("userColumn")?.split(",")
+                        );
+                        settempcolumnsList(
+                          localStorage?.getItem("userColumn")?.split(",")
+                        );
+                      } else {
+                        setcolumnsList(defaultColunmList);
+                        settempcolumnsList(defaultColunmList);
                       }
-                      value={leadStatusKanbanSelect}
-                      options={leadsStatusList}
-                    ></Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Email<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="Email"
-                    rules={[
-                      {
-                        required: true,
-                        type: "email",
-                        message: "Please enter valid email !",
-                      },
-                    ]}
-                  >
-                    <Input placeholder="Enter Valid Email" />
-                  </Form.Item>
-                </Col>
-
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Phone Number<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="Phone"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter phone number !",
-                      },
-                    ]}
-                  >
-                    <Input placeholder="Enter Phone Number" />
-                  </Form.Item>
-                </Col>
-
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Select Treatment<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="Treatment"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please select treatment !",
-                      },
-                    ]}
-                  >
-                    <Input
-                      name="Treatment"
-                      placeholder="Please Enter Treatment"
-                    ></Input>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row style={{ margin: "10px 0px 10px 0px" }}>
-                <Col span={12}>
-                  <Space
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      alignContent: "center",
                     }}
                   >
-                    <Moneybagsvg
+                    <Typography
+                      className="custom-text1"
                       style={{
-                        fontSize: 16,
-                        color: "#72779E",
+                        cursor: "pointer",
+                        marginRight: 10,
                         display: "flex",
+                        alignItems: "center",
                       }}
-                    />
-                    <Typography>Financing</Typography>
-                    <Switch
-                      checked={isFinancingEnabled}
-                      onChange={onFinancingChange}
-                    />
-                  </Space>
-                </Col>
-              </Row>
+                    >
+                      <MdSpaceDashboard /> Customize View
+                    </Typography>
+                  </Dropdown>
+                ) : (
+                  ""
+                )}
 
-              {isFinancingEnabled && (
-                <>
-                  <Row gutter={24}>
-                    <Col span={12}>
-                      <Form.Item label="Credit Score" name="FinanceScore">
-                        <Select
-                          placeholder="Select Credit Score"
-                          suffixIcon={
-                            <MdOutlineKeyboardArrowDown
-                              style={{ fontSize: 20 }}
-                            />
-                          }
-                          options={creditScoreList}
-                        ></Select>
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item label="Co-signer above 650" name="CoSigner">
-                        <Select
-                          placeholder="Select Yes/No"
-                          suffixIcon={
-                            <MdOutlineKeyboardArrowDown
-                              style={{ fontSize: 20 }}
-                            />
-                          }
-                        >
-                          <Option value="yes">Yes</Option>
-                          <Option value="no">No</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={24}>
-                    <Col span={12}>
-                      <Form.Item label="Home Owner" name="HomeOwner">
-                        <Select
-                          placeholder="Select Home Owner Status"
-                          suffixIcon={
-                            <MdOutlineKeyboardArrowDown
-                              style={{ fontSize: 20 }}
-                            />
-                          }
-                        >
-                          <Option value="yes">Yes</Option>
-                          <Option value="no">No</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item label="Annual Salary" name="AnnualSalary">
-                        <Input placeholder="Enter Lead Annual Salary" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </>
-              )}
-
-              <Row justify="end">
-                <Button onClick={handleCancel} style={{ marginRight: 10 }}>
-                  Cancel
-                </Button>
-                <Form.Item>
-                  <Button
-                    className="custom-primary-button"
-                    htmlType="submit"
-                    block
-                    loading={buttonLoader}
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <FaMicrophone />
+                  <Typography
+                    className="custom-text1"
+                    style={{ marginRight: 10 }}
                   >
-                    Create Lead
-                  </Button>
-                </Form.Item>
-              </Row>
-            </Form>
-          </Modal>
+                    AI Agent
+                  </Typography>
+                  <Switch style={{ marginRight: 10 }} />
+                </div>
+              </div>
+            }
+            items={initialItems}
+            onChange={onChange}
+          />
+
+          {/* Create leads  */}
+          <CreateLeads
+            handleGetAllleads={handleGetAllleads}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            openNotificationWithIcon={openNotificationWithIcon}
+            isModalVisible={isModalVisible}
+            setIsFinancingEnabled={setIsFinancingEnabled}
+            setIsModalVisible={setIsModalVisible}
+            setbuttonLoader={setbuttonLoader}
+            CreateLeadsform={CreateLeadsform}
+            setkanbanAppointment={setkanbanAppointment}
+            kanbanAppointment={kanbanAppointment}
+            disabledDate={disabledDate}
+            isFinancingEnabled={isFinancingEnabled}
+            buttonLoader={buttonLoader}
+          />
 
           {/* add Appointment date and time  */}
-          <Modal
-            title={
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Button
-                  onClick={handleCancelApointmentDateAndTime}
-                  icon={<IoChevronBackSharp />}
-                ></Button>
-                <Typography style={{ marginLeft: 10 }}>
-                  Appointment Details
-                </Typography>
-              </div>
-            }
-            visible={isAppointmentModalVisible}
-            footer={null}
-            closable={false}
-            width={600}
-            className="custom-modal"
-          >
-            <Form
-              form={form}
-              onFinish={handleSubmitApointmentDateAndTime}
-              initialValues={{ remember: true }}
-              layout="vertical"
-            >
-              <Row style={{ margin: "10px 0px 10px 0px" }}>
-                <Col span={12}>
-                  <Space>
-                    <FaCalendar
-                      style={{
-                        fontSize: 16,
-                        color: "#72779E",
-                        display: "flex",
-                      }}
-                    />
-                    <Typography>Select Date And Time</Typography>
-                  </Space>
-                </Col>
-              </Row>
-              <Row gutter={24}>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Date<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="AppointmentDate"
-                    rules={[
-                      { required: true, message: "Please select date !" },
-                    ]}
-                  >
-                    <DatePicker style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label={
-                      <>
-                        Time<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="AppointmentTime"
-                    rules={[
-                      { required: true, message: "Please select time !" },
-                    ]}
-                  >
-                    <TimePicker
-                      use12Hours
-                      format="h:mm a"
-                      style={{ width: "100%" }}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item label={<>Notes</>} name="AppointmentNotes">
-                    <Input.TextArea
-                      placeholder="Please enter notes "
-                      style={{ width: "100%" }}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row justify="end">
-                <Button
-                  onClick={handleCancelApointmentDateAndTime}
-                  style={{ marginRight: 10 }}
-                >
-                  Cancel
-                </Button>
-                <Form.Item>
-                  <Button
-                    className="custom-primary-button"
-                    htmlType="submit"
-                    block
-                    loading={buttonLoader}
-                  >
-                    Create Appointment
-                  </Button>
-                </Form.Item>
-              </Row>
-            </Form>
-          </Modal>
+          <AppointmentDateTime
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            openNotificationWithIcon={openNotificationWithIcon}
+            setisAppointmentModalVisible={setisAppointmentModalVisible}
+            setbuttonLoader={setbuttonLoader}
+            dragCardItemId={dragCardItemId}
+            isAppointmentModalVisible={isAppointmentModalVisible}
+            disabledDate={disabledDate}
+            buttonLoader={buttonLoader}
+            selectedItemDetails={selectedItemDetails}
+          />
 
           {/* add Close lead payment   */}
-          <Modal
-            title={
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Button
-                  onClick={handleCloseLeadPaymentModal}
-                  icon={<IoChevronBackSharp />}
-                ></Button>
-                <Typography style={{ marginLeft: 10 }}>
-                  Record Payment
-                </Typography>
-              </div>
+          <CloseLeadPayment
+            handleGetAllleads={handleGetAllleads}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            isCloseLeadsPaymentModalVisible={isCloseLeadsPaymentModalVisible}
+            buttonLoader={buttonLoader}
+            setbuttonLoader={setbuttonLoader}
+            openNotificationWithIcon={openNotificationWithIcon}
+            dragCardItemId={dragCardItemId}
+            setisCloseLeadsPaymentModalVisible={
+              setisCloseLeadsPaymentModalVisible
             }
-            visible={isCloseLeadsPaymentModalVisible}
-            footer={null}
-            closable={false}
-            width={600}
-            className="custom-modal"
-          >
-            <Form
-              form={form}
-              onFinish={handleSubmitCloseleadsPayment}
-              initialValues={{ remember: true }}
-              layout="vertical"
-            >
-              <Row style={{ margin: "10px 0px 10px 0px" }}>
-                <Col span={12}>
-                  <Space>
-                    <Moneysvg
-                      style={{
-                        fontSize: 16,
-                        color: "#72779E",
-                        display: "flex",
-                      }}
-                    />
-                    <Typography>Payment Collected</Typography>
-                  </Space>
-                </Col>
-              </Row>
-              <Row gutter={24}>
-                <Col span={24}>
-                  <Form.Item
-                    label={
-                      <>
-                        Amount<span style={{ color: "red" }}>*</span>{" "}
-                      </>
-                    }
-                    name="CloseAmount"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter payment collected !",
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
+          />
 
-              <Row justify="end">
-                <Button
-                  onClick={handleCloseLeadPaymentModal}
-                  style={{ marginRight: 10 }}
-                >
-                  Cancel
-                </Button>
-                <Form.Item>
-                  <Button
-                    className="custom-primary-button"
-                    htmlType="submit"
-                    block
-                    loading={buttonLoader}
-                  >
-                    Close Lead
-                  </Button>
-                </Form.Item>
-              </Row>
-            </Form>
-          </Modal>
+          {/* View & Update Lead Details */}
+          <ViewUpdateLeadDetails
+            handleGetAllleads={handleGetAllleads}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            openNotificationWithIcon={openNotificationWithIcon}
+            selectedItemDetails={selectedItemDetails}
+            setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
+            isViewLeadModalEditable={isViewLeadModalEditable}
+            setisViewLeadModalEditable={setisViewLeadModalEditable}
+            buttonLoader={buttonLoader}
+            isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
+            setbuttonLoader={setbuttonLoader}
+            setisAppointmentModalVisible={setisAppointmentModalVisible}
+          />
+
+          {/* Lead Delete Confirmation*/}
+          <DeleteLead
+            handleGetAllleads={handleGetAllleads}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            isDeleteConfirmationVisible={isDeleteConfirmationVisible}
+            setisDeleteConfirmationVisible={setisDeleteConfirmationVisible}
+            selectedItemDetails={selectedItemDetails}
+            openNotificationWithIcon={openNotificationWithIcon}
+            buttonLoader={buttonLoader}
+            setbuttonLoader={setbuttonLoader}
+          />
+
+          <CreateDuplicateLead
+            handleGetAllleads={handleGetAllleads}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            isDuplicateConfirmationVisible={isDuplicateConfirmationVisible}
+            setisDuplicateConfirmationVisible={
+              setisDuplicateConfirmationVisible
+            }
+            selectedItemDetails={selectedItemDetails}
+            openNotificationWithIcon={openNotificationWithIcon}
+            buttonLoader={buttonLoader}
+            setbuttonLoader={setbuttonLoader}
+          />
         </Content>
       </Layout>
-    </Layout>
+    </div>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Checkbox, Image, Divider, Alert } from "antd";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
 import axios from "axios";
@@ -6,11 +6,12 @@ import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
 import {
   auth,
   facebookProvider,
-  googleProvider,
+  
 } from "../Config/firebaseConfig";
 import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
-
+import { useNavigate } from "react-router-dom";
 const Login = () => {
+  const navigate = useNavigate();
   const [alertMsg, setalertMsg] = useState("");
   const [alertDes, setalertDes] = useState("");
   const [alertType, setalertType] = useState("");
@@ -21,6 +22,7 @@ const Login = () => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
         localStorage.setItem("authToken", res?.data?.token);
+        localStorage.setItem("userColumn", res?.data?.userColumn);
         window.location.replace("/leads");
       })
       .catch((err) => {
@@ -32,33 +34,7 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken(); // Get the Google ID token
-
-      await axios
-        .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login/google`,
-          { idToken }
-        )
-        .then((res) => {
-          // Handle successful response
-          localStorage.setItem("authToken", res?.data?.token);
-          console.log("Login successful:", res.data);
-          window.location.replace("/leads");
-          // You can update the UI or store user data here
-        })
-        .catch((error) => {
-          // Handle error response
-          console.error(
-            "Error during login:",
-            error.response ? error.response.data : error.message
-          );
-          // Show error message to the user
-        });
-    } catch (error) {
-      console.error("Google login failed", error);
-    }
+    window.location.href = "http://localhost:8080/api/v1/auth/google";
   };
 
   const handleFacebookLogin = async () => {
@@ -71,13 +47,13 @@ const Login = () => {
 
       // Make your API call with the access token
       await axios
-        .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login/facebook`,
-          { accessToken }
-        )
+        .post(`${process.env.REACT_APP_API_BASE_URL}/auth/login/facebook`, {
+          accessToken,
+        })
         .then((res) => {
           // Handle successful response
           localStorage.setItem("authToken", res?.data?.token);
+          localStorage.setItem("userColumn", res?.data?.userColumn);
           console.log("Login successful:", res.data);
           window.location.replace("/leads");
           // You can update the UI or store user data here
@@ -95,6 +71,21 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (token) {
+      // Store the token in local storage
+      localStorage.setItem("authToken", token);
+      console.log("Token stored in localStorage:", token);
+
+      // Remove the token from the URL
+      urlParams.delete("token");
+      navigate('/leads');
+    }
+  }, [navigate]);
+  
   return (
     <>
       <div className="login-container-left">

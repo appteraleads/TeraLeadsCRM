@@ -9,7 +9,7 @@ import SetPassword from "../Authentication/SetPassword";
 import "./Auth.css";
 import { Row, Col, Image, Button, Result } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
-import Leads from "../Leads";
+import CustomLayout from "../Layout";
 const AuthRoute = () => {
   const [userEmailId, setuserEmailId] = useState();
 
@@ -164,10 +164,21 @@ const AuthRoute = () => {
         <Route
           path="/leads"
           element={
-            <Leads userEmailId={userEmailId} setuserEmailId={setuserEmailId} />
+            <CustomLayout
+              userEmailId={userEmailId}
+              setuserEmailId={setuserEmailId}
+            />
           }
         />
-
+        <Route
+          path="/conversations"
+          element={
+            <CustomLayout
+              userEmailId={userEmailId}
+              setuserEmailId={setuserEmailId}
+            />
+          }
+        />
         <Route
           path="*"
           element={
