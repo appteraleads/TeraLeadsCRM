@@ -3,12 +3,6 @@ import { Form, Input, Button, Checkbox, Image, Divider, Alert } from "antd";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
 import axios from "axios";
 import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
-import {
-  auth,
-  facebookProvider,
-  
-} from "../Config/firebaseConfig";
-import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 const Login = () => {
   const navigate = useNavigate();
@@ -34,38 +28,11 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    window.location.href = "http://localhost:8080/api/v1/auth/google";
+    window.location.href = `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/google`;
   };
 
   const handleFacebookLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, facebookProvider);
-
-      // Access the Facebook access token
-      const credential = FacebookAuthProvider.credentialFromResult(result);
-      const accessToken = credential.accessToken; // Get the Facebook access token
-
-      // Make your API call with the access token
-      await axios
-        .post(`${process.env.REACT_APP_API_BASE_URL}/auth/login/facebook`, {
-          accessToken,
-        })
-        .then((res) => {
-          // Handle successful response
-          localStorage.setItem("authToken", res?.data?.token);
-          localStorage.setItem("userColumn", res?.data?.userColumn);
-          console.log("Login successful:", res.data);
-          window.location.replace("/leads");
-          // You can update the UI or store user data here
-        })
-        .catch((error) => {
-          // Handle error response
-          console.error(
-            "Error during login:",
-            error.response ? error.response.data : error.message
-          );
-          // Show error message to the user
-        });
     } catch (error) {
       console.error("Facebook login failed", error);
     }
@@ -78,14 +45,13 @@ const Login = () => {
     if (token) {
       // Store the token in local storage
       localStorage.setItem("authToken", token);
-      console.log("Token stored in localStorage:", token);
 
       // Remove the token from the URL
       urlParams.delete("token");
-      navigate('/leads');
+      navigate("/leads");
     }
   }, [navigate]);
-  
+
   return (
     <>
       <div className="login-container-left">

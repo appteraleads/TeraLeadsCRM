@@ -12,10 +12,9 @@ import {
   Avatar,
   Input,
   notification,
-  FloatButton,
   Select,
 } from "antd";
-import { CommentOutlined, CustomerServiceOutlined } from "@ant-design/icons";
+
 import TeraleadsLogo from "../assets/logo/TeraleadsRemoveBg.png";
 import { ReactComponent as Usersvg } from "../assets/IconSvg/solar_user-broken.svg";
 import { ReactComponent as Dashboardsvg } from "../assets/IconSvg/icons8-home 1.svg";
@@ -24,6 +23,7 @@ import { ReactComponent as Reportsvg } from "../assets/IconSvg/hugeicons_analyti
 import { ReactComponent as Callsvg } from "../assets/IconSvg/Vector.svg";
 import { ReactComponent as Chatsvg } from "../assets/IconSvg/fluent_chat-16-regular.svg";
 import { ReactComponent as Dentalsvg } from "../assets/IconSvg/Frame 2.svg";
+import { ReactComponent as LogoCircle } from "../assets/logo/teracrmlogoCircle.svg";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FiPlusCircle } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
@@ -31,16 +31,36 @@ import { IoIosNotificationsOutline } from "react-icons/io";
 import { MdZoomOutMap } from "react-icons/md";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import Conversations from "../Conversations";
-import Leads from "../Leads";
+import { SettingsSVG } from "../Common/SettingSidebarIconsSvg";
+import axios from "axios";
+import { getInitials } from "../Common/ReturnColumnValue";
+import { FaClinicMedical, FaPlus } from "react-icons/fa";
+import { icons } from "antd/es/image/PreviewGroup";
+const Conversations = React.lazy(() => import("../Conversations"));
+const QuickConversation = React.lazy(() =>
+  import("../Common/QuickConversation")
+);
+const Appointments = React.lazy(() => import("../Appointments/index"));
+const Leads = React.lazy(() => import("../Leads"));
+const Settings = React.lazy(() => import("../Settings"));
+
 const { Header, Sider } = Layout;
 const { Option } = Select;
 const CustomLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [contextHolder] = notification.useNotification();
+  const [collapsed, setCollapsed] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
   const [sidebarkey, setsidebarkey] = useState("1");
   const [defaultValueSearch, setdefaultValueSearch] = useState("");
+  const [searchContent, setsearchContent] = useState();
+  const [isVisibleQuickConversation, setisVisibleQuickConversation] =
+    useState(false);
+  const [quickConversationView, setquickConversationView] = useState(null);
+  const [selectedConversationDetails, setselectedConversationDetails] =
+    useState();
+
+  const [loginUserDetails, setloginUserDetails] = useState();
 
   const sidebaritems = [
     {
@@ -70,7 +90,7 @@ const CustomLayout = () => {
     },
     {
       key: "grp",
-      label: "Group",
+      label: "Contacts",
       type: "group",
       children: [
         {
@@ -95,20 +115,47 @@ const CustomLayout = () => {
     },
   ];
 
+  const settingsItem = {
+    key: "7",
+    icon: (
+      <div style={{ display: "flex", width: 20 }}>
+        <SettingsSVG color={sidebarkey === "7" ? "#3900DB" : "#72779E"} />
+      </div>
+    ),
+    label: <span className="custom-text1">Settings</span>,
+    onClick: () => navigate("/settings"),
+  };
+
   const clinicdropitems = [
     {
-      label: "Clicic 1",
       key: "1",
+      label: "My Clinic",
+      icon: <FaClinicMedical />,
+      disabled: true,
     },
     {
-      label: "Clicic 2",
-      key: "2",
+      type: "divider",
     },
+
+    // ...loginUserDetails?.Clinic.map((clinic) => ({
+    //   key: clinic.id,
+    //   label: clinic.name,
+    //   icon: <Image src={clinic.imageUrl} alt={clinic.name} width={20} height={20} />,
+    // })),
     {
-      label: "Clicic 3",
-      key: "3",
+      key: "4",
+      label: <Typography style={{ color: "#3900DB" }}> New Clinic</Typography>,
+      icon: <FaPlus style={{ color: "#3900DB" }} />,
     },
   ];
+
+  const openNotificationWithIcon = (type, message, description) => {
+    api[type]({
+      message: message,
+      description: description,
+      duration: 3,
+    });
+  };
 
   const handleclinic = ({ key }) => {
     console.log("handle clinic");
@@ -126,17 +173,54 @@ const CustomLayout = () => {
       <Option value="conversations">Conversations</Option>
     </Select>
   );
+
   const onClick = (e) => {
     console.log("click ", e);
   };
+
+  const handleGetLoginUserDetails = async () => {
+    const token = localStorage.getItem("authToken");
+
+    await axios
+      .get(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLoginUserDetails`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        console.log("login details", res?.data?.user);
+        setloginUserDetails(res?.data?.user);
+      })
+      .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Settings",
+          err?.response?.data?.message || err?.message
+        );
+      });
+  };
+
+  useEffect(() => {
+    handleGetLoginUserDetails();
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/leads") {
       setsidebarkey("4");
       setdefaultValueSearch("leads");
+    } else if (location.pathname === "/appointments") {
+      setsidebarkey("2");
+      setdefaultValueSearch("appointments");
     } else if (location.pathname === "/conversations") {
       setsidebarkey("6");
       setdefaultValueSearch("conversations");
+    } else if (location.pathname === "/settings") {
+      setsidebarkey("7");
+      setdefaultValueSearch("settings");
     }
   }, [location]);
 
@@ -152,20 +236,55 @@ const CustomLayout = () => {
               "linear-gradient(180deg, #FFFBFE 0%, #FEF7FE 51.48%, #F5F8FF 100%)",
             borderRight: "1px solid #E8EBEF",
           }}
+          // collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
         >
-          <div style={{ padding: "10px", color: "white" }}>
-            <Image style={{ margin: 10 }} width={100} src={TeraleadsLogo} />
+          <div
+            style={{
+              padding: "10px",
+              height: 65,
+              color: "white",
+              display: collapsed ? "flex" : "",
+              alignItems: collapsed ? "center" : "",
+              justifyContent: collapsed ? "center" : "",
+            }}
+          >
+            {collapsed ? (
+              <LogoCircle style={{ width: 25 }} />
+            ) : (
+              <Image style={{ margin: 10 }} width={100} src={TeraleadsLogo} />
+            )}
           </div>
           <Divider style={{ margin: 0, background: "#E8EBEF" }} />
-          <Menu
-            onClick={onClick}
-            selectedKeys={[sidebarkey]}
-            mode="inline"
-            items={sidebaritems}
-            style={{ padding: 10, background: "none" }}
-          />
+          <div
+            style={{ display: "flex", flexDirection: "column", height: "90%" }}
+          >
+            {/* Main Menu items */}
+            <Menu
+              onClick={onClick}
+              selectedKeys={[sidebarkey]}
+              mode="inline"
+              items={sidebaritems}
+              style={{ padding: 10, background: "none", flexGrow: 1 }}
+            />
+
+            {/* Settings item positioned at the bottom */}
+            <Menu
+              mode="inline"
+              style={{ padding: 10, background: "none" }}
+              items={[
+                {
+                  key: settingsItem.key,
+                  icon: settingsItem.icon,
+                  label: settingsItem.label,
+                  onClick: settingsItem.onClick,
+                },
+              ]}
+            />
+          </div>
         </Sider>
-        <Layout>
+        <Layout style={{ minHeight: "100vh" }}>
           <Header
             className="site-layout-sub-header-background"
             style={{
@@ -216,6 +335,9 @@ const CustomLayout = () => {
                 <Input
                   className="custom-search"
                   placeholder="Search...."
+                  onChange={(e) => {
+                    setsearchContent(e?.target?.value);
+                  }}
                   addonAfter={selectbefore}
                   addonBefore={<CiSearch style={{ fontSize: 20 }} />}
                 />
@@ -238,9 +360,24 @@ const CustomLayout = () => {
                       style={{ fontSize: 25, display: "flex" }}
                     />
                     <MdZoomOutMap style={{ fontSize: 22, display: "flex" }} />
-                    <Avatar>A</Avatar>
-                    <Typography style={{ fontWeight: "bold" }}>
-                      Adam Taimish
+                    {loginUserDetails?.profile_picture ? (
+                      <Avatar src={loginUserDetails?.profile_picture} />
+                    ) : (
+                      <Avatar>
+                        {getInitials(loginUserDetails?.dentist_full_name)}
+                      </Avatar>
+                    )}
+
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        width: 120,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {loginUserDetails?.dentist_full_name}
                     </Typography>
                     <MdOutlineKeyboardArrowDown
                       style={{ fontSize: 20, display: "flex" }}
@@ -250,27 +387,48 @@ const CustomLayout = () => {
               </Col>
             </Row>
           </Header>
+
           {sidebarkey === "4" ? (
-            <Leads />
+            <Leads
+              searchContent={searchContent}
+              setisVisibleQuickConversation={setisVisibleQuickConversation}
+              setquickConversationView={setquickConversationView}
+              setselectedConversationDetails={setselectedConversationDetails}
+              loginUserDetails={loginUserDetails}
+            />
           ) : sidebarkey === "6" ? (
-            <Conversations />
+            <Conversations
+              searchContent={searchContent}
+              loginUserDetails={loginUserDetails}
+            />
+          ) : sidebarkey === "2" ? (
+            <Appointments
+              searchContent={searchContent}
+              openNotificationWithIcon={openNotificationWithIcon}
+              setisVisibleQuickConversation={setisVisibleQuickConversation}
+              setquickConversationView={setquickConversationView}
+              setselectedConversationDetails={setselectedConversationDetails}
+              loginUserDetails={loginUserDetails}
+            />
+          ) : sidebarkey === "7" ? (
+            <Settings
+              openNotificationWithIcon={openNotificationWithIcon}
+              loginUserDetails={loginUserDetails}
+            />
           ) : (
             ""
           )}
 
-          <FloatButton.Group
-            trigger="click"
-            className="float-button"
-
-            style={{
-              insetInlineEnd: 34,
-          
-            }}
-            icon={<CustomerServiceOutlined />}
-          >
-            <FloatButton />
-            <FloatButton icon={<CommentOutlined />} />
-          </FloatButton.Group>
+          <QuickConversation
+            openNotificationWithIcon={openNotificationWithIcon}
+            selectedConversationDetails={selectedConversationDetails}
+            setselectedConversationDetails={setselectedConversationDetails}
+            isVisibleQuickConversation={isVisibleQuickConversation}
+            setisVisibleQuickConversation={setisVisibleQuickConversation}
+            quickConversationView={quickConversationView}
+            setquickConversationView={setquickConversationView}
+            loginUserDetails={loginUserDetails}
+          />
         </Layout>
       </Layout>
     </>

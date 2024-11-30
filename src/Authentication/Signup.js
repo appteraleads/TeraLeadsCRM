@@ -74,7 +74,6 @@ const Signup = ({ userEmailId, setuserEmailId }) => {
         data
       )
       .then((res) => {
-        console.log(res);
         openNotificationWithIcon("success", "Success", res?.data);
       })
       .catch((err) => {

@@ -1,5 +1,5 @@
 import { Avatar, Tag } from "antd";
-import { leadStatusColorAndTextList } from "./ColorHexCodeList";
+import { leadStatusColorAndTextList } from "./CommonCodeList";
 import { UserOutlined } from "@ant-design/icons";
 
 export const getInitials = (name) => {
@@ -24,7 +24,7 @@ export function leadsColumns(
             <>
               <Avatar
                 style={{
-                  backgroundColor: text?.avatarColor,
+                  backgroundColor: text?.avatar_color,
                 }}
               >
                 {text?.first_name && text?.last_name
@@ -289,7 +289,7 @@ export function leadsColumns(
         ? 140
         : key === "appointment_notes"
         ? 180
-        : key === "appointment_date" || key === "appointment_time"
+        : key === "appointment_date_time" || key === "appointment_time"
         ? 160
         : 150,
     render: (text) => (

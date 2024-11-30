@@ -1,4 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import {
   Layout,
   List,
@@ -20,6 +22,7 @@ import {
   Spin,
   Modal,
   Form,
+  Upload,
 } from "antd";
 import {
   SendOutlined,
@@ -40,21 +43,26 @@ import { BsArrowsAngleContract } from "react-icons/bs";
 import { BsArrowsAngleExpand } from "react-icons/bs";
 import axios from "axios";
 import { getInitials } from "../Common/ReturnColumnValue";
-import { mixedColors } from "../Common/ColorHexCodeList";
 import dayjs from "dayjs";
 import { LiaUserTagSolid } from "react-icons/lia";
+import EmailChatUI from "./EmailChatUI";
+import Search from "antd/es/transfer/search";
+import { useLocation } from "react-router-dom";
 const { Sider, Content } = Layout;
-
 const { Text, Title } = Typography;
- 
-const ChatUI = () => {
+const MemoizedList = React.memo(List);
+const Conversations = ({ searchContent }) => {
+  const socketUrl = "ws://localhost:8081";
+  const location = useLocation();
   const [emailSend] = Form.useForm();
   const [selectedLead, setselectedLead] = useState([]);
   const [messageType, setMessageType] = useState("SMS");
   const [sendTiming, setSendTiming] = useState("Send Now");
-  const [leadsListData, setleadsListData] = useState([]);
-  const [conversationsListData, setconversationsListData] = useState([]);
-  const [pageLoader, setpageLoader] = useState(false);
+  const [leadsData, setleadData] = useState([]);
+  const [emailConversationsListData, setemailConversationsListData] = useState(
+    []
+  );
+  const [smsConversationsListData, setsmsConversationsListData] = useState([]);
   const [chatLoader, setchatLoader] = useState(false);
   const [buttonLoader, setbuttonLoader] = useState();
   const [sendContent, setsendContent] = useState("");
@@ -64,6 +72,85 @@ const ChatUI = () => {
   const [isTextEditorVisible, setisTextEditorVisible] = useState(true);
   const [toEmail, settoEmail] = useState();
   const [notes, setnotes] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const [leadsList, setleadsList] = useState([]);
+  const [loadingleadsList, setloadingleadsList] = useState();
+  const [visibleleadListDropdown, setvisibleleadListDropdown] = useState(false);
+  const handleFileChange = ({ fileList }) => setFileList(fileList);
+  const handleFileRemove = (file) => {
+    setFileList((prevFileList) =>
+      prevFileList.filter((f) => f.uid !== file.uid)
+    );
+  };
+
+  const menu = (
+    <Menu>
+      <div style={{ padding: 10 }}>
+        <Search
+          placeholder="Search lead"
+          onChange={(e) => {
+            handleGetAllleadList(e?.target?.value, "text");
+          }}
+          size="small"
+          style={{
+            padding: 20,
+            borderRadius: "20px",
+            width: "100%",
+          }}
+        />
+        <Divider style={{ margin: "10px 0px 10px 0px" }} />
+        <Typography style={{ padding: "0px 10px 0px 10px" }}>
+          All Leads
+        </Typography>
+      </div>
+
+      <div
+        style={{
+          width: 300,
+          maxHeight: "310px",
+          overflowY: "auto",
+        }}
+      >
+        <Menu>
+          {loadingleadsList ? (
+            <Menu.Item key="loading" disabled>
+              <Spin style={{ marginRight: 10 }} size="small" /> Loading...
+            </Menu.Item>
+          ) : (
+            leadsList?.map((lead) => (
+              <Menu.Item
+                key={lead?.id}
+                onClick={() => {
+                  setvisibleleadListDropdown(false);
+                  handleLeadConversationTrueFlase(lead);
+                  setselectedLead(lead);
+                  setvisibleleadListDropdown(false);
+                }}
+              >
+                <Avatar
+                  size={25}
+                  style={{
+                    backgroundColor: lead?.avatar_color,
+                    fontSize: 14,
+                    marginRight: 10,
+                  }}
+                >
+                  {lead?.first_name && lead?.last_name
+                    ? getInitials(lead?.first_name + " " + lead?.last_name)
+                    : lead?.phone_number}
+                </Avatar>
+                <Text>
+                  {lead?.first_name && lead?.last_name
+                    ? lead?.first_name + " " + lead?.last_name
+                    : lead?.phone_number}
+                </Text>
+              </Menu.Item>
+            ))
+          )}
+        </Menu>
+      </div>
+    </Menu>
+  );
 
   const openNotificationWithIcon = (type, message, description) => {
     api[type]({
@@ -129,15 +216,39 @@ const ChatUI = () => {
     </Menu>
   );
 
-  const selectContact = (contact) => {
-    setselectedLead(contact);
-    setnotes(contact?.Notes)
+  const handleLeadConversationTrueFlase = async (item) => {
+    const token = localStorage.getItem("authToken");
+    const url = `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/conversations/LeadTF/${item?.id}`;
+
+    try {
+      await axios({
+        method: "PUT",
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((res) => {});
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const filteredLeads =
-    leadsListData?.filter((contact) =>
-      contact?.first_name?.toLowerCase()
-    ) || [];
+  const handleConversationsUnseen = async (item) => {
+    const token = localStorage.getItem("authToken");
+    const url = `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/conversations/unseen/${item?.id}`;
+
+    try {
+      await axios({
+        method: "PUT",
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((res) => {});
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleSubmitEmail = async (values) => {
     setbuttonLoader(true);
@@ -194,7 +305,6 @@ const ChatUI = () => {
           }
         )
         .then((res) => {
-          getSelectedleadConversation(selectedLead);
           setsendContent();
           setbuttonLoader(false);
           setisEmailModalOpen(false);
@@ -252,7 +362,6 @@ const ChatUI = () => {
           }
         )
         .then((res) => {
-          getSelectedleadConversation(selectedLead);
           setsendContent("");
           setbuttonLoader(false);
         })
@@ -264,69 +373,102 @@ const ChatUI = () => {
     setbuttonLoader(false);
   };
 
-  const getSelectedleadConversation = async (item) => {
-    setchatLoader(true);
+  const handleGetAllleadList = async (search, searchType) => {
+    setloadingleadsList(true);
     const token = localStorage.getItem("authToken");
     let data = {
-      lead_id: item?.id,
+      search: search || "",
+      searchType: searchType?.trim() || "",
     };
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-conversationByLeadId`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        setconversationsListData(res?.data?.conversations || []);
-        setchatLoader(false);
-      })
-      .catch((err) => {
-        setchatLoader(false);
-        console.log(err);
-      });
-  };
 
-  const getAllLeadsForConversation = async (page, limit) => {
-    setpageLoader(true);
-    const token = localStorage.getItem("authToken");
-    let data = {
-      page: 1,
-      limit: 15,
-    };
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-allLeadsForConversation`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        const tempResponse = res?.data?.leadsListData?.map((data, index) => {
-          data.Name = `${data?.first_name || ""} ${data?.last_name || ""} `;
-          data.PhoneNumber = data?.phone_number || data?.phone_number;
-          data.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
-          data.key = index + 1;
-          return data;
+    try {
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-allLeadsListForConversation`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          setleadsList(res?.data?.leadsListData);
+        })
+        .catch((err) => {
+          openNotificationWithIcon(
+            "error",
+            "Conversatios",
+            err?.response?.data || err?.message
+          );
+          console.log(err);
         });
-        setleadsListData(tempResponse);
-        setpageLoader(false);
-      })
-      .catch((err) => {
-        setpageLoader(false);
-        console.log(err);
-      });
+    } catch (err) {
+      console.log(err);
+    }
+    setloadingleadsList(false);
   };
+  const handlesetvisibleleadListDropdown = (visible) => {
+    setvisibleleadListDropdown(visible);
+  };
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+    onOpen: () => console.log("WebSocket connection established"),
+    onClose: (event) => console.log("WebSocket connection closed:", event),
+    onError: (error) => console.error("WebSocket error:", error),
+    shouldReconnect: () => true, // Reconnect on close
+  });
 
   useEffect(() => {
-    getAllLeadsForConversation();
-  }, []);
+    if (
+      location.pathname === "/conversations" &&
+      readyState === WebSocket.OPEN
+    ) {
+      sendMessage(JSON.stringify({ type: "conversation" }));
+    }
+  }, [location.pathname, readyState, sendMessage]);
+
+  useEffect(() => {
+    if (
+      location.pathname === "/conversations" &&
+      readyState === WebSocket.OPEN
+    ) {
+      const interval = setInterval(() => {
+        sendMessage(JSON.stringify({ type: "conversation" }));
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [location.pathname, readyState, sendMessage]);
+
+  // Handle the response from the WebSocket server
+  useEffect(() => {
+    if (lastMessage !== null) {
+      try {
+        const data = JSON.parse(lastMessage?.data);
+        const tempResponse = data?.conversations;
+
+        // Check if the response is different before updating the state
+        if (JSON.stringify(tempResponse) !== JSON.stringify(leadsData)) {
+          setleadData(tempResponse);
+        }
+        if (selectedLead && tempResponse) {
+          let temp = tempResponse?.filter(
+            (item) => item?.id === selectedLead?.id
+          )[0];
+          if (temp) {
+            setnotes(temp?.Notes);
+            setemailConversationsListData(temp?.Conversations?.emails);
+            setsmsConversationsListData(temp?.Conversations?.sms);
+          } else {
+            setnotes([]);
+            setemailConversationsListData([]);
+            setsmsConversationsListData([]);
+          }
+        }
+      } catch (error) {
+        console.log("Error parsing message:", error);
+      }
+    }
+  }, [lastMessage, leadsData]);
 
   return (
     <Layout style={{ background: "#f8f9fa" }}>
@@ -356,133 +498,170 @@ const ChatUI = () => {
             <div>
               <Space style={{ margin: 5 }}>
                 <LuFilter style={{ cursor: "pointer" }} />
-                <HiPlus style={{ cursor: "pointer" }} />
+                <Dropdown
+                  overlay={menu}
+                  trigger={["click"]}
+                  placement="bottomCenter"
+                  visible={visibleleadListDropdown}
+                  onVisibleChange={handlesetvisibleleadListDropdown}
+                >
+                  <HiPlus
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      handleGetAllleadList();
+                    }}
+                  />
+                </Dropdown>
               </Space>
             </div>
           </div>
         </div>
-
-        <List
+        <MemoizedList
           style={{ height: "86vh", overflow: "auto" }}
           itemLayout="horizontal"
-          loading={pageLoader}
-          dataSource={filteredLeads}
+          dataSource={leadsData}
           renderItem={(item) => (
-            <List.Item
-              style={{
-                padding: 10,
-                cursor: "pointer",
-                color: item?.id === selectedLead?.id ? "#e6f7ff" : "#fff",
-              }}
-              onClick={() => {
-                selectContact(item);
-                getSelectedleadConversation(item);
-              }}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Avatar
-                    size={40}
-                    style={{
-                      backgroundColor: item?.avatarColor,
-                    }}
-                  >
-                    {getInitials(item?.first_name + " " + item?.last_name)}
-                  </Avatar>
-                }
-                title={
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text
-                      strong
+            <List key={item.id}>
+              <List.Item
+                style={{
+                  padding: 10,
+                  cursor: "pointer",
+                  color: item?.id === selectedLead?.id ? "#e6f7ff" : "#fff",
+                }}
+                onClick={() => {
+                  handleConversationsUnseen(item);
+                  setselectedLead(item);
+                  setnotes(item?.Notes?.reverse());
+                  setemailConversationsListData(item?.Conversations?.emails);
+                  setsmsConversationsListData(item?.Conversations?.sms);
+                }}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Avatar
+                      size={40}
                       style={{
-                        color: item?.unseenCount > 0 ? "#3900DB" : "#72779E",
+                        backgroundColor: item?.avatar_color,
                       }}
                     >
-                      {item?.first_name + " " + item?.last_name}
-                    </Text>
-                    <Text
-                      type="secondary"
+                      {item?.first_name && item?.last_name
+                        ? getInitials(item?.first_name + " " + item?.last_name)
+                        : item?.phone_number}
+                    </Avatar>
+                  }
+                  title={
+                    <div
                       style={{
-                        fontSize: "12px",
-                        color: item?.unseenCount > 0 ? "#3900DB" : "#72779E",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
-                      {item?.latestConversation?.created_on
-                        ? dayjs(item?.latestConversation?.created_on).format(
-                            "hh:mm"
-                          )
-                        : ""}
-                    </Text>
-                  </div>
-                }
-                description={
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <Space>
-                        {item?.latestConversation?.record_type ? (
-                          item?.latestConversation?.record_type ===
-                          "message" ? (
-                            <BsChatLeft
-                              style={{
-                                color: "#D56700",
-                                fontSize: 12,
-                              }}
-                            />
-                          ) : (
-                            <CiMail
-                              style={{
-                                color: "#4938CD",
-                                fontSize: 16,
-                              }}
-                            />
-                          )
-                        ) : (
-                          ""
-                        )}
-                      </Space>
-                      <span
+                      <Text
+                        strong
                         style={{
-                          marginLeft: 5,
-                          color: item?.unseenCount > 0 ? "#263445" : "#72779E",
-                          width: 160,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
+                          color: item?.unseenCount > 0 ? "#3900DB" : "#72779E",
                         }}
                       >
-                        {item?.latestConversation?.message}
-                      </span>
-                    </div>
+                        {item?.first_name && item?.last_name
+                          ? item?.first_name + " " + item?.last_name
+                          : item?.phone_number}
+                      </Text>
 
-                    {item.unseenCount > 0 && (
-                      <Badge
-                        count={item?.unseenCount}
+                      <Text
+                        type="secondary"
                         style={{
-                          backgroundColor: "#3900DB",
-                          borderRadius: 5,
+                          fontSize: "12px",
+                          color: item?.unseenCount > 0 ? "#3900DB" : "#72779E",
                         }}
-                      />
-                    )}
-                  </div>
-                }
-              />
-            </List.Item>
+                      >
+                        {item?.latestMessages?.length > 0
+                          ? item?.latestMessages[0]?.record_type === messageType
+                            ? dayjs(
+                                item?.latestMessages?.filter(
+                                  (i) => messageType === i?.record_type
+                                )[0]?.created_on
+                              ).format("hh:mm A")
+                            : item?.latestMessages[0]?.record_type ===
+                              messageType
+                            ? dayjs(
+                                item?.latestMessages?.filter(
+                                  (i) => messageType === i?.record_type
+                                )[0]?.created_on
+                              ).format("hh:mm A")
+                            : ""
+                          : ""}
+                      </Text>
+                    </div>
+                  }
+                  description={
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Space>
+                          {item?.Conversations?.length > 0 ? (
+                            item?.Conversations[0]?.record_type === "SMS" ? (
+                              <BsChatLeft
+                                style={{
+                                  color: "#D56700",
+                                  fontSize: 12,
+                                }}
+                              />
+                            ) : (
+                              <CiMail
+                                style={{
+                                  color: "#4938CD",
+                                  fontSize: 16,
+                                }}
+                              />
+                            )
+                          ) : (
+                            ""
+                          )}
+                        </Space>
+                        <span
+                          style={{
+                            marginLeft: 5,
+                            color:
+                              item?.unseenCount > 0 ? "#263445" : "#72779E",
+                            width: 160,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {
+                            item?.latestMessages?.filter(
+                              (i) => messageType === i?.record_type
+                            )[0]?.message
+                          }
+                        </span>
+                      </div>
+
+                      {item?.unseenCount > 0 && (
+                        <Badge
+                          count={item?.unseenCount}
+                          style={{
+                            backgroundColor: "#3900DB",
+                            borderRadius: 5,
+                          }}
+                        />
+                      )}
+                    </div>
+                  }
+                />
+              </List.Item>
+              <Divider style={{ margin: 0 }} />
+            </List>
           )}
         />
       </Sider>
 
-      <Row style={{ background: "#FCFDFF", height: "95vh" }}>
+      <Row >
         <Col
           style={{
             background: "#FCFDFF",
@@ -501,17 +680,19 @@ const ChatUI = () => {
               alignItems: "center",
             }}
           >
-            {Object.keys(selectedLead).length > 0 ? (
+            {Object.keys(selectedLead)?.length > 0 ? (
               <>
                 <Avatar
                   style={{
                     marginRight: "10px",
-                    backgroundColor: selectedLead?.avatarColor,
+                    backgroundColor: selectedLead?.avatar_color,
                   }}
                 >
-                  {getInitials(
-                    selectedLead?.first_name + " " + selectedLead?.last_name
-                  )}
+                  {selectedLead?.first_name && selectedLead?.last_name
+                    ? getInitials(
+                        selectedLead?.first_name + " " + selectedLead?.last_name
+                      )
+                    : selectedLead?.phone_number}
                 </Avatar>
                 <Typography style={{ margin: 0 }}>
                   {selectedLead.first_name && selectedLead?.last_name
@@ -538,211 +719,170 @@ const ChatUI = () => {
                   maxHeight: "calc(100% - 10px)",
                 }}
               >
-                {conversationsListData?.length > 0 ? (
-                  conversationsListData?.map((msg, index) => (
-                    <div key={index}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          justifyContent:
-                            msg.direction === "Outbound"
-                              ? "flex-end"
-                              : "flex-start",
-                        }}
-                      >
-                        {/* Avatar for incoming messages */}
-                        {msg.direction !== "Outbound" && (
-                          <Tooltip title={selectedLead.WebsiteName}>
-                            <Avatar
-                              style={{
-                                marginRight: "10px",
-                              }}
-                              icon={<UserOutlined />}
-                            >
-                              {selectedLead.WebsiteName}
-                            </Avatar>
-                          </Tooltip>
-                        )}
-
-                        <div
-                          style={{
-                            background:
-                              msg.direction === "Outbound" ? "#EFEEFF" : "#fff",
-                            borderRadius:
-                              msg.direction === "You"
-                                ? "15px 15px 5px 15px"
-                                : "15px 15px 15px 5px",
-                            padding: "10px",
-                            maxWidth: "60%",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                            margin:
-                              msg.direction === "Outbound"
-                                ? "0 10px 0 0"
-                                : "0 0 0 10px",
-                          }}
-                        >
-                          {msg?.record_type === "SMS" ? (
-                            <Text>{msg.message} </Text>
-                          ) : (
-                            <EmailContentDisplay emailContent={msg.message} />
-                          )}
-                        </div>
-
-                        {/* Avatar for outgoing messages */}
-                        {msg.direction === "Outbound" && (
-                          <Avatar
+                {messageType === "Email" ? (
+                  <>
+                    <EmailChatUI
+                      selectedLead={selectedLead}
+                      emailConversationsListData={emailConversationsListData}
+                      getInitials={getInitials}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {smsConversationsListData?.length > 0 ? (
+                      smsConversationsListData?.map((msg, index) => (
+                        <div key={index}>
+                          <div
                             style={{
-                              marginLeft: "10px",
-                              backgroundColor: selectedLead?.avatarColor,
+                              display: "flex",
+                              alignItems: "flex-end",
+                              justifyContent:
+                                msg.direction === "Outbound"
+                                  ? "flex-end"
+                                  : "flex-start",
                             }}
                           >
-                            {getInitials(
-                              selectedLead?.first_name +
-                                " " +
-                                selectedLead?.last_name
+                            {msg.direction !== "Outbound" && (
+                              <Tooltip title={selectedLead.WebsiteName}>
+                                <Avatar
+                                  style={{
+                                    marginRight: "10px",
+                                  }}
+                                  icon={<UserOutlined />}
+                                >
+                                  {selectedLead.WebsiteName}
+                                </Avatar>
+                              </Tooltip>
                             )}
-                          </Avatar>
-                        )}
-                      </div>
-                      {/* Timestamp Outside Message Content Box */}
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          marginLeft:
-                            msg.direction !== "Outbound" ? "50px" : "",
-                          marginRight:
-                            msg.direction === "Outbound" ? "50px" : "",
-                          color: "#aaa",
-                          alignItems: "center",
-                          textAlign:
-                            msg.direction === "Outbound" ? "right" : "left",
-                          marginTop: "10px", // Adjusted margin for closer alignment
-                        }}
-                      >
-                        {msg.direction !== "Outbound" ? (
-                          <>
-                            {msg?.record_type === "Email" ? (
-                              <Badge
-                                count={
-                                  <CiMail
-                                    style={{
-                                      color: "#6A6A8B",
-                                      fontSize: 10,
-                                      padding: 2,
-                                    }}
-                                  />
-                                }
-                                style={{
-                                  backgroundColor: "#E8E5FF",
-                                  borderRadius: "50%",
-                                  height: "15px",
-                                  width: "15px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              />
-                            ) : (
-                              <Badge
-                                count={
-                                  <MessageOutlined
-                                    style={{
-                                      color: "#6A6A8B",
-                                      fontSize: 10,
-                                      padding: 2,
-                                    }}
-                                  />
-                                }
-                                style={{
-                                  backgroundColor: "#FFFBCC",
-                                  borderRadius: "50%",
-                                  height: "15px",
-                                  width: "15px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              />
-                            )}
-                            {msg?.record_type === "Email" ? (
-                              <span className="custom-text1">Email</span>
-                            ) : (
-                              <span className="custom-text1">SMS</span>
-                            )}
+                            <div
+                              style={{
+                                background:
+                                  msg.direction === "Outbound"
+                                    ? "#EFEEFF"
+                                    : "#fff",
+                                borderRadius:
+                                  msg.direction === "You"
+                                    ? "15px 15px 5px 15px"
+                                    : "15px 15px 15px 5px",
+                                padding: "10px",
+                                maxWidth: "60%",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                                margin:
+                                  msg.direction === "Outbound"
+                                    ? "0 10px 0 0"
+                                    : "0 0 0 10px",
+                              }}
+                            >
+                              {msg?.record_type === "SMS" ? (
+                                <Text>{msg.message} </Text>
+                              ) : (
+                                <EmailContentDisplay
+                                  emailContent={msg.message}
+                                />
+                              )}
+                            </div>
 
-                            <Divider
-                              type="vertical"
-                              style={{ margin: 5, fontSize: 10 }}
-                            />
-                            <span className="custom-text1">
-                              {dayjs(msg.received_at)?.format("hh:mm A")}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="custom-text1">
-                              {dayjs(msg.Created_On)?.format("hh:mm A")}
-                            </span>
-                            <Divider
-                              type="vertical"
-                              style={{ margin: 5, fontSize: 10 }}
-                            />
-                            {msg?.record_type === "Email" ? (
-                              <Badge
-                                count={
-                                  <CiMail
-                                    style={{
-                                      color: "#6A6A8B",
-                                      fontSize: 10,
-                                      padding: 2,
-                                    }}
-                                  />
-                                }
+                            {msg.direction === "Outbound" && (
+                              <Avatar
                                 style={{
-                                  backgroundColor: "#E8E5FF",
-                                  borderRadius: "50%",
-                                  height: "15px",
-                                  width: "15px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
+                                  marginLeft: "10px",
+                                  backgroundColor: selectedLead?.avatar_color,
                                 }}
-                              />
-                            ) : (
-                              <Badge
-                                count={
-                                  <MessageOutlined
-                                    style={{
-                                      color: "#6A6A8B",
-                                      fontSize: 10,
-                                      padding: 2,
-                                    }}
-                                  />
-                                }
-                                style={{
-                                  backgroundColor: "#FFFBCC",
-                                  borderRadius: "50%",
-                                  height: "15px",
-                                  width: "15px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              />
+                              >
+                                {getInitials(
+                                  selectedLead?.first_name +
+                                    " " +
+                                    selectedLead?.last_name
+                                )}
+                              </Avatar>
                             )}
-                            {msg?.record_type === "Email" ? (
-                              <span className="custom-text1">Email</span>
+                          </div>
+
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              marginLeft:
+                                msg.direction !== "Outbound" ? "50px" : "",
+                              marginRight:
+                                msg.direction === "Outbound" ? "50px" : "",
+                              color: "#aaa",
+                              alignItems: "center",
+                              textAlign:
+                                msg.direction === "Outbound" ? "right" : "left",
+                              marginTop: "10px",
+                            }}
+                          >
+                            {msg.direction !== "Outbound" ? (
+                              <>
+                                <Badge
+                                  count={
+                                    <MessageOutlined
+                                      style={{
+                                        color: "#6A6A8B",
+                                        fontSize: 10,
+                                        padding: 2,
+                                      }}
+                                    />
+                                  }
+                                  style={{
+                                    backgroundColor: "#FFFBCC",
+                                    borderRadius: "50%",
+                                    height: "15px",
+                                    width: "15px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                />
+                                <span className="custom-text1">SMS</span>
+                                <Divider
+                                  type="vertical"
+                                  style={{ margin: 5, fontSize: 10 }}
+                                />
+                                <span className="custom-text1">
+                                  {dayjs(msg.received_at)?.format("hh:mm A")}
+                                </span>
+                              </>
                             ) : (
-                              <span className="custom-text1">SMS</span>
+                              <>
+                                <span className="custom-text1">
+                                  {dayjs(msg.created_on)?.format("hh:mm A")}
+                                </span>
+                                <Divider
+                                  type="vertical"
+                                  style={{ margin: 5, fontSize: 10 }}
+                                />
+
+                                <Badge
+                                  count={
+                                    <MessageOutlined
+                                      style={{
+                                        color: "#6A6A8B",
+                                        fontSize: 10,
+                                        padding: 2,
+                                      }}
+                                    />
+                                  }
+                                  style={{
+                                    backgroundColor: "#FFFBCC",
+                                    borderRadius: "50%",
+                                    height: "15px",
+                                    width: "15px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                />
+                                <span className="custom-text1">SMS</span>
+                              </>
                             )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <Empty description="No SMS available" />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <Empty description="No SMS available" />
+                    )}
+                  </>
                 )}
               </div>
             ) : (
@@ -902,7 +1042,9 @@ const ChatUI = () => {
                       <DatePicker
                         defaultValue={selectScheduleDateTime}
                         showTime
-                        disabledDate={(current) => current && current < dayjs().startOf('day')}
+                        disabledDate={(current) =>
+                          current && current < dayjs().startOf("day")
+                        }
                         format="YYYY-MM-DD hh:mm A"
                         onChange={(e) => setselectScheduleDateTime(e)}
                       />
@@ -911,15 +1053,19 @@ const ChatUI = () => {
                     ""
                   )}
                 </Space>
-                {!isEmailModalOpen ? (
-                  <Button
-                    type="text"
-                    onClick={() => {
-                      setisEmailModalOpen(true);
-                      setisTextEditorVisible(false);
-                    }}
-                    icon={<BsArrowsAngleExpand />}
-                  />
+                {messageType === "Email" ? (
+                  !isEmailModalOpen ? (
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        setisEmailModalOpen(true);
+                        setisTextEditorVisible(false);
+                      }}
+                      icon={<BsArrowsAngleExpand />}
+                    />
+                  ) : (
+                    ""
+                  )
                 ) : (
                   ""
                 )}
@@ -959,41 +1105,83 @@ const ChatUI = () => {
                   }}
                 />
               )}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <PaperClipOutlined
+              <div style={{ padding: "0px 0" }}>
+                {/* Fixed UI Section */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div
                     style={{
-                      fontSize: "16px",
-                      color: "#72779E",
-                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
                     }}
-                  />
-                  <Divider type="vertical" style={{ fontSize: 20 }} />
-                  <LiaUserTagSolid
-                    style={{
-                      fontSize: "16px",
-                      color: "#72779E",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <span>Variables</span>
-                  <Divider type="vertical" style={{ fontSize: 20 }} />
-                  <BsLightning
-                    style={{
-                      fontSize: "14px",
-                      color: "#72779E",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <span>Templates</span>
-                </div>
-                <div>
+                  >
+                    <div style={{ marginBottom: "10px" }}>
+                      {fileList.map((file) => (
+                        <div
+                          key={file.uid}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          <PaperClipOutlined
+                            style={{ fontSize: "16px", color: "#72779E" }}
+                          />
+                          <span>{file.name}</span>
+                          <Button
+                            size="small"
+                            type="link"
+                            onClick={() => handleFileRemove(file)}
+                            style={{ color: "#ff4d4f" }}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>{" "}
+                    <Upload
+                      multiple
+                      fileList={fileList}
+                      onChange={handleFileChange}
+                      beforeUpload={() => false}
+                      showUploadList={false} // Prevent default UI list rendering
+                    >
+                      <PaperClipOutlined
+                        style={{
+                          fontSize: "16px",
+                          color: "#72779E",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Upload>
+                    <Divider type="vertical" style={{ height: "20px" }} />
+                    <LiaUserTagSolid
+                      style={{
+                        fontSize: "16px",
+                        color: "#72779E",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <span style={{ color: "#72779E" }}>Variables</span>
+                    <Divider type="vertical" style={{ height: "20px" }} />
+                    <BsLightning
+                      style={{
+                        fontSize: "14px",
+                        color: "#72779E",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <span style={{ color: "#72779E" }}>Templates</span>
+                  </div>
+
                   <Button
                     loading={buttonLoader}
                     onClick={() => {
@@ -1236,8 +1424,10 @@ const ChatUI = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+     
     </Layout>
   );
 };
 
-export default ChatUI;
+export default Conversations;

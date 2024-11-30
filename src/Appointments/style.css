@@ -1,0 +1,113 @@
+.custom-card .ant-card-head {
+  padding: 0 10px !important;
+}
+
+.custom-card .ant-card-body {
+  padding: 10px;
+}
+
+.custom-card-today .ant-card-head {
+  background: linear-gradient(180deg, #FBFCFF 0%, #F7FCFE 51.48%, #F5F8FF 100%);
+
+}
+
+.custom-card-totalappointments .ant-card-head {
+  background: linear-gradient(180deg, #FFFBFE 0%, #FEF7FE 51.48%, #F5F8FF 100%);
+}
+
+.custom-card-confirmedappointments .ant-card-head {
+  background: linear-gradient(180deg, #FBFFFC 0%, #F8FEF7 51.48%, #F5FFF5 100%);
+}
+
+.custom-card-notconfirmedappointments .ant-card-head {
+  background: linear-gradient(180deg, #FFFBFB 0%, #FEF7F8 51.48%, #FFF5F5 100%);
+}
+
+
+.custom-card-showuprate .ant-card-head {
+  background: linear-gradient(180deg, #FFFEFB 0%, #FEFBF7 51.48%, #FFFDF5 100%);
+}
+
+.r
+
+/* Ensures events have a min-height in the week view */
+.fc-event {
+  min-height: 40px !important;
+  /* Adjust this based on your needs */
+}
+
+/* Adjust height for week view events */
+.fc-timegrid-event {
+  min-height: 50px !important;
+  /* Makes sure event height adapts */
+}
+
+
+
+
+/* Adjust event text overflow if it's too long */
+.fc-event-title {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Increases the height of each slot */
+.fc-timegrid-slot {
+  height: auto !important;
+  /* Automatically adjust the height */
+}
+
+/* Adjust height based on the number of events */
+.fc-timegrid-event {
+  height: auto !important;
+  /* Ensure events adjust based on content */
+}
+
+
+.fc-v-event {
+  background: none !important;
+  border: none !important
+}
+
+/* Increase slot height in the week view */
+.fc-timegrid-slot {
+  height: 80px !important;
+  /* Adjust this based on your content */
+}
+
+/* Ensure events within the slots are sized appropriately */
+.fc-timegrid-event {
+  max-height: 80px !important;
+  /* Limit the height of events */
+  overflow: hidden !important;
+  /* Hide overflowing event content */
+}
+
+
+.fc-popover-body {
+  height: 33vh !important;
+  overflow: scroll;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: #F6F7FD !important;
+}
+
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: #F6F7FD !important;
+}
+
+.fc-scrollgrid-sync-inner a {
+  color: #72779E !important;
+}
+.fc .fc-button-primary{
+  background-color: #3900DB;
+}
+
+.fc .fc-button-primary:disabled{
+  background-color: #3900DB;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active{
+  background-color: #72779E !important;
+}

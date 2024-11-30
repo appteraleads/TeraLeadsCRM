@@ -32,7 +32,7 @@ import {
   RiVerifiedBadgeFill,
 } from "react-icons/ri";
 import { TiUser } from "react-icons/ti";
-import { leadStatusColorAndTextList } from "../Common/ColorHexCodeList";
+import { leadStatusColorAndTextList } from "../Common/CommonCodeList";
 import { FiEdit } from "react-icons/fi";
 import {
   AudioOutlined,
@@ -43,13 +43,18 @@ import {
   MessageOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
+import moment from "moment";
 import { ReactComponent as Moneysvg } from "../assets/IconSvg/Vector(1).svg";
 import { ReactComponent as Moneybagsvg } from "../assets/IconSvg/Vector (2).svg";
+import { ReactComponent as Paymentsvg } from "../assets/IconSvg/Vector (4).svg";
 import axios from "axios";
 import dayjs from "dayjs";
 import Notes from "./Notes";
 import { FaCalendar } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { GoScreenFull } from "react-icons/go";
+import { BiEdit } from "react-icons/bi";
+
 const { Text, Title } = Typography;
 const { Option } = Select;
 
@@ -236,8 +241,6 @@ const getInitials = (name) => {
 };
 
 export const ViewUpdateLeadDetails = ({
-  handleGetAllleads,
-  handleGetAllleadsKanbanView,
   openNotificationWithIcon,
   selectedItemDetails,
   setisLeadsDetailsModalVisible,
@@ -246,51 +249,19 @@ export const ViewUpdateLeadDetails = ({
   isLeadsDetailsModalVisible,
   isViewLeadModalEditable,
   setbuttonLoader,
-  setisAppointmentModalVisible
+  setisAppointmentModalVisible,
+  handleSubmitUpdateleads,
+  ViewUpdateLeadform,
+  setisCloseLeadsPaymentModalVisible,
+  setisVisibleQuickConversation,
+  setquickConversationView,
+  setselectedConversationDetails,
 }) => {
-  const [ViewUpdateLeadform] = Form.useForm();
   const [treatmentOptions, settreatmentOptions] = useState([]);
   const [selectedOption, setselectedOption] = useState([]);
-
-  const handleSubmitUpdateleads = async (values) => {
-    values.id = selectedItemDetails?.id;
-    console.log(values);
-    setbuttonLoader(true);
-    const token = localStorage.getItem("authToken");
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-        values,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
-          },
-        }
-      )
-      .then((res) => {
-        handleGetAllleads();
-        handleGetAllleadsKanbanView();
-        ViewUpdateLeadform.resetFields();
-        setbuttonLoader(false);
-        setisLeadsDetailsModalVisible(false);
-        setisViewLeadModalEditable(false);
-        openNotificationWithIcon(
-          "success",
-          "Lead",
-          "Lead Updated Successfully !"
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-        ViewUpdateLeadform.resetFields();
-
-        openNotificationWithIcon(
-          "error",
-          "Lead",
-          err?.response?.data?.message || err?.message
-        );
-      });
-    setbuttonLoader(false);
+  const disabledDate = (current) => {
+    // Can not select days before today and today
+    return current && current < moment().startOf("day");
   };
 
   const getTreatmentUrlList = async () => {
@@ -358,7 +329,7 @@ export const ViewUpdateLeadDetails = ({
             </div>
             <div style={{ marginLeft: 10 }}>
               <Button
-              style={{background:'none'}}
+                style={{ background: "none" }}
                 onClick={() => {
                   setisViewLeadModalEditable(true);
                 }}
@@ -404,6 +375,7 @@ export const ViewUpdateLeadDetails = ({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              padding: "0px 10px 0px 10px",
             }}
           >
             <div>
@@ -449,7 +421,10 @@ export const ViewUpdateLeadDetails = ({
       <Row align="middle" gutter={16} style={{ marginBottom: 10, margin: 15 }}>
         {/* Avatar Column */}
         <Col>
-          <Avatar size={45} style={{ backgroundColor: "#650ACC" }}>
+          <Avatar
+            size={45}
+            style={{ backgroundColor: selectedItemDetails?.avatar_color }}
+          >
             {getInitials(
               selectedItemDetails?.first_name +
                 " " +
@@ -500,16 +475,65 @@ export const ViewUpdateLeadDetails = ({
         <Row justify="space-between" align="middle">
           <Col>
             <Space size="middle">
-              <Button icon={<PhoneOutlined />}>Call</Button>
-              <Button icon={<MessageOutlined />}>SMS</Button>
-              <Button icon={<MailOutlined />}>Email</Button>
+              <Button
+                onClick={() => {
+                  setisLeadsDetailsModalVisible(false);
+                  setisVisibleQuickConversation(true);
+                  setquickConversationView("call");
+                  setselectedConversationDetails(selectedItemDetails);
+                }}
+                icon={<PhoneOutlined />}
+              >
+                Call
+              </Button>
+              <Button
+                onClick={() => {
+                  setisLeadsDetailsModalVisible(false);
+                  setisVisibleQuickConversation(true);
+                  setquickConversationView("sms");
+                  setselectedConversationDetails(selectedItemDetails);
+                }}
+                icon={<MessageOutlined />}
+              >
+                SMS
+              </Button>
+              <Button
+                onClick={() => {
+                  setisLeadsDetailsModalVisible(false);
+                  setisVisibleQuickConversation(true);
+                  setquickConversationView("email");
+                  setselectedConversationDetails(selectedItemDetails);
+                }}
+                icon={<MailOutlined />}
+              >
+                Email
+              </Button>
               <Button icon={<FileAddOutlined />}>Add Note</Button>
             </Space>
           </Col>
           <Col>
-            <Button type="primary" className="book-appointment-btn" onClick={()=>{setisAppointmentModalVisible(true)}}>
-              Book Appointment
-            </Button>
+            {selectedItemDetails?.appointment_date_time ? (
+              <Button
+                type="primary"
+                className="book-appointment-btn"
+                onClick={() => {
+                  setisCloseLeadsPaymentModalVisible(true);
+                }}
+              >
+                <Paymentsvg />
+                Record Payment
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                className="book-appointment-btn"
+                onClick={() => {
+                  setisAppointmentModalVisible(true);
+                }}
+              >
+                Book Appointment
+              </Button>
+            )}
           </Col>
         </Row>
       </div>
@@ -552,22 +576,74 @@ export const ViewUpdateLeadDetails = ({
               <Col>
                 <Text className="custom-text1">Status</Text>
                 <br />
-                {selectedItemDetails?.lead_status
-                  ? leadStatusColorAndTextList.find(
+                <Tag
+                  style={{
+                    backgroundColor: leadStatusColorAndTextList.find(
                       (item) => item.status === selectedItemDetails?.lead_status
-                    )?.text
-                  : leadStatusColorAndTextList.find(
-                      (item) => item.status === "AllLeads"
-                    )?.text}
+                    )?.backgroud,
+                    color: leadStatusColorAndTextList.find(
+                      (item) => item.status === selectedItemDetails?.lead_status
+                    )?.color,
+                    border: "none",
+                  }}
+                >
+                  {selectedItemDetails?.lead_status
+                    ? leadStatusColorAndTextList.find(
+                        (item) =>
+                          item.status === selectedItemDetails?.lead_status
+                      )?.text
+                    : leadStatusColorAndTextList.find(
+                        (item) => item.status === "AllLeads"
+                      )?.text}
+                </Tag>
               </Col>
               <Divider type="vertical" style={{ margin: 0, fontSize: 50 }} />
               <Col>
                 <Text className="custom-text1">Appointment</Text>
                 <br />
-                {selectedItemDetails?.appointment_status
-                  ? selectedItemDetails?.appointment_status
-                  : "Not Booked"}
+
+                <Tag
+                  style={{
+                    background: "transparent",
+                    color: leadStatusColorAndTextList.find(
+                      (item) =>
+                        item.status === selectedItemDetails?.appointment_status
+                    )?.color,
+                    border: "none",
+                  }}
+                >
+                  {selectedItemDetails?.appointment_status
+                    ? leadStatusColorAndTextList.find(
+                        (item) =>
+                          item.status ===
+                          selectedItemDetails?.appointment_status
+                      )?.text
+                    : leadStatusColorAndTextList.find(
+                        (item) => item.status === "AllLeads"
+                      )?.text}
+                </Tag>
               </Col>
+              {selectedItemDetails?.appointment_date_time ? (
+                <>
+                  <Divider
+                    type="vertical"
+                    style={{ margin: 0, fontSize: 50 }}
+                  />
+                  <Col>
+                    <Text className="custom-text1">
+                      Appointment Time & Date
+                    </Text>
+                    <br />
+                    {selectedItemDetails?.appointment_date_time
+                      ? dayjs(
+                          selectedItemDetails?.appointment_date_time
+                        ).format("MMM DD YYYY, hh:mm A")
+                      : ""}
+                  </Col>
+                </>
+              ) : (
+                ""
+              )}
             </Row>
             <div
               gutter={[16, 16]}
@@ -926,7 +1002,10 @@ export const ViewUpdateLeadDetails = ({
                         justifyContent: "space-between",
                       }}
                     >
-                      <Typography className="custom-text1">
+                      <Typography
+                        className="custom-text1"
+                        style={{ width: 100 }}
+                      >
                         Treatment
                       </Typography>
                       {isViewLeadModalEditable ? (
@@ -1329,64 +1408,159 @@ export const ViewUpdateLeadDetails = ({
             </Timeline>
           </Card>
         </TabPane>
+
+        <TabPane tab="Appointment" key="4">
+          <div style={{ padding: 20 }}>
+            <Form
+              form={ViewUpdateLeadform}
+              onFinish={handleSubmitUpdateleads}
+              layout="vertical"
+            >
+              <Row>
+                <Col span={12}>
+                  <Text strong className="custom-text1">
+                    Date & Time
+                  </Text>
+                </Col>
+
+                <Col span={12}>
+                  {isViewLeadModalEditable ? (
+                    <>
+                      <Form.Item name="appointment_date_time">
+                        <DatePicker
+                          style={{ width: "100%" }}
+                          className="custom-text1"
+                          showTime
+                          defaultValue={
+                            selectedItemDetails?.appointment_date_time
+                              ? dayjs(
+                                  selectedItemDetails?.appointment_date_time
+                                )
+                              : null // default to null if the value is empty
+                          }
+                          format="YYYY-MMM-DD hh:mm A"
+                          disabledDate={disabledDate}
+                        />
+                      </Form.Item>
+                    </>
+                  ) : (
+                    <Text>
+                      {selectedItemDetails?.appointment_date_time
+                        ? dayjs(
+                            selectedItemDetails?.appointment_date_time
+                          ).format("MMM DD,YYYY")
+                        : "-"} {" "}
+  
+                      {selectedItemDetails?.appointment_date_time
+                        ? dayjs(
+                            selectedItemDetails?.appointment_date_time
+                          ).format("hh:mm A")
+                        : "-"}
+                    </Text>
+                  )}
+                </Col>
+              </Row>
+              <Divider style={{ margin: "16px 0" }} />
+              <Row>
+                <Col span={12}>
+                  <Text strong className="custom-text1">
+                    Assigned
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong className="custom-text1">
+                    Duration
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text>
+                    {selectedItemDetails?.assign_to
+                      ? selectedItemDetails?.assign_to
+                      : "-"}
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text>
+                    {isViewLeadModalEditable ? (
+                      <>
+                        <Form.Item name="appointment_duration">
+                          <Select
+                            defaultValue={
+                              selectedItemDetails?.appointment_duration
+                                ? selectedItemDetails?.appointment_duration
+                                : ""
+                            }
+                            placeholder="Select Duration"
+                            className="custom-text1"
+                          >
+                            <Option>30 minutes</Option>
+                            <Option value="45">45 minutes</Option>
+                            <Option value="60">1 hour</Option>
+                          </Select>
+                        </Form.Item>
+                      </>
+                    ) : (
+                      <>
+                        {selectedItemDetails?.appointment_duration
+                          ? selectedItemDetails?.appointment_duration
+                          : "-"}
+                        min
+                      </>
+                    )}
+                  </Text>
+                </Col>
+              </Row>
+
+              <Divider style={{ margin: "16px 0" }} />
+
+              {/* Appointment Note Section */}
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Text strong className="custom-text1">
+                    Appointment Note:
+                  </Text>
+                  <p style={{ marginTop: 8 }}>
+                    {isViewLeadModalEditable ? (
+                      <>
+                        <Form.Item name="appointment_notes">
+                          <Input.TextArea
+                            className="custom-text1"
+                            defaultValue={
+                              selectedItemDetails?.appointment_notes
+                            }
+                            placeholder="Please enter notes"
+                            style={{ width: "100%" }}
+                          />
+                        </Form.Item>
+                      </>
+                    ) : (
+                      <>
+                        {selectedItemDetails?.appointment_notes
+                          ? selectedItemDetails?.appointment_notes
+                          : "-"}
+                      </>
+                    )}
+                  </p>
+                </Col>
+              </Row>
+            </Form>
+          </div>
+        </TabPane>
       </Tabs>
     </Modal>
   );
 };
 
 export const CloseLeadPayment = ({
-  handleGetAllleads,
-  handleGetAllleadsKanbanView,
+  handleSubmitCloseleadsPayment,
   isCloseLeadsPaymentModalVisible,
-  buttonLoader,
-  setbuttonLoader,
-  openNotificationWithIcon,
-  dragCardItemId,
   setisCloseLeadsPaymentModalVisible,
+  buttonLoader,
+  RecordPaymentform,
 }) => {
-  const [RecordPaymentform] = Form.useForm();
-
   const handleCloseLeadPaymentModal = () => {
     setisCloseLeadsPaymentModalVisible(false);
     RecordPaymentform.resetFields();
-  };
-  const handleSubmitCloseleadsPayment = async (values) => {
-    setbuttonLoader(true);
-    const token = localStorage.getItem("authToken");
-    const data = {
-      id: dragCardItemId,
-      close_amount: values?.CloseAmount,
-      lead_status: "Closed",
-    };
-    await axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        openNotificationWithIcon(
-          "success",
-          "Congratulations!",
-          "Successfully  closed! Great work!"
-        );
-        setisCloseLeadsPaymentModalVisible(false);
-        setbuttonLoader(false);
-        handleGetAllleadsKanbanView();
-        handleGetAllleads();
-        RecordPaymentform.resetFields();
-      })
-      .catch((err) => {
-        console.log(err);
-
-        openNotificationWithIcon("error", "Close Lead", err?.message);
-        RecordPaymentform.resetFields();
-        setbuttonLoader(false);
-      });
   };
 
   return (
@@ -1478,16 +1652,24 @@ export const AppointmentDateTime = ({
   isAppointmentModalVisible,
   disabledDate,
   buttonLoader,
-  selectedItemDetails
+  selectedItemDetails,
 }) => {
   const [AppointmentDetailsform] = Form.useForm();
   const handleSubmitApointmentDateAndTime = async (values) => {
-    if(selectedItemDetails?.first_name && selectedItemDetails?.last_name && selectedItemDetails?.email){
+    if (
+      selectedItemDetails?.first_name &&
+      selectedItemDetails?.last_name &&
+      selectedItemDetails?.email
+    ) {
       setbuttonLoader(true);
+
       const data = {
         id: selectedItemDetails?.id,
-        appointment_date: dayjs(values?.AppointmentDate).format("MMM DD YYYY"),
-        appointment_time: dayjs(values?.AppointmentTime).format("hh:mm A"), // Example: "02:30 pm"
+        appointment_date_time: dayjs(
+          values?.appointment_date_time,
+          "YYYY-MMM-DD hh:mm A"
+        ).format("YYYY-MM-DD HH:mm:ss"),
+        appointment_duration: values?.appointment_duration,
         appointment_notes: values?.AppointmentNotes,
         lead_status: "Appointment",
       };
@@ -1495,7 +1677,7 @@ export const AppointmentDateTime = ({
       await axios
         .post(
           `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
-  
+
           data,
           {
             headers: {
@@ -1519,14 +1701,13 @@ export const AppointmentDateTime = ({
           console.log(err);
           AppointmentDetailsform.resetFields();
         });
-    }else{
+    } else {
       openNotificationWithIcon(
         "error",
         "Lead",
         "To continue, please make sure to include your email, first name, and last name."
       );
     }
-
   };
 
   const handleCancelApointmentDateAndTime = () => {
@@ -1577,15 +1758,17 @@ export const AppointmentDateTime = ({
             <Form.Item
               label={
                 <>
-                  <span>Date</span>
+                  <span>Date & Time</span>
                   <span style={{ color: "red" }}>*</span>
                 </>
               }
-              name="AppointmentDate"
+              name="appointment_date_time"
               rules={[{ required: true, message: "Please select a date!" }]}
             >
               <DatePicker
                 style={{ width: "100%" }}
+                showTime
+                format="YYYY-MMM-DD hh:mm A"
                 disabledDate={disabledDate}
               />
             </Form.Item>
@@ -1594,18 +1777,20 @@ export const AppointmentDateTime = ({
             <Form.Item
               label={
                 <>
-                  <span>Time</span>
+                  <span>Duration</span>
                   <span style={{ color: "red" }}>*</span>
                 </>
               }
-              name="AppointmentTime"
-              rules={[{ required: true, message: "Please select a time!" }]}
+              name="appointment_duration"
+              rules={[{ required: true, message: "Please select a duration!" }]}
             >
-              <TimePicker
-                use12Hours
-                format="h:mm a"
-                style={{ width: "100%" }}
-              />
+              <Select placeholder="Select Duration">
+                <Option value="30" selected>
+                  30 minutes
+                </Option>
+                <Option value="45">45 minutes</Option>
+                <Option value="60">1 hour</Option>
+              </Select>
             </Form.Item>
           </Col>
           <Col span={24}>
@@ -1925,7 +2110,7 @@ export const CreateLeads = ({
                       Date<span style={{ color: "red" }}>*</span>{" "}
                     </>
                   }
-                  name="appointment_date"
+                  name="appointment_date_time"
                   rules={[{ required: true, message: "Please select date !" }]}
                 >
                   <DatePicker
@@ -2241,6 +2426,236 @@ export const CreateDuplicateLead = ({
       <Typography style={{ padding: "0 10px" }}>
         Are you sure you want to create duplicate lead?
       </Typography>
+    </Modal>
+  );
+};
+
+export const ViewLeadDetailsShort = ({
+  isModalVisibleViewLeadDetailsShort,
+  setisModalVisibleViewLeadDetailsShort,
+  selectedItemDetails,
+  setisLeadsDetailsModalVisible,
+  setisViewLeadModalEditable,
+  setisVisibleQuickConversation,
+  setquickConversationView,
+  setselectedConversationDetails,
+}) => {
+  const handleCancel = () => {
+    setisModalVisibleViewLeadDetailsShort(false);
+  };
+
+  return (
+    <Modal
+      title={
+        <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Button
+                onClick={handleCancel}
+                icon={<IoChevronBackSharp />}
+              ></Button>
+              <Typography style={{ marginLeft: 10 }}>Appointment</Typography>
+            </div>
+
+            <div>
+              <GoScreenFull
+                style={{ fontSize: 25, cursor: "pointer" }}
+                onClick={() => {
+                  setisLeadsDetailsModalVisible(true);
+                  setisModalVisibleViewLeadDetailsShort(false);
+                }}
+              />
+            </div>
+          </div>
+
+          <Divider style={{ margin: "16px 0" }} />
+          <Row gutter={[2, 16]}>
+            <Col span={4}>
+              <Avatar
+                size={45}
+                style={{
+                  backgroundColor: selectedItemDetails?.avatar_color,
+                  fontSize: "24px",
+                }}
+              >
+                {selectedItemDetails?.first_name &&
+                selectedItemDetails?.last_name
+                  ? getInitials(
+                      selectedItemDetails?.first_name +
+                        " " +
+                        selectedItemDetails?.last_name
+                    )
+                  : "-"}
+              </Avatar>
+            </Col>
+            <Col span={18}>
+              <Text
+                style={{
+                  color:
+                    selectedItemDetails?.appointment_status === "Not Confirmed"
+                      ? "red"
+                      : "#52c41a",
+                  fontWeight: "bold",
+                }}
+              >
+                {selectedItemDetails?.appointment_status
+                  ? selectedItemDetails?.appointment_status
+                  : "-"}
+              </Text>
+              <Title level={4} style={{ margin: 0 }}>
+                {selectedItemDetails?.last_name
+                  ? selectedItemDetails?.first_name +
+                    " " +
+                    selectedItemDetails?.last_name
+                  : "-"}
+              </Title>
+            </Col>
+            <Row
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Space size="middle">
+                <Button
+                  onClick={() => {
+                    setisModalVisibleViewLeadDetailsShort(false);
+                    setisVisibleQuickConversation(true);
+                    setquickConversationView("call");
+                    setselectedConversationDetails(selectedItemDetails);
+                  }}
+                  icon={<PhoneOutlined />}
+                >
+                  Call
+                </Button>
+                <Button
+                  onClick={() => {
+                    setisModalVisibleViewLeadDetailsShort(false);
+                    setisVisibleQuickConversation(true);
+                    setquickConversationView("sms");
+                    setselectedConversationDetails(selectedItemDetails);
+                  }}
+                  icon={<MessageOutlined />}
+                >
+                  SMS
+                </Button>
+                <Button
+                  onClick={() => {
+                    setisModalVisibleViewLeadDetailsShort(false);
+                    setisVisibleQuickConversation(true);
+                    setquickConversationView("email");
+                    setselectedConversationDetails(selectedItemDetails);
+                  }}
+                  icon={<MailOutlined />}
+                >
+                  Email
+                </Button>
+                <Button
+                  icon={<BiEdit style={{ fontSize: 16 }} />}
+                  style={{ background: "#fff" }}
+                  onClick={() => {
+                    setisViewLeadModalEditable(true);
+                    setisLeadsDetailsModalVisible(true);
+                    setisModalVisibleViewLeadDetailsShort(false);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Space>
+            </Row>
+          </Row>
+        </>
+      }
+      visible={isModalVisibleViewLeadDetailsShort}
+      footer={null}
+      closable={false}
+      width={400}
+      className="custom-modal-lead-details "
+    >
+      {/* Appointment Details Section */}
+      <Row>
+        <Col span={12}>
+          <Text strong className="custom-text1">
+            Time
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text strong className="custom-text1">
+            Date
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text>
+            {selectedItemDetails?.appointment_date_time
+              ? dayjs(selectedItemDetails?.appointment_date_time).format(
+                  "hh:mm A"
+                )
+              : "-"}
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text>
+            {" "}
+            {selectedItemDetails?.appointment_date_time
+              ? dayjs(selectedItemDetails?.appointment_date_time).format(
+                  "MMM DD,YYYY"
+                )
+              : "-"}
+          </Text>
+        </Col>
+      </Row>
+      <Divider style={{ margin: "16px 0" }} />
+      <Row>
+        <Col span={12}>
+          <Text strong className="custom-text1">
+            Assigned
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text strong className="custom-text1">
+            Duration
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text>
+            {" "}
+            {selectedItemDetails?.assign_to
+              ? selectedItemDetails?.assign_to
+              : "-"}
+          </Text>
+        </Col>
+        <Col span={12}>
+          <Text>
+            {selectedItemDetails?.appointment_duration
+              ? selectedItemDetails?.appointment_duration
+              : "-"}
+            min
+          </Text>
+        </Col>
+      </Row>
+
+      <Divider style={{ margin: "16px 0" }} />
+
+      {/* Appointment Note Section */}
+      <Row gutter={[16, 16]}>
+        <Col span={24}>
+          <Text strong className="custom-text1">
+            Appointment Note:
+          </Text>
+          <p style={{ marginTop: 8 }}>
+            {selectedItemDetails?.appointment_notes
+              ? selectedItemDetails?.appointment_notes
+              : "-"}
+          </p>
+        </Col>
+      </Row>
     </Modal>
   );
 };

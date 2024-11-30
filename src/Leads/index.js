@@ -33,7 +33,6 @@ import { PiExportBold } from "react-icons/pi";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import moment from "moment";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { mixedColors } from "../Common/ColorHexCodeList";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaMicrophone } from "react-icons/fa6";
 import { MdSpaceDashboard } from "react-icons/md";
@@ -61,9 +60,15 @@ const defaultColunmList = [
   "Assigned",
 ];
 
-const Leads = () => {
+const Leads = ({
+  searchContent,
+  setisVisibleQuickConversation,
+  setquickConversationView,
+  setselectedConversationDetails,
+}) => {
   const [CreateLeadsform] = Form.useForm();
-
+  const [ViewUpdateLeadform] = Form.useForm();
+  const [RecordPaymentform] = Form.useForm();
   const [Overview, setOverview] = useState(0);
   const [isViewLeadModalEditable, setisViewLeadModalEditable] = useState(false);
   const [AppointmentsCount, setAppointmentsCount] = useState(0);
@@ -218,6 +223,85 @@ const Leads = () => {
     setleaadActiveTab(parseInt(newActiveKey));
   };
 
+  const handleSubmitUpdateleads = async (values) => {
+    values.id = selectedItemDetails?.id;
+    setbuttonLoader(true);
+    const token = localStorage.getItem("authToken");
+    await axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+          },
+        }
+      )
+      .then((res) => {
+        handleGetAllleads();
+        handleGetAllleadsKanbanView();
+        ViewUpdateLeadform.resetFields();
+        setbuttonLoader(false);
+        setisLeadsDetailsModalVisible(false);
+        setisViewLeadModalEditable(false);
+        openNotificationWithIcon(
+          "success",
+          "Lead",
+          "Lead Updated Successfully !"
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        ViewUpdateLeadform.resetFields();
+
+        openNotificationWithIcon(
+          "error",
+          "Lead",
+          err?.response?.data?.message || err?.message
+        );
+      });
+    setbuttonLoader(false);
+  };
+
+  const handleSubmitCloseleadsPayment = async (values) => {
+    setbuttonLoader(true);
+    const token = localStorage.getItem("authToken");
+    const data = {
+      id: dragCardItemId,
+      close_amount: values?.CloseAmount,
+      lead_status: "Closed",
+    };
+    await axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        openNotificationWithIcon(
+          "success",
+          "Congratulations!",
+          "Successfully  closed! Great work!"
+        );
+        setisCloseLeadsPaymentModalVisible(false);
+        setbuttonLoader(false);
+        handleGetAllleadsKanbanView();
+        handleGetAllleads();
+        RecordPaymentform.resetFields();
+      })
+      .catch((err) => {
+        console.log(err);
+
+        openNotificationWithIcon("error", "Close Lead", err?.message);
+        RecordPaymentform.resetFields();
+        setbuttonLoader(false);
+      });
+  };
+
   const handleGetAllleads = async (page, limit, search, searchType) => {
     settableLoader(true);
     const token = localStorage.getItem("authToken");
@@ -225,7 +309,7 @@ const Leads = () => {
       page: page || 1,
       limit: limit || 10,
       search: search || "",
-      searchType: searchType || "",
+      searchType: searchType?.trim() || "",
     };
 
     try {
@@ -239,7 +323,8 @@ const Leads = () => {
         }
       );
 
-      if (localStorage.getItem("userColumn")) {
+      if (localStorage.getItem("userColumn") !== "undefined" && localStorage.getItem("userColumn")) {
+  
         setleadsListcolumns(
           localStorage
             .getItem("userColumn")
@@ -268,7 +353,6 @@ const Leads = () => {
       const tempResponse = res?.data?.leads?.map((data, index) => {
         data.Name = `${data?.first_name || ""} ${data?.last_name || ""}`;
         data.PhoneNumber = data?.Phone || data?.PhoneNumber;
-        data.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
         data.key = index + 1;
         return data;
       });
@@ -295,14 +379,13 @@ const Leads = () => {
 
   const handleGetAllleadsKanbanView = async (search, searchType) => {
     setpageLoader(true);
-  console.log(search,searchType)
     const token = localStorage.getItem("authToken");
     let data = {
       search: search || "",
       searchType: searchType || "",
     };
     try {
-     await axios
+      await axios
         .post(
           `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-kanban-leads`,
           data,
@@ -315,55 +398,45 @@ const Leads = () => {
         .then((res) => {
           const kanbanDetails = {
             AllLeads: res?.data?.categorizedLeads?.AllLeads?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "All Leads";
               return item;
             }),
             Contacted: res?.data?.categorizedLeads?.Contacted?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "Contacted";
               return item;
             }),
             Appointment: res?.data?.categorizedLeads?.Appointment?.map(
               (item) => {
-                item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
                 item.displayColName = "Appointment";
                 return item;
               }
             ),
             RescheduleRequested:
               res?.data?.categorizedLeads?.RescheduleRequested?.map((item) => {
-                item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
                 item.displayColName = "Reschedule Requested";
                 return item;
               }),
             NoShow: res?.data?.categorizedLeads?.NoShow?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "No Show";
               return item;
             }),
             NoMoney: res?.data?.categorizedLeads?.NoMoney?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "No Money";
               return item;
             }),
             Undecided: res?.data?.categorizedLeads?.Undecided?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "Undecided";
               return item;
             }),
             Closed: res?.data?.categorizedLeads?.Closed?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "Closed";
               return item;
             }),
             Lost: res?.data?.categorizedLeads?.Lost?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "Lost";
               return item;
             }),
             LiveAgent: res?.data?.categorizedLeads?.LiveAgent?.map((item) => {
-              item.avatarColor = mixedColors[Math.floor(Math.random() * 14)];
               item.displayColName = "Live Agent";
               return item;
             }),
@@ -408,7 +481,7 @@ const Leads = () => {
         openNotificationWithIcon(
           "success",
           "Customize View",
-          "Customize View has been Successfully  updated!"
+          "Customize View has been successfully  updated!"
         );
 
         localStorage?.setItem("userColumn", columnsList);
@@ -553,6 +626,11 @@ const Leads = () => {
                   }
                   setisDuplicateConfirmationVisible={
                     setisDuplicateConfirmationVisible
+                  }
+                  setisVisibleQuickConversation={setisVisibleQuickConversation}
+                  setquickConversationView={setquickConversationView}
+                  setselectedConversationDetails={
+                    setselectedConversationDetails
                   }
                 />
               )}
@@ -699,7 +777,7 @@ const Leads = () => {
                       i !== "first_name" &&
                       i !== "last_name" &&
                       i !== "Phone" &&
-                      i !== "avatarColor"
+                      i !== "avatar_color"
                   )
                   ?.map((key) => (
                     <>
@@ -796,8 +874,13 @@ const Leads = () => {
   useEffect(() => {
     handleGetAllleads();
   }, []);
+
+  useEffect(() => {
+    handleGetAllleads("", "", searchContent, "text");
+    handleGetAllleadsKanbanView(searchContent, "text");
+  }, [searchContent]);
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div >
       {contextHolder}
       <Layout>
         <Header
@@ -1093,22 +1176,17 @@ const Leads = () => {
 
           {/* add Close lead payment   */}
           <CloseLeadPayment
-            handleGetAllleads={handleGetAllleads}
-            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+            handleSubmitCloseleadsPayment={handleSubmitCloseleadsPayment}
             isCloseLeadsPaymentModalVisible={isCloseLeadsPaymentModalVisible}
-            buttonLoader={buttonLoader}
-            setbuttonLoader={setbuttonLoader}
-            openNotificationWithIcon={openNotificationWithIcon}
-            dragCardItemId={dragCardItemId}
             setisCloseLeadsPaymentModalVisible={
               setisCloseLeadsPaymentModalVisible
             }
+            buttonLoader={buttonLoader}
+            RecordPaymentform={RecordPaymentform}
           />
 
           {/* View & Update Lead Details */}
           <ViewUpdateLeadDetails
-            handleGetAllleads={handleGetAllleads}
-            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
             openNotificationWithIcon={openNotificationWithIcon}
             selectedItemDetails={selectedItemDetails}
             setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
@@ -1118,6 +1196,14 @@ const Leads = () => {
             isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
             setbuttonLoader={setbuttonLoader}
             setisAppointmentModalVisible={setisAppointmentModalVisible}
+            handleSubmitUpdateleads={handleSubmitUpdateleads}
+            ViewUpdateLeadform={ViewUpdateLeadform}
+            setisCloseLeadsPaymentModalVisible={
+              setisCloseLeadsPaymentModalVisible
+            }
+            setisVisibleQuickConversation={setisVisibleQuickConversation}
+            setquickConversationView={setquickConversationView}
+            setselectedConversationDetails={setselectedConversationDetails}
           />
 
           {/* Lead Delete Confirmation*/}

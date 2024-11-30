@@ -170,7 +170,9 @@
 .ant-form-item {
   margin-bottom: 10px !important;
 }
-
+.ant-tabs .ant-tabs-tab:hover{
+  color:#3900DB
+}
 .ant-input-outlined:focus-within {
   border-color: #3900DB
 }
@@ -237,9 +239,7 @@ label:before {
   display: none !important;
 }
 
-.ant-menu-item-selected svg {
-  color: #3900DB !important;
-}
+
 
 .ant-layout-header {
   line-height: 30px;
@@ -250,9 +250,6 @@ label:before {
   background-color: #fff;
 }
 
-svg {
-  color: #72779E;
-}
 
 .primary-text-color {
   color: #72779E;
@@ -341,7 +338,10 @@ svg {
 .ant-input:focus,
 .ant-select-selector:focus {
   border-color: #3900DB;
-  box-shadow: 0 0 6px rgba(24, 144, 255, 0.3);
+}
+
+.ant-input:focus {
+  box-shadow: none !important
 }
 
 .ant-switch.ant-switch-checked {
@@ -379,12 +379,22 @@ li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
   background: #3900DB
 }
 
+.custom-conversation-call-icon:hover {
+  background-color: #0EAE2E !important;
+  border: none !important;
+}
+
 .custom-IoCallOutline:hover {
   background-color: #C5FFB7 !important;
   border: none !important;
 }
 
 .custom-HiOutlineChatBubbleLeft:hover {
+  background-color: #FFF2AF !important;
+  border: none !important;
+}
+
+.custom-conversation-chat-icon:hover {
   background-color: #FFF2AF !important;
   border: none !important;
 }
@@ -400,7 +410,12 @@ li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
   margin: 20px;
 }
 
-
+.custom-input::placeholder {
+  color: #72779E;
+  /* Set your desired placeholder color here */
+  opacity: 1;
+  /* Ensures color is not faded */
+}
 
 
 .kanban-board {
@@ -558,10 +573,94 @@ a {
   color: #3900DB;
 }
 
+.ant-tabs .ant-tabs-ink-bar {
+  background-color: #3900DB !important;
+}
+
 .ant-btn-variant-link:hover {
   color: #3900DB !important;
 }
 
-.float-button .ant-float-btn-body{
+.float-button .ant-float-btn-body {
   background-color: '#1B0756' !important
+}
+
+
+
+.email-thread {
+  max-width: 600px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.email {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px;
+}
+
+.email-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sender-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  margin-right: 8px;
+}
+
+.attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.reply-icon {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+
+
+/* For WebKit browsers (Chrome, Safari) */
+.scroll-container::-webkit-scrollbar {
+  width: 5px;
+  /* Set scrollbar width */
+}
+
+
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  /* Track color */
+}
+
+/* Custom CSS for the input */
+.custom-ant-input-outlined .ant-input {
+  background-color: transparent !important;
+  border: none !important;
+  color: #fff !important;
+  /* Ensure text is white */
+}
+
+.custom-ant-input-outlined .ant-input:focus {
+  box-shadow: none !important;
+  /* Remove focus outline */
+  border-color: transparent !important;
+  /* Remove border color on focus */
+}
+
+.custom-ant-empty-description {
+  color: #fff !important;
+}
+
+.kanban-custom-card .ant-card-body{
+  padding: 15px 15px 10px 15px !important;
 }

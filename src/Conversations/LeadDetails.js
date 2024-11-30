@@ -9,14 +9,13 @@ import {
   Col,
   Empty,
   Form,
-  TimePicker,
   DatePicker,
   Modal,
   Input,
+  Select,
 } from "antd";
 import {
   PhoneOutlined,
-  CheckCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
 import draftToHtml from "draftjs-to-html";
@@ -31,8 +30,12 @@ import moment from "moment";
 import styled from "styled-components";
 import { Editor } from "react-draft-wysiwyg";
 import { EditorState, Modifier, convertToRaw } from "draft-js";
-
+import { leadStatusColorAndTextList } from "../Common/CommonCodeList";
+import { BiSolidCircle } from "react-icons/bi";
+import { CgShapeCircle } from "react-icons/cg";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 const { Text } = Typography;
+const { Option } = Select;
 const StyledEditor = styled.div`
   border: 1px solid #3900db;
   border-radius: 8px;
@@ -43,7 +46,12 @@ const StyledEditor = styled.div`
   width: "100%";
   background: #fff;
 `;
-const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) => {
+const LeadDetails = ({
+  selectedLead,
+  openNotificationWithIcon,
+  notes,
+  setnotes,
+}) => {
   const [AppointmentDetailsform] = Form.useForm();
   const [isNoteModalVisible, setisNoteModalVisible] = useState(false);
   const [isAppointmentModalVisible, setisAppointmentModalVisible] =
@@ -132,10 +140,12 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
     setbuttonLoader(true);
     const data = {
       id: selectedLead?.id,
-      AppointmentDate: dayjs(values?.AppointmentDate).format("MMM DD YYYY"),
-      AppointmentTime: dayjs(values?.AppointmentTime).format("hh:mm A"), // Example: "02:30 pm"
-      AppointmentNotes: values?.AppointmentNotes,
-      LeadStatus: "Appointment",
+      appointment_date_time: dayjs(values?.appointment_date_time,'YYYY-MMM-DD hh:mm A').format(
+        "YYYY-MM-DD HH:mm:ss"
+      ),
+      appointment_duration: values?.appointment_duration,
+      appointment_notes: values?.AppointmentNotes,
+      lead_status: "Appointment",
     };
     const token = localStorage.getItem("authToken");
     await axios
@@ -258,18 +268,20 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
         {Object.keys(selectedLead).length > 0 ? (
           <>
             {/* Lead Info */}
-            <Row align="middle" style={{ marginBottom: 20 }}>
+            <Row align="middle" style={{ marginBottom: 10 }}>
               <Avatar
                 size={40}
                 style={{
-                  backgroundColor: selectedLead?.avatarColor,
+                  backgroundColor: selectedLead?.avatar_color,
                   fontSize: 18,
                   marginRight: 10,
                 }}
               >
-                {getInitials(
-                  selectedLead?.first_name + " " + selectedLead?.last_name
-                )}
+                {selectedLead?.first_name && selectedLead?.last_name
+                  ? getInitials(
+                      selectedLead?.first_name + " " + selectedLead?.last_name
+                    )
+                  : selectedLead?.phone_number}
               </Avatar>
               <Col flex="auto">
                 <Text style={{ fontSize: 12, color: "#888888" }}>
@@ -281,8 +293,12 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
                       ? selectedLead.first_name + " " + selectedLead?.last_name
                       : selectedLead?.phone_number}
                   </Text>
-                  <CheckCircleOutlined
-                    style={{ color: "green", marginLeft: 5 }}
+                  <RiVerifiedBadgeFill
+                    style={{
+                      color: "#12B80F",
+                      fontSize: 14,
+                      margin: "3px 3px",
+                    }}
                   />
                 </div>
               </Col>
@@ -317,17 +333,15 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
               </Space>
             </Row>
 
-            <Divider />
-               
+            <Divider style={{ margin: 5 }} />
+
             {/* Response Time */}
-            <Row
-              justify="space-between"
-              align="middle"
-              style={{ marginBottom: 10 }}
-            >
+            <Row justify="space-between" align="middle">
               <Typography style={{ color: "#72779E", fontSize: 13 }}>
                 Response Time
               </Typography>
+            </Row>
+            <Row>
               <Space>
                 <Text strong style={{ fontSize: 13 }}>
                   00:02:32
@@ -337,26 +351,40 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
                 </Text>
               </Space>
             </Row>
+
             <Divider style={{ margin: 5 }} />
 
             {/* Status */}
-            <Row
-              justify="space-between"
-              align="middle"
-              style={{ marginBottom: 10 }}
-            >
+            <Row justify="space-between" align="middle">
               <Text style={{ color: "#72779E", fontSize: 13 }}>Status</Text>
               <Button type="link" style={{ padding: 0, fontSize: 13 }}>
                 Change Status
               </Button>
             </Row>
+            <Row>
+              <Text
+                style={{
+                  backgroundColor: leadStatusColorAndTextList.find(
+                    (item) => item.status === selectedLead?.lead_status
+                  )?.backgroud,
+                  color: leadStatusColorAndTextList.find(
+                    (item) => item.status === selectedLead?.lead_status
+                  )?.color,
+                  border: "none",
+                  fontSize: 12,
+                }}
+              >
+                {
+                  leadStatusColorAndTextList.find(
+                    (item) => item.status === selectedLead?.lead_status
+                  )?.text
+                }
+              </Text>
+            </Row>
+
             <Divider style={{ margin: 5 }} />
             {/* Appointment */}
-            <Row
-              justify="space-between"
-              align="middle"
-              style={{ marginBottom: 10 }}
-            >
+            <Row justify="space-between" align="middle">
               <Text style={{ color: "#72779E", fontSize: 13 }}>
                 Appointment
               </Text>
@@ -370,16 +398,51 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
                 Book Appointment
               </Button>
             </Row>
+            {selectedLead?.appointment_status ? (
+              <Row>
+                <Space>
+                  {selectedLead?.appointment_status === "Confirmed" ? (
+                    <BiSolidCircle
+                      style={{
+                        fontSize: 16,
+                        color: "green",
+                        display: "flex",
+                      }}
+                    />
+                  ) : (
+                    <CgShapeCircle
+                      style={{
+                        fontSize: 16,
+                        color: "red",
+                        display: "flex",
+                      }}
+                    />
+                  )}
+                  <Typography
+                    style={{
+                      color:
+                        selectedLead?.appointment_status !== "Confirmed"
+                          ? "red"
+                          : "green",
+                      fontSize: 12,
+                    }}
+                  >
+                    {selectedLead?.appointment_status}
+                  </Typography>
+                </Space>
+              </Row>
+            ) : (
+              ""
+            )}
+
             <Divider style={{ margin: 5 }} />
             {/* Treatment Value */}
-            <Row
-              justify="space-between"
-              align="middle"
-              style={{ marginBottom: 10 }}
-            >
+            <Row justify="space-between" align="middle">
               <Text style={{ color: "#72779E", fontSize: 13 }}>
                 Treatment Value
               </Text>
+            </Row>
+            <Row justify="space-between" align="middle">
               <Text strong style={{ fontSize: 13 }}>
                 ${selectedLead?.treatment_value}
               </Text>
@@ -413,8 +476,7 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
 
         {/* Single Note Item */}
         {notes?.length > 0 ? (
-          <div style={{height:'40vh',
-            overflow:'auto'}}>
+          <div style={{ height: "40vh", overflow: "auto" }}>
             {notes?.map((note) => {
               return (
                 <>
@@ -423,7 +485,6 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
                       display: "flex",
                       alignItems: "flex-start",
                       flexWrap: "wrap",
-                      
                     }}
                   >
                     <Col
@@ -511,50 +572,54 @@ const LeadDetails = ({ selectedLead, openNotificationWithIcon ,notes,setnotes}) 
             </Col>
           </Row>
           <Row gutter={24}>
-            <Col span={12}>
-              <Form.Item
-                label={
-                  <>
-                    <span>Date</span>
-                    <span style={{ color: "red" }}>*</span>
-                  </>
-                }
-                name="AppointmentDate"
-                rules={[{ required: true, message: "Please select a date!" }]}
-              >
-                <DatePicker
-                  style={{ width: "100%" }}
-                  disabledDate={disabledDate}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label={
-                  <>
-                    <span>Time</span>
-                    <span style={{ color: "red" }}>*</span>
-                  </>
-                }
-                name="AppointmentTime"
-                rules={[{ required: true, message: "Please select a time!" }]}
-              >
-                <TimePicker
-                  use12Hours
-                  format="h:mm a"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item label="Notes" name="AppointmentNotes">
-                <Input.TextArea
-                  placeholder="Please enter notes"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Col span={12}>
+            <Form.Item
+              label={
+                <>
+                  <span>Date & Time</span>
+                  <span style={{ color: "red" }}>*</span>
+                </>
+              }
+              name="appointment_date_time"
+              rules={[{ required: true, message: "Please select a date!" }]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                showTime
+                format="YYYY-MMM-DD hh:mm A"
+                disabledDate={disabledDate}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label={
+                <>
+                  <span>Duration</span>
+                  <span style={{ color: "red" }}>*</span>
+                </>
+              }
+              name="appointment_duration"
+              rules={[{ required: true, message: "Please select a duration!" }]}
+            >
+              <Select placeholder="Select Duration">
+                <Option value="30" selected>
+                  30 minutes
+                </Option>
+                <Option value="45">45 minutes</Option>
+                <Option value="60">1 hour</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item label="Notes" name="AppointmentNotes">
+              <Input.TextArea
+                placeholder="Please enter notes"
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
           <Row justify="end">
             <Button
               onClick={handleCancelApointmentDateAndTime}

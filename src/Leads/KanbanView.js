@@ -14,7 +14,7 @@ import {
   Tag,
   Space,
 } from "antd";
-import { leadStatusColorAndTextList } from "../Common/ColorHexCodeList";
+import { leadStatusColorAndTextList } from "../Common/CommonCodeList";
 import { FaPlus } from "react-icons/fa6";
 import { ReactComponent as Moneysvg } from "../assets/IconSvg/Vector(1).svg";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
@@ -24,12 +24,12 @@ import {
   RiDeleteBin5Line,
   RiUserFill,
 } from "react-icons/ri";
+import dayjs from "dayjs";
 import { BiSolidCircle } from "react-icons/bi";
-import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { CiEdit } from "react-icons/ci";
 import { IoCallOutline, IoEyeOutline } from "react-icons/io5";
 import { BsArrowClockwise, BsThreeDots } from "react-icons/bs";
-import {  GoMail } from "react-icons/go";
+import { GoMail } from "react-icons/go";
 import { MdEmail, MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { ReactComponent as Tooth } from "../assets/IconSvg/mdi_tooth.svg";
 import { FiEye, FiPhoneCall } from "react-icons/fi";
@@ -54,7 +54,10 @@ const KanbanView = ({
   setisViewLeadModalEditable,
   setisDeleteConfirmationVisible,
   setisDuplicateConfirmationVisible,
-  amountList
+  amountList,
+  setisVisibleQuickConversation,
+  setquickConversationView,
+  setselectedConversationDetails,
 }) => {
   const [dropIndex, setDropIndex] = useState(null);
   const [currentContainer, setCurrentContainer] = useState(null);
@@ -100,11 +103,11 @@ const KanbanView = ({
       icon: <CiEdit style={{ fontSize: 16 }} />,
       key: "edit",
     },
-    {
-      label: <>Duplicate</>,
-      icon: <HiOutlineDocumentDuplicate style={{ fontSize: 16 }} />,
-      key: "duplicate",
-    },
+    // {
+    //   label: <>Duplicate</>,
+    //   icon: <HiOutlineDocumentDuplicate style={{ fontSize: 16 }} />,
+    //   key: "duplicate",
+    // },
     {
       label: <>Delete</>,
       icon: <RiDeleteBin5Line style={{ fontSize: 16 }} />,
@@ -307,7 +310,7 @@ const KanbanView = ({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       style={{
-                        width: 350,
+                        width: 330,
                         padding: "10px",
                         background: !snap1?.isDraggingOver
                           ? "#F8FAFF"
@@ -363,7 +366,14 @@ const KanbanView = ({
                             }}
                           >
                             <Moneysvg style={{ width: 16, marginRight: 10 }} />
-                            <span className="custom-text1">${amountList?.filter((i)=>i?.status===containerId)[0]?.amount}</span>
+                            <span className="custom-text1">
+                              $
+                              {
+                                amountList?.filter(
+                                  (i) => i?.status === containerId
+                                )[0]?.amount
+                              }
+                            </span>
                           </Text>
                         </Col>
                         <Col>
@@ -423,12 +433,12 @@ const KanbanView = ({
                                 margin: 10,
                               }}
                             >
-                              <Card>
+                              <Card className="kanban-custom-card">
                                 <Card.Meta
                                   avatar={
                                     <Avatar
                                       style={{
-                                        backgroundColor: item?.avatarColor,
+                                        backgroundColor: item?.avatar_color,
                                       }}
                                     >
                                       {item?.first_name && item?.last_name
@@ -490,13 +500,15 @@ const KanbanView = ({
                                 />
 
                                 <div
+                                  className="containerStyle thumbStyle"
                                   style={{
-                                    maxHeight: 150,
-                                    overflow: "scroll",
+                                    height: "130px",
+                                    overflowY: "auto",
+                                    // scrollbarColor: "auto",
+                                    // scrollbarWidth: "auto",
                                   }}
                                 >
-                                  {item?.appointment_date ||
-                                  item?.appointment_time ? (
+                                  {item?.appointment_date_time ? (
                                     <>
                                       <Row
                                         align="middle"
@@ -518,9 +530,9 @@ const KanbanView = ({
                                         </Col>
                                         <Col span={22}>
                                           <Text>
-                                            {item?.appointment_date +
-                                              " " +
-                                              item?.appointment_time}
+                                            {dayjs(
+                                              item?.appointment_date_time
+                                            ).format("MMM DD,YYYY hh:mm A")}
                                           </Text>
                                         </Col>
                                       </Row>
@@ -528,8 +540,7 @@ const KanbanView = ({
                                   ) : (
                                     <></>
                                   )}
-                                  {item?.appointment_date ||
-                                  item?.appointment_time ? (
+                                  {item?.appointment_date_time ? (
                                     <>
                                       <Row
                                         align="middle"
@@ -716,6 +727,12 @@ const KanbanView = ({
                                           </Text>
                                         </Col>
                                       </Row>
+                                      <Divider
+                                        style={{
+                                          margin: 0,
+                                          padding: 0,
+                                        }}
+                                      />
                                     </>
                                   ) : (
                                     <></>
@@ -768,14 +785,6 @@ const KanbanView = ({
                                   ) : (
                                     ""
                                   )}
-                                  <>
-                                    <Divider
-                                      style={{
-                                        margin: 0,
-                                        padding: 0,
-                                      }}
-                                    />
-                                  </>
 
                                   {item?.close_amount ? (
                                     <>
@@ -814,18 +823,20 @@ const KanbanView = ({
                                   )}
                                 </div>
 
-                                <Divider
-                                  style={{
-                                    margin: 0,
-                                    padding: 3,
-                                  }}
-                                />
                                 <Row
                                   style={{
                                     display: "flex",
+                                    alignItems: "center",
                                     justifyContent: "space-between",
+                                    height:40
                                   }}
                                 >
+                                  <Divider
+                                    style={{
+                                      margin: 0,
+                                      padding: 3,
+                                    }}
+                                  />
                                   <Tooltip placement="top" title={"Phone Call"}>
                                     <IoCallOutline
                                       style={{
@@ -838,6 +849,11 @@ const KanbanView = ({
                                         justifyContent: "center",
                                       }}
                                       className="custom-IoCallOutline"
+                                      onClick={() => {
+                                        setisVisibleQuickConversation(true);
+                                        setquickConversationView("call");
+                                        setselectedConversationDetails(item);
+                                      }}
                                     />
                                   </Tooltip>
                                   <Tooltip placement="top" title={"Send SMS"}>
@@ -852,6 +868,11 @@ const KanbanView = ({
                                         justifyContent: "center",
                                       }}
                                       className="custom-HiOutlineChatBubbleLeft"
+                                      onClick={() => {
+                                        setisVisibleQuickConversation(true);
+                                        setquickConversationView("sms");
+                                        setselectedConversationDetails(item);
+                                      }}
                                     />
                                   </Tooltip>
                                   <Tooltip placement="top" title={"Send Mail"}>
@@ -866,6 +887,11 @@ const KanbanView = ({
                                         justifyContent: "center",
                                       }}
                                       className="custom-GoMail"
+                                      onClick={() => {
+                                        setisVisibleQuickConversation(true);
+                                        setquickConversationView("email");
+                                        setselectedConversationDetails(item);
+                                      }}
                                     />
                                   </Tooltip>
 
@@ -914,7 +940,6 @@ const KanbanView = ({
                       {/* Dotted Box Logic */}
                       {dropIndex === 0 ? (
                         <>
-                          {" "}
                           {dropIndex !== null &&
                             currentContainer === containerId && (
                               <div
@@ -925,7 +950,7 @@ const KanbanView = ({
                                   right: "0",
                                   margin: 20,
                                   marginTop: 100,
-                                  height: "270px",
+                                  height: "300px",
                                   border: "2px dashed #3900DB",
                                   borderRadius: "4px",
                                   pointerEvents: "none",
@@ -945,7 +970,7 @@ const KanbanView = ({
                                   left: "0",
                                   right: "0",
                                   margin: 20,
-                                  height: "270px",
+                                  height: "280px",
                                   border: "2px dashed #3900DB",
                                   borderRadius: "4px",
                                   pointerEvents: "none",
