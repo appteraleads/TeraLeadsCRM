@@ -1,4 +1,39 @@
-# Ignore node_modules directory
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
+# Build output
+build/
+dist/
 
+# Runtime files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Testing
+coverage/
+*.lcov
+
+# Logs
+logs/
+*.log
+logs/*.log
+
+# Editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.pem
+*.key
+*.crt
+*.env.bak

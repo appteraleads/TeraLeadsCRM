@@ -83,6 +83,7 @@ const Login = () => {
               <Button
                 onClick={handleGoogleLogin}
                 block
+                disabled
                 icon={<Image src={GoogleIcon} />}
               >
                 Continue with Google
@@ -91,6 +92,7 @@ const Login = () => {
                 style={{ marginTop: 10 }}
                 onClick={handleFacebookLogin}
                 block
+                disabled
                 icon={<Image src={facebookLogo} style={{ width: 20 }} />}
               >
                 Continue with Facebook
