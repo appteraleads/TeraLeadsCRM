@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,7 +10,7 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
   const { token } = useParams();
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
-
+  const [buttonloader, setbuttonloader] = useState(false);
   const openNotificationWithIcon = (type, messageType, message) => {
     api[type]({
       message: messageType,
@@ -19,6 +19,7 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
   };
 
   const onFinish = (values) => {
+    setbuttonloader(true)
     let data = {
       token: token,
       password: values?.confirmpassword,
@@ -35,9 +36,11 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
           "Password reset successfully"
         );
         navigate("/login");
+        setbuttonloader(false)
       })
       .catch((err) => {
         console.log(err);
+        setbuttonloader(false)
         openNotificationWithIcon("error", "Error", err?.message);
       });
   };
@@ -124,7 +127,7 @@ const SetPassword = ({ userEmailId, setuserEmailId }) => {
               <Input.Password placeholder="Enter your password" />
             </Form.Item>
             <Form.Item>
-              <Button className="custom-primary-button" htmlType="submit" block>
+              <Button loading={buttonloader} className="custom-primary-button" htmlType="submit" block>
                 Send
               </Button>
             </Form.Item>

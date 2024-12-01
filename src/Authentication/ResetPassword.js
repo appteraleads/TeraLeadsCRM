@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
+  const [buttonloader, setbuttonloader] = useState(false);
   const openNotificationWithIcon = (type, messageType, message) => {
     api[type]({
       message: messageType,
@@ -15,6 +16,7 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
     });
   };
   const onFinish = (values) => {
+    setbuttonloader(true);
     let data = {
       email: userEmailId,
       newPassword: values?.confirmpassword,
@@ -30,10 +32,12 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
           "Success",
           "Password reset successfully"
         );
+        setbuttonloader(false);
         navigate("/login");
       })
       .catch((err) => {
         console.log(err);
+        setbuttonloader(false);
         openNotificationWithIcon("error", "Error", err?.message);
       });
   };
@@ -89,7 +93,12 @@ const ResetPassword = ({ userEmailId, setuserEmailId }) => {
               <Input.Password placeholder="Enter your password" />
             </Form.Item>
             <Form.Item>
-              <Button className="custom-primary-button" htmlType="submit" block>
+              <Button
+                loading={buttonloader}
+                className="custom-primary-button"
+                htmlType="submit"
+                block
+              >
                 Reset
               </Button>
             </Form.Item>

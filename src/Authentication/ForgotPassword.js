@@ -10,8 +10,9 @@ const ForgotPassword = ({ userEmailId, setuserEmailId }) => {
   const [alertDes, setalertDes] = useState("");
   const [alertType, setalertType] = useState("");
   const [alertDisplay, setalertDisplay] = useState(false);
-
+  const [buttonloader, setbuttonloader] = useState(false);
   const onFinish = (values) => {
+    setbuttonloader(true)
     setuserEmailId(values.email);
     axios
       .post(
@@ -19,10 +20,12 @@ const ForgotPassword = ({ userEmailId, setuserEmailId }) => {
         values
       )
       .then((res) => {
+        setbuttonloader(false)
         navigate("/verify-otp");
       })
       .catch((err) => {
         console.log(err);
+        setbuttonloader(false)
         setalertMsg("Error Message");
         setalertDes(err?.response?.data?.message || err?.message);
         setalertType("error");
@@ -76,7 +79,7 @@ const ForgotPassword = ({ userEmailId, setuserEmailId }) => {
               <Input placeholder="Enter your email" />
             </Form.Item>
             <Form.Item>
-              <Button className="custom-primary-button" htmlType="submit" block>
+              <Button loading={buttonloader} className="custom-primary-button" htmlType="submit" block>
                 Send Code
               </Button>
             </Form.Item>

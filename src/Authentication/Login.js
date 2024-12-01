@@ -11,20 +11,25 @@ const Login = () => {
   const [alertType, setalertType] = useState("");
   const [alertDisplay, setalertDisplay] = useState(false);
 
+  const [buttonloader, setbuttonloader] = useState(false);
   const onFinish = (values) => {
+    setbuttonloader(true);
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
         localStorage.setItem("authToken", res?.data?.token);
         localStorage.setItem("userColumn", res?.data?.userColumn);
         window.location.replace("/leads");
+        setbuttonloader(false);
       })
       .catch((err) => {
         setalertMsg("Invalid Credential");
         setalertDes(err?.response?.data?.message || err?.message);
         setalertType("error");
         setalertDisplay(true);
+        setbuttonloader(false);
       });
+ 
   };
 
   const handleGoogleLogin = async () => {
@@ -140,7 +145,7 @@ const Login = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button className="custom-primary-button" htmlType="submit" block>
+              <Button loading={buttonloader} className="custom-primary-button" htmlType="submit" block>
                 Login
               </Button>
             </Form.Item>
