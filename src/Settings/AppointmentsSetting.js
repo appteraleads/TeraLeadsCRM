@@ -324,11 +324,7 @@ const AppointmentsSetting = ({
         setcancellationNotification(res?.data?.cancellation_notification);
       })
       ?.catch((err) => {
-        openNotificationWithIcon(
-          "error",
-          "Settings",
-          err?.response?.data?.message || err?.message
-        );
+       console.log(err)
       });
     setpageloader(false);
   };

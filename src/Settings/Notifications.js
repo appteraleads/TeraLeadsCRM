@@ -185,19 +185,10 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
           );
         })
         .catch((err) => {
-          openNotificationWithIcon(
-            "error",
-            "Settings",
-            err?.response?.data?.message || err?.message
-          );
+          console.log(err);
         });
     } catch (err) {
       console.log(err);
-      openNotificationWithIcon(
-        "error",
-        "Settings",
-        err?.response?.data?.message || err?.message
-      );
     }
     setpageloader(false);
   };

@@ -315,7 +315,7 @@ const CustomLayout = () => {
                 >
                   <Space style={{ margin: 10 }}>
                     <Typography style={{ fontWeight: "bold" }}>
-                      Chicago implant Clinic
+                      {loginUserDetails?.clinic_name}
                     </Typography>
                     <MdOutlineKeyboardArrowDown
                       style={{ fontSize: 20, display: "flex" }}
@@ -363,7 +363,7 @@ const CustomLayout = () => {
                     {loginUserDetails?.profile_picture ? (
                       <Avatar src={loginUserDetails?.profile_picture} />
                     ) : (
-                      <Avatar>
+                      <Avatar style={{background:loginUserDetails?.avatar_color}}>
                         {getInitials(loginUserDetails?.dentist_full_name)}
                       </Avatar>
                     )}
@@ -371,7 +371,7 @@ const CustomLayout = () => {
                     <Typography
                       style={{
                         fontWeight: "bold",
-                        width: 120,
+                        width: 100,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
