@@ -167,7 +167,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           );
         })
         .catch((err) => {
-          console.log(err?.response?.data);
+          console.log(err?.response?.data?.message);
           openNotificationWithIcon(
             "error",
             "Settings",
@@ -276,7 +276,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   const items = [
     {
       key: "1",
-      label: "Genral",
+      label: "General",
       children: (
         <>
           <Card bordered={false} style={{ width: "100%" }}>
@@ -402,6 +402,97 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     },
     {
       key: "2",
+      label: "Lead Assignment",
+      children: (
+        <>
+          <Card bordered={false} style={{ width: "100%" }}>
+            <Typography style={{ fontWeight: 600 }}>Leads Assignment</Typography>
+            <Divider />
+            <Row align="middle" gutter={[16, 16]}>
+              <Col span={12}>
+                <Typography style={{ fontWeight: 600 }}>
+                  Lead Assignment Rules
+                </Typography>
+                <Text className="custom-text1">
+                  Automatically assign new leads or set a default owner for
+                  unclaimed leads.
+                </Text>
+              </Col>
+              <Col span={12}>
+                <Typography>Rules</Typography>
+                <Select
+                  showSearch
+                  style={{ width: "100%" }}
+                  placeholder="Select a lead assignment rule"
+                  optionFilterProp="children"
+                  value={leadAssignmentRules}
+                  onChange={(e) => {
+                    setleadAssignmentRules(e);
+                    setselectedUserDetails();
+                    setunsavedchanges(true);
+                  }}
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {LeadAssignmentRulesOptions.map((tz) => (
+                    <Option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </Option>
+                  ))}
+                </Select>
+                {leadAssignmentRules === "Specific User Role" ? (
+                  <Select
+                    style={{ width: "100%", marginTop: 10 }}
+                    placeholder="Select a user"
+                    optionFilterProp="children"
+                    value={selectedUserDetails}
+                    onChange={(e, data) => {
+                      setselectedUserDetails(data);
+                      setunsavedchanges(true);
+                    }}
+                    showClear
+                    options={ClinicUserDetails}
+                  ></Select>
+                ) : (
+                  ""
+                )}
+              </Col>
+            </Row>
+            <Divider />
+            <Row align="middle" gutter={[16, 16]}>
+              <Col span={12} style={{ display: "flex", alignItems: "center" }}>
+                <Button
+                  type="primary"
+                  disabled={!unsavedchanges}
+                  loading={buttonLoader}
+                  onClick={() => {
+                    handleSubmitLeadsSetting();
+                  }}
+                >
+                  Save
+                </Button>
+                <Space style={{ marginLeft: 10 }}>
+                  {unsavedchanges && (
+                    <>
+                      <IoAlertCircleOutline
+                        size={20}
+                        className="custom-text1"
+                        style={{ display: "flex", color: "red" }}
+                      />
+
+                      <Text type="danger">You have unsaved changes</Text>
+                    </>
+                  )}
+                </Space>
+              </Col>
+            </Row>
+          </Card>
+        </>
+      ),
+    },
+    {
+      key: "3",
       label: "Blocked Leads",
       children: (
         <>

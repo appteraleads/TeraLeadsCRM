@@ -46,7 +46,7 @@ const Signup = ({ userEmailId, setuserEmailId }) => {
   const serviceList = [
     "Full Arch",
     "Dental Implants",
-    "Genral Dentistry",
+    "General Dentistry",
     "Othodontics",
     "Cosmetic Dentistry",
     "Oral Surgery",

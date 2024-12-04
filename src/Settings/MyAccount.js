@@ -277,7 +277,7 @@ const MyAccount = ({ openNotificationWithIcon }) => {
                     disabled
                     style={{ width: "100%" }}
                   />
-                  <Button
+                  {/* <Button
                     type="link"
                     onClick={() => {
                       setisUpdateEmailModalVisible(true);
@@ -285,7 +285,7 @@ const MyAccount = ({ openNotificationWithIcon }) => {
                     }}
                   >
                     Change
-                  </Button>
+                  </Button> */}
                 </div>
               </Col>
             </Row>

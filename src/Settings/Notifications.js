@@ -78,7 +78,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
       notify_campaign_sent_scheduled: notifyCampaignSentScheduled,
       notify_getinsights_campaign_performance:
         notifygetinsightsCampaignPerformance,
-    };
+    }; 
 
     const token = localStorage.getItem("authToken");
 
@@ -111,7 +111,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
           err?.response?.data?.message || err?.message
         );
       });
-    console.log(data);
+   
     setbuttonLoader(false);
   };
 
@@ -196,7 +196,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
   const items = [
     {
       key: "1",
-      label: "Genral",
+      label: "General",
       children: (
         <>
           {pageloader ? (
@@ -370,10 +370,10 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
               <Row align="middle" gutter={[16, 16]}>
                 <Col span={12}>
                   <Typography style={{ fontWeight: 600 }}>
-                    Appointment Reschedule or Cancellation
+                    Appointment Cancellation
                   </Typography>
                   <Text className="custom-text1">
-                    Notify me when an appointment is rescheduled or canceled.
+                    Notify me when an appointment is canceled.
                   </Text>
                 </Col>
                 <Col span={12} align="end">
@@ -487,7 +487,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
               Leads Notifications
             </Typography>
             <Divider />
-            <Row align="middle" gutter={[16, 16]}>
+            <Row align="middle" gutter={[20, 20]}>
               <Col span={12}>
                 <Typography style={{ fontWeight: 600 }}>
                   New Lead Captured
@@ -512,7 +512,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
               </Col>
             </Row>
             <Divider />
-            <Row align="middle" gutter={[16, 16]}>
+            <Row align="middle" gutter={[20, 20]}>
               <Col span={12}>
                 <Typography style={{ fontWeight: 600 }}>
                   Lead Assignment
@@ -756,7 +756,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
         defaultActiveKey="1"
         items={items}
         onChange={onChange}
-        style={{ width: "100%", overflow: "auto", height: "75vh" }}
+        style={{ width: "100%", }}
       />
     </>
   );

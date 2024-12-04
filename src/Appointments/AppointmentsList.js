@@ -438,14 +438,14 @@ const AppointmentsList = ({
           openNotificationWithIcon(
             "error",
             "Lead",
-            err?.response?.data || err?.message
+            err?.response?.data?.message || err?.message
           );
         });
     } catch (err) {
       openNotificationWithIcon(
         "error",
         "Lead",
-        err?.response?.data || err?.message
+        err?.response?.data?.message || err?.message
       );
     } finally {
       settableLoader(false);

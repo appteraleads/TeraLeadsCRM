@@ -440,7 +440,7 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
               </Col>
             </Row>
           </Header>
-          <Content style={{ padding: 15, background: "#FCFDFF" }}>
+          <Content style={{ padding: 10, background: "#FCFDFF" }}>
             {settingSidebarValue === "My Account" ? (
               <MyAccount openNotificationWithIcon={openNotificationWithIcon} />
             ) : settingSidebarValue === "Clinic Details" ? (

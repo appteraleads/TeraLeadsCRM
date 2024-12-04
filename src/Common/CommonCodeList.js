@@ -99,6 +99,13 @@ export const leadStatusColorAndTextList = [
     text: "🔴 Not Confirmed ",
     color: "#D91E1E",
   },
+  {
+    status: "Cancelled",
+    value: "Cancelled",
+    backgroud: "#F5DEDE",
+    text: "🔴 Cancelled ",
+    color: "#D91E1E",
+  },
 ];
 
 export const leadStatusColorAndTextListForCalender = [
@@ -186,6 +193,13 @@ export const leadStatusColorAndTextListForCalender = [
     value: "Not Confirmed",
     backgroud: "#F5DEDE",
     text: "🔴 Not Confirmed ",
+    color: "#D91E1E",
+  },
+  {
+    status: "Cancelled",
+    value: "Cancelled",
+    backgroud: "#F5DEDE",
+    text: "🔴 Cancelled ",
     color: "#D91E1E",
   },
 ];

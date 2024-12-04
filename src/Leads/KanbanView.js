@@ -225,7 +225,7 @@ const KanbanView = ({
         openNotificationWithIcon(
           "error",
           "Kanban View",
-          err?.response?.data || err?.message
+          err?.response?.data?.message || err?.message
         );
       });
   };
@@ -260,7 +260,7 @@ const KanbanView = ({
         openNotificationWithIcon(
           "error",
           "Customize View",
-          err?.response?.data || err?.message
+          err?.response?.data?.message || err?.message
         );
       });
   };
@@ -292,7 +292,7 @@ const KanbanView = ({
         openNotificationWithIcon(
           "error",
           "Lead",
-          err?.response?.data || err?.message
+          err?.response?.data?.message || err?.message
         );
       });
   };
@@ -586,7 +586,8 @@ const KanbanView = ({
                                                 </Typography>
 
                                                 {item?.appointment_status !==
-                                                "Confirmed" ? (
+                                                "Confirmed" && item?.appointment_status !==
+                                                "Cancelled" ? (
                                                   <Space
                                                     style={{
                                                       cursor: "pointer",
@@ -597,6 +598,7 @@ const KanbanView = ({
                                                       );
                                                     }}
                                                   >
+                                                   
                                                     <BsArrowClockwise
                                                       style={{
                                                         fontSize: 16,

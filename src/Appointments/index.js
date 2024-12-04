@@ -212,7 +212,38 @@ const Appointments = ({
         setbuttonLoader(false);
       });
   };
-
+  const handleCancelApointment = async () => {
+    const token = localStorage.getItem("authToken");
+    let data = {
+      id: selectedItemDetails?.id,
+      lead_status: "Appointment",
+      appointment_status: "Cancelled",
+    };
+    await axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        handleGetAppointmentOverview();
+        setbuttonLoader(false);
+        setisLeadsDetailsModalVisible(false);
+        setisViewLeadModalEditable(false);
+        openNotificationWithIcon(
+          "success",
+          "Lead",
+          "Lead Updated Successfully !"
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   const handleSubmitUpdateleads = async (values) => {
     values.id = selectedItemDetails?.id;
     setbuttonLoader(true);
@@ -287,14 +318,14 @@ const Appointments = ({
           openNotificationWithIcon(
             "error",
             "Lead",
-            err?.response?.data || err?.message
+            err?.response?.data?.message || err?.message
           );
         });
     } catch (err) {
       openNotificationWithIcon(
         "error",
         "Lead",
-        err?.response?.data || err?.message
+        err?.response?.data?.message || err?.message
       );
     } finally {
       setpageLoader(false);
@@ -308,7 +339,7 @@ const Appointments = ({
   return (
     <>
       {contextHolder}
-      <Layout >
+      <Layout>
         <Layout.Header style={headerStyles}>
           <div style={leftColStyles}>
             <Appointmentssvg />
@@ -406,7 +437,9 @@ const Appointments = ({
                     openNotificationWithIcon={openNotificationWithIcon}
                     dateCheck={dateCheck}
                     setselectedItemDetails={setselectedItemDetails}
-                    setisModalVisibleViewLeadDetailsShort={setisModalVisibleViewLeadDetailsShort}
+                    setisModalVisibleViewLeadDetailsShort={
+                      setisModalVisibleViewLeadDetailsShort
+                    }
                   />
                 ),
               },
@@ -457,6 +490,7 @@ const Appointments = ({
             setisVisibleQuickConversation={setisVisibleQuickConversation}
             setquickConversationView={setquickConversationView}
             setselectedConversationDetails={setselectedConversationDetails}
+            handleCancelApointment={handleCancelApointment}
           />
 
           <CloseLeadPayment
@@ -479,7 +513,9 @@ const Appointments = ({
               setisModalVisibleLeadListAccodingToStatus
             }
             setselectedItemDetails={setselectedItemDetails}
-            setisModalVisibleViewLeadDetailsShort={setisModalVisibleViewLeadDetailsShort}
+            setisModalVisibleViewLeadDetailsShort={
+              setisModalVisibleViewLeadDetailsShort
+            }
           />
         </Content>
       </Layout>

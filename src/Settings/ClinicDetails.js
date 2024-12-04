@@ -219,7 +219,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
           );
         })
         .catch((err) => {
-          console.log(err?.response?.data);
+          console.log(err?.response?.data?.message);
           openNotificationWithIcon(
             "error",
             "Settings",
@@ -323,7 +323,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
   const items = [
     {
       key: "1",
-      label: "Genral",
+      label: "General",
       children: (
         <>
           {pageloader ? (

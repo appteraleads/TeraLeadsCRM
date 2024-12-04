@@ -34,7 +34,7 @@ const Overview = ({
   todaysAppointmentsCount,
   totalAppointmentsCount,
   confirmedAppointmentsCount,
-  notConfirmedAppointmentsCount,
+  notConfirmedAppointmentsCount, 
   appointmentsData,
   pastappointmentsData,
   dateCheck,

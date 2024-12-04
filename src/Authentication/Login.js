@@ -17,8 +17,9 @@ const Login = () => {
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
+        console.log(res)
         localStorage.setItem("authToken", res?.data?.token);
-        localStorage.setItem("userColumn", res?.data?.userColumn);
+        localStorage.setItem("userColumn", res?.data?.userColumn || '');
         window.location.replace("/leads");
         setbuttonloader(false);
       })

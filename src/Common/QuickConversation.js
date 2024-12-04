@@ -367,7 +367,7 @@ const QuickConversation = ({
           openNotificationWithIcon(
             "error",
             "Conversatios",
-            err?.response?.data || err?.message
+            err?.response?.data?.message || err?.message
           );
           console.log(err);
         });
@@ -403,7 +403,7 @@ const QuickConversation = ({
           openNotificationWithIcon(
             "error",
             "Conversatios",
-            err?.response?.data || err?.message
+            err?.response?.data?.message || err?.message
           );
           console.log(err);
         });
@@ -488,7 +488,7 @@ const QuickConversation = ({
             openNotificationWithIcon(
               "error",
               "Quick Conversations",
-              err?.response?.data?.error || err?.message
+              err?.response?.data?.message || err?.message
             );
             console.log(err);
           });
@@ -564,7 +564,7 @@ const QuickConversation = ({
             openNotificationWithIcon(
               "error",
               "Quick Conversations",
-              err?.response?.data?.error || err?.message
+              err?.response?.data?.message || err?.message
             );
             console.log(err);
           });

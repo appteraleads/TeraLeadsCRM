@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Layout,
   Menu,
@@ -13,8 +13,10 @@ import {
   Input,
   notification,
   Select,
+  List,
+  Badge,
 } from "antd";
-
+import { IoTime } from "react-icons/io5";
 import TeraleadsLogo from "../assets/logo/TeraleadsRemoveBg.png";
 import { ReactComponent as Usersvg } from "../assets/IconSvg/solar_user-broken.svg";
 import { ReactComponent as Dashboardsvg } from "../assets/IconSvg/icons8-home 1.svg";
@@ -35,7 +37,9 @@ import { SettingsSVG } from "../Common/SettingSidebarIconsSvg";
 import axios from "axios";
 import { getInitials } from "../Common/ReturnColumnValue";
 import { FaClinicMedical, FaPlus } from "react-icons/fa";
-import { icons } from "antd/es/image/PreviewGroup";
+import { MdOutlineZoomInMap } from "react-icons/md";
+import dayjs from "dayjs";
+
 const Conversations = React.lazy(() => import("../Conversations"));
 const QuickConversation = React.lazy(() =>
   import("../Common/QuickConversation")
@@ -59,8 +63,238 @@ const CustomLayout = () => {
   const [quickConversationView, setquickConversationView] = useState(null);
   const [selectedConversationDetails, setselectedConversationDetails] =
     useState();
-
+  const containerRef = useRef(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [loginUserDetails, setloginUserDetails] = useState();
+  const [loadingNotification, setloadingNotification] = useState(false);
+  const [isNotificationDropdownVisible, setisNotificationDropdownVisible] =
+    useState(false);
+  const [notificationDetailsList, setnotificationDetailsList] = useState([]);
+  const [unreadCount, setunreadCount] = useState(0);
+  const [isLeadsDetailsModalVisible, setisLeadsDetailsModalVisible] =
+    useState(false);
+  const [selectedItemDetails, setselectedItemDetails] = useState([]);
+  const handlesetvisibleNotificationDropdown = (visible) => {
+    if (visible) {
+      handleGetNotificationDetails();
+    }
+    setisNotificationDropdownVisible(visible);
+  };
+
+  const enterFullScreen = () => {
+    if (containerRef.current.requestFullscreen) {
+      containerRef.current.requestFullscreen();
+    } else if (containerRef.current.webkitRequestFullscreen) {
+      containerRef.current.webkitRequestFullscreen(); // For Safari
+    } else if (containerRef.current.msRequestFullscreen) {
+      containerRef.current.msRequestFullscreen(); // For IE11
+    }
+    setIsFullScreen(true);
+  };
+
+  const exitFullScreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen(); // For Safari
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen(); // For IE11
+    }
+    setIsFullScreen(false);
+  };
+
+  const menu = (
+    <Menu>
+      <div
+        style={{
+          padding: 10,
+          display: "flex",
+          alignItems: "center",
+          borderBottom: "1px solid #E8EBEF",
+        }}
+      >
+        <IoIosNotificationsOutline style={{ fontSize: 18 }} />
+        <Typography style={{ padding: "0px 0px 0px 5px", fontSize: 15 }}>
+          Notifications
+        </Typography>
+      </div>
+
+      <div
+        style={{
+          width: 350,
+          maxHeight: "260px",
+          overflowY: "auto",
+          padding: "0px 0px 10px 0px ",
+        }}
+      >
+        <List
+          loading={loadingNotification}
+          dataSource={notificationDetailsList}
+          style={{ width: "100%" }}
+          renderItem={(noti) => (
+            <List.Item
+              style={{
+                cursor: "pointer",
+                background: noti?.status === "unread" ? "#F4F7FC" : "",
+              }}
+            >
+              {noti?.type === "Appointments" ? (
+                <Row
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    padding: "0px 5px 0px 5px ",
+                  }}
+                  onClick={() => {
+                    handleMarkAllReadNotification(noti?.id);
+                  }}
+                >
+                  <Col span={4}>
+                    <Appointmentssvg
+                      style={{
+                        padding: 10,
+                        borderRadius: 50,
+                        border: "1px solid #E8EBEF",
+                        background: "#fff",
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </Col>
+                  <Col span={20}>
+                    <Typography>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: noti?.message?.trim(),
+                        }}
+                      />
+                    </Typography>
+                    <Space style={{ display: "flex", alignItems: "center" }}>
+                      <IoTime style={{ display: "flex", color: "#72779E" }} />
+                      <Typography className="custom-text1">
+                        {dayjs(noti?.created_at).format("hh:mm A")}
+                      </Typography>
+                    </Space>
+                  </Col>
+                </Row>
+              ) : noti?.type === "Leads" ? (
+                <Row
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    padding: "0px 5px 0px 5px ",
+                  }}
+                  onClick={() => {
+                    navigate("/leads");
+                    handleMarkAllReadNotification(noti?.id);
+                    setselectedItemDetails(noti?.metadata);
+                    setisLeadsDetailsModalVisible(true);
+                    setisNotificationDropdownVisible(false);
+                  }}
+                >
+                  <Col span={4}>
+                    <Usersvg
+                      style={{
+                        padding: 10,
+                        borderRadius: 50,
+                        border: "1px solid #E8EBEF",
+                        background: "#fff",
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </Col>
+                  <Col span={20}>
+                    <Typography>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: noti?.message?.trim(),
+                        }}
+                      />
+                    </Typography>
+                    <Space style={{ display: "flex", alignItems: "center" }}>
+                      <IoTime style={{ display: "flex", color: "#72779E" }} />
+                      <Typography className="custom-text1">
+                        {dayjs(noti?.created_at).format("hh:mm A")}
+                      </Typography>
+                    </Space>
+                  </Col>
+                </Row>
+              ) : noti?.type === "Conversations" ? (
+                <Row
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Col span={4}>
+                    <Chatsvg
+                      style={{
+                        padding: 10,
+                        borderRadius: 50,
+                        border: "1px solid #E8EBEF",
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </Col>
+                  <Col span={20}>
+                    <Typography>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: noti?.message?.trim(),
+                        }}
+                      />
+                    </Typography>
+                    <Typography>
+                      {dayjs(noti?.created_at).format("hh:mm A")}
+                    </Typography>
+                  </Col>
+                </Row>
+              ) : noti?.type === "Campaigns" ? (
+                <Row
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Col span={4}>
+                    <Usersvg
+                      style={{
+                        padding: 10,
+                        borderRadius: 50,
+                        border: "1px solid #E8EBEF",
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </Col>
+                  <Col span={20}>
+                    <Typography>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: noti?.message?.trim(),
+                        }}
+                      />
+                    </Typography>
+                    <Typography>
+                      {dayjs(noti?.created_at).format("hh:mm A")}
+                    </Typography>
+                  </Col>
+                </Row>
+              ) : (
+                ""
+              )}
+            </List.Item>
+          )}
+        />
+      </div>
+    </Menu>
+  );
 
   const sidebaritems = [
     {
@@ -193,8 +427,66 @@ const CustomLayout = () => {
       .then((res) => {
         console.log("login details", res?.data?.user);
         setloginUserDetails(res?.data?.user);
+        handleGetNotificationDetails(res?.data?.user?.id);
       })
       .catch((err) => {
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Settings",
+          err?.response?.data?.message || err?.message
+        );
+      });
+  };
+
+  const handleGetNotificationDetails = async (id) => {
+    const token = localStorage.getItem("authToken");
+    setloadingNotification(true);
+    await axios
+      .get(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/notification/${
+          loginUserDetails?.id ? loginUserDetails?.id : id
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        setloadingNotification(false);
+        console.log("notifications details", res?.data?.notifications);
+        setnotificationDetailsList(res?.data?.notifications);
+        setunreadCount(res?.data?.unreadCount);
+      })
+      .catch((err) => {
+        setloadingNotification(false);
+        console.log(err);
+        openNotificationWithIcon(
+          "error",
+          "Settings",
+          err?.response?.data?.message || err?.message
+        );
+      });
+  };
+
+  const handleMarkAllReadNotification = async (id) => {
+    const token = localStorage.getItem("authToken");
+    setloadingNotification(true);
+    await axios
+      .get(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/notification/mark-read/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        handleGetNotificationDetails();
+      })
+      .catch((err) => {
+        setloadingNotification(false);
         console.log(err);
         openNotificationWithIcon(
           "error",
@@ -226,7 +518,7 @@ const CustomLayout = () => {
 
   return (
     <>
-      <Layout>
+      <Layout ref={containerRef}>
         {contextHolder}
 
         <Sider
@@ -324,7 +616,7 @@ const CustomLayout = () => {
                 </Dropdown>
               </Col>
               <Col
-                span={12}
+                span={11}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -343,47 +635,109 @@ const CustomLayout = () => {
                 />
               </Col>
               <Col
-                span={6}
-                style={{ display: "flex", alignItems: "center", padding: 10 }}
+                span={7}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "end",
+                  padding: 10,
+                }}
               >
-                <Col
-                  span={24}
+                <Space
                   style={{
+                    margin: 10,
                     display: "flex",
                     justifyContent: "end",
                     justifyItems: "center",
                   }}
                 >
-                  <Space style={{ margin: 10 }}>
-                    <FiPlusCircle style={{ fontSize: 22, display: "flex" }} />
-                    <IoIosNotificationsOutline
-                      style={{ fontSize: 25, display: "flex" }}
-                    />
-                    <MdZoomOutMap style={{ fontSize: 22, display: "flex" }} />
-                    {loginUserDetails?.profile_picture ? (
-                      <Avatar src={loginUserDetails?.profile_picture} />
+                  <FiPlusCircle style={{ fontSize: 22, display: "flex" }} />
+                  <Dropdown
+                    overlay={menu}
+                    trigger={["click"]}
+                    placement="bottomCenter"
+                    visible={isNotificationDropdownVisible}
+                    onVisibleChange={handlesetvisibleNotificationDropdown}
+                  >
+                    {unreadCount <= 0 ? (
+                      <IoIosNotificationsOutline
+                        onClick={() => {
+                          setisNotificationDropdownVisible(true);
+                        }}
+                        style={{
+                          fontSize: 25,
+                          display: "flex",
+                          cursor: "pointer",
+                        }}
+                      />
                     ) : (
-                      <Avatar style={{background:loginUserDetails?.avatar_color}}>
-                        {getInitials(loginUserDetails?.dentist_full_name)}
-                      </Avatar>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          padding: "0px 5px 0px 5px",
+                        }}
+                      >
+                        <Badge count={unreadCount} color="#3900DB">
+                          <IoIosNotificationsOutline
+                            onClick={() => {
+                              setisNotificationDropdownVisible(true);
+                            }}
+                            style={{
+                              fontSize: 25,
+                              display: "flex",
+                              cursor: "pointer",
+                            }}
+                          />
+                        </Badge>
+                      </div>
                     )}
-
-                    <Typography
+                  </Dropdown>
+                  {isFullScreen ? (
+                    <MdOutlineZoomInMap
+                      onClick={exitFullScreen}
                       style={{
-                        fontWeight: "bold",
-                        width: 100,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        fontSize: 22,
+                        display: "flex",
+                        cursor: "pointer",
                       }}
-                    >
-                      {loginUserDetails?.dentist_full_name}
-                    </Typography>
-                    <MdOutlineKeyboardArrowDown
-                      style={{ fontSize: 20, display: "flex" }}
                     />
-                  </Space>
-                </Col>
+                  ) : (
+                    <MdZoomOutMap
+                      onClick={enterFullScreen}
+                      style={{
+                        fontSize: 22,
+                        display: "flex",
+                        cursor: "pointer",
+                      }}
+                    />
+                  )}
+
+                  {loginUserDetails?.profile_picture ? (
+                    <Avatar src={loginUserDetails?.profile_picture} />
+                  ) : (
+                    <Avatar
+                      style={{ background: loginUserDetails?.avatar_color }}
+                    >
+                      {getInitials(loginUserDetails?.dentist_full_name)}
+                    </Avatar>
+                  )}
+
+                  <Typography
+                    style={{
+                      fontWeight: "bold",
+                      width: 100,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {loginUserDetails?.dentist_full_name}
+                  </Typography>
+                  <MdOutlineKeyboardArrowDown
+                    style={{ fontSize: 20, display: "flex" }}
+                  />
+                </Space>
               </Col>
             </Row>
           </Header>
@@ -391,6 +745,10 @@ const CustomLayout = () => {
           {sidebarkey === "4" ? (
             <Leads
               searchContent={searchContent}
+              isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
+              setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
+              selectedItemDetails={selectedItemDetails}
+              setselectedItemDetails={setselectedItemDetails}
               setisVisibleQuickConversation={setisVisibleQuickConversation}
               setquickConversationView={setquickConversationView}
               setselectedConversationDetails={setselectedConversationDetails}

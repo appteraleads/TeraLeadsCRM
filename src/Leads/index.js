@@ -47,6 +47,7 @@ import {
   DeleteLead,
   CreateDuplicateLead,
 } from "./Modals";
+import { FaFilter } from "react-icons/fa";
 const { Header, Content } = Layout;
 
 const defaultColunmList = [
@@ -62,6 +63,10 @@ const defaultColunmList = [
 
 const Leads = ({
   searchContent,
+  isLeadsDetailsModalVisible,
+  setisLeadsDetailsModalVisible,
+  selectedItemDetails,
+  setselectedItemDetails,
   setisVisibleQuickConversation,
   setquickConversationView,
   setselectedConversationDetails,
@@ -75,15 +80,15 @@ const Leads = ({
   const [ClosedLeadsCount, setClosedLeadsCount] = useState(0);
   const [RevenueCount, setRevenueCount] = useState(0);
   const [noShowCount, setnoShowCount] = useState(0);
-  const [selectedItemDetails, setselectedItemDetails] = useState([]);
+
   const [api, contextHolder] = notification.useNotification();
   const [columnsList, setcolumnsList] = useState([]);
   const [tempcolumnsList, settempcolumnsList] = useState(columnsList);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const location = useLocation();
 
+  const [visibleFilter, setvisibleFilter] = useState(false);
   const [leaadActiveTab, setleaadActiveTab] = useState(1);
-  const [sidebarkey, setsidebarkey] = useState("1");
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isFinancingEnabled, setIsFinancingEnabled] = useState(false);
   const [pageLoader, setpageLoader] = useState(false);
@@ -103,8 +108,7 @@ const Leads = ({
 
   const [isCloseLeadsPaymentModalVisible, setisCloseLeadsPaymentModalVisible] =
     useState(false);
-  const [isLeadsDetailsModalVisible, setisLeadsDetailsModalVisible] =
-    useState(false);
+
   const [totalRecords, settotalRecords] = useState(0);
   const [addCustomListColunm, setaddCustomListColunm] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -184,6 +188,88 @@ const Leads = ({
     setIsModalVisible(true);
   };
 
+  const dropdownContentFilter = (
+    <div
+      style={{
+        padding: "12px",
+        width: "250px",
+        overflow: "auto",
+        Height: "250px",
+        background: "#fff",
+        borderRadius: 5,
+        boxShadow:
+          " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+      }}
+    >
+      <Row
+        style={{ display: "flex", justifyContent: "space-between", padding: 5 }}
+      >
+        <Col>
+          <Typography
+            className="custom-text1"
+            style={{ marginRight: 10, display: "flex", alignItems: "center" }}
+          >
+            <FaFilter style={{ fontSize: 10 }} /> Filter
+          </Typography>
+        </Col>
+      </Row>
+      <Divider style={{ margin: 2 }} />
+      <Row
+        style={{ display: "flex", justifyContent: "space-between", padding: 5 }}
+      >
+        <Col span={24}>
+          <Typography
+            className="custom-text1"
+            style={{ marginRight: 10, display: "flex", alignItems: "center" }}
+          >
+            Web Site
+          </Typography>
+          <Select
+            style={{ width: "100%" }}
+            placeholder="Select select website"
+            // onChange={(e) => {
+            //   setappointment_status(e);
+            // }}
+            options={[
+              {
+                lable: "Confirmed",
+                value: "Confirmed",
+              },
+              {
+                lable: "Not Confirmed",
+                value: "Not Confirmed",
+              },
+            ]}
+          />
+        </Col>
+      </Row>
+
+      <Divider style={{ margin: 2 }} />
+      <Row
+        style={{ display: "flex", justifyContent: "space-between", padding: 5 }}
+      >
+        <Col>
+          <Button
+            onClick={() => {
+              setvisibleFilter(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </Col>
+        <Col>
+          <Button
+          // onClick={() => {
+          //   handleGetAllleadsForAppointment();
+          // }}
+          >
+            Save
+          </Button>
+        </Col>
+      </Row>
+    </div>
+  );
+
   const itemRender = (_, type, originalElement) => {
     if (type === "prev") {
       return (
@@ -223,6 +309,39 @@ const Leads = ({
     setleaadActiveTab(parseInt(newActiveKey));
   };
 
+  const handleCancelApointment = async () => {
+    const token = localStorage.getItem("authToken");
+    let data = {
+      id: selectedItemDetails?.id,
+      lead_status: "Appointment",
+      appointment_status: "Cancelled",
+    };
+    await axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-leads`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        handleGetAllleads();
+        handleGetAllleadsKanbanView();
+        setbuttonLoader(false);
+        setisLeadsDetailsModalVisible(false);
+        setisViewLeadModalEditable(false);
+        openNotificationWithIcon(
+          "success",
+          "Lead",
+          "Lead Updated Successfully !"
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   const handleSubmitUpdateleads = async (values) => {
     values.id = selectedItemDetails?.id;
     setbuttonLoader(true);
@@ -323,8 +442,7 @@ const Leads = ({
         }
       );
 
-      if (localStorage.getItem("userColumn") !== "undefined" && localStorage.getItem("userColumn")) {
-  
+      if (localStorage.getItem("userColumn")) {
         setleadsListcolumns(
           localStorage
             .getItem("userColumn")
@@ -370,7 +488,7 @@ const Leads = ({
       openNotificationWithIcon(
         "error",
         "Lead",
-        err?.response?.data || err?.message
+        err?.response?.data?.message || err?.message
       );
     } finally {
       settableLoader(false);
@@ -453,7 +571,7 @@ const Leads = ({
       openNotificationWithIcon(
         "error",
         "Lead",
-        err?.response?.data || err?.message
+        err?.response?.data?.message || err?.message
       );
     } finally {
       setpageLoader(false);
@@ -465,7 +583,7 @@ const Leads = ({
     setVisible(false);
     const token = localStorage.getItem("authToken");
     let data = {
-      userColumn: columnsList.join(),
+      user_column: columnsList.join(),
     };
     await axios
       .post(
@@ -493,7 +611,7 @@ const Leads = ({
         openNotificationWithIcon(
           "error",
           "Customize View",
-          err?.response?.data || err?.message
+          err?.response?.data?.message || err?.message
         );
         settableLoader(false);
       });
@@ -866,12 +984,6 @@ const Leads = ({
   );
 
   useEffect(() => {
-    if (location.pathname === "/leads") {
-      setsidebarkey("4");
-    }
-  }, [location]);
-
-  useEffect(() => {
     handleGetAllleads();
   }, []);
 
@@ -879,8 +991,9 @@ const Leads = ({
     handleGetAllleads("", "", searchContent, "text");
     handleGetAllleadsKanbanView(searchContent, "text");
   }, [searchContent]);
+
   return (
-    <div >
+    <div>
       {contextHolder}
       <Layout>
         <Header
@@ -1092,6 +1205,28 @@ const Leads = ({
             defaultActiveKey="1"
             tabBarExtraContent={
               <div style={{ display: "flex", alignItems: "center" }}>
+                <Dropdown
+                  overlay={dropdownContentFilter}
+                  trigger={["click"]}
+                  visible={visibleFilter}
+                  onVisibleChange={(flag) => {
+                    setvisibleFilter(true);
+                  }}
+                  placement="bottom"
+                >
+                  <Typography
+                    className="custom-text1"
+                    style={{
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      marginRight: 10,
+                    }}
+                  >
+                    <FaFilter style={{ fontSize: 10, marginRight: 5 }} /> Filter
+                  </Typography>
+                </Dropdown>
+
                 {leaadActiveTab === 1 ? (
                   <Dropdown
                     overlay={dropdownContent}
@@ -1204,6 +1339,7 @@ const Leads = ({
             setisVisibleQuickConversation={setisVisibleQuickConversation}
             setquickConversationView={setquickConversationView}
             setselectedConversationDetails={setselectedConversationDetails}
+            handleCancelApointment={handleCancelApointment}
           />
 
           {/* Lead Delete Confirmation*/}

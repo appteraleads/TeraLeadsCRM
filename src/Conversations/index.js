@@ -122,7 +122,7 @@ const Conversations = ({ searchContent }) => {
                 key={lead?.id}
                 onClick={() => {
                   setvisibleleadListDropdown(false);
-                  handleLeadConversationTrueFlase(lead);
+                  handleLeadConversationTrueFlase(lead, true);
                   setselectedLead(lead);
                   setvisibleleadListDropdown(false);
                 }}
@@ -169,7 +169,6 @@ const Conversations = ({ searchContent }) => {
   };
 
   const EmailContentDisplay = ({ emailContent }) => {
-    // Replace new line characters with <br />
     const formattedContent = emailContent.split("\n").map((line, index) => (
       <span key={index}>
         {line}
@@ -216,7 +215,7 @@ const Conversations = ({ searchContent }) => {
     </Menu>
   );
 
-  const handleLeadConversationTrueFlase = async (item) => {
+  const handleLeadConversationTrueFlase = async (item, active) => {
     const token = localStorage.getItem("authToken");
     const url = `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/conversations/LeadTF/${item?.id}`;
 
@@ -224,6 +223,9 @@ const Conversations = ({ searchContent }) => {
       await axios({
         method: "PUT",
         url,
+        data: {
+          conversations_lead: active,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -399,7 +401,7 @@ const Conversations = ({ searchContent }) => {
           openNotificationWithIcon(
             "error",
             "Conversatios",
-            err?.response?.data || err?.message
+            err?.response?.data?.message || err?.message
           );
           console.log(err);
         });
@@ -408,14 +410,16 @@ const Conversations = ({ searchContent }) => {
     }
     setloadingleadsList(false);
   };
+
   const handlesetvisibleleadListDropdown = (visible) => {
     setvisibleleadListDropdown(visible);
   };
+
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.log("WebSocket connection established"),
     onClose: (event) => console.log("WebSocket connection closed:", event),
     onError: (error) => console.error("WebSocket error:", error),
-    shouldReconnect: () => true, // Reconnect on close
+    shouldReconnect: () => true,
   });
 
   useEffect(() => {
@@ -529,6 +533,12 @@ const Conversations = ({ searchContent }) => {
                   color: item?.id === selectedLead?.id ? "#e6f7ff" : "#fff",
                 }}
                 onClick={() => {
+                  if (
+                    selectedLead?.Conversations?.emails?.length <= 0 &&
+                    selectedLead?.Conversations?.sms?.length <= 0
+                  ) {
+                    handleLeadConversationTrueFlase(item, false);
+                  }
                   handleConversationsUnseen(item);
                   setselectedLead(item);
                   setnotes(item?.Notes?.reverse());
@@ -661,7 +671,7 @@ const Conversations = ({ searchContent }) => {
         />
       </Sider>
 
-      <Row >
+      <Row>
         <Col
           style={{
             background: "#FCFDFF",
@@ -704,7 +714,7 @@ const Conversations = ({ searchContent }) => {
               ""
             )}
           </div>
-          <Content style={{ flex: "1 1 auto", padding: 10 }}>
+          <Content style={{ flex: "1 1 auto", padding: 10, height: "40vh" }}>
             {/* Chat Header */}
 
             {!chatLoader ? (
@@ -1424,8 +1434,6 @@ const Conversations = ({ searchContent }) => {
           </Form.Item>
         </Form>
       </Modal>
-
-     
     </Layout>
   );
 };

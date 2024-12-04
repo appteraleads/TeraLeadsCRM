@@ -18,6 +18,7 @@ import {
   Form,
   DatePicker,
   TimePicker,
+  Tooltip,
 } from "antd";
 import TabPane from "antd/es/tabs/TabPane";
 import { BsThreeDots } from "react-icons/bs";
@@ -25,7 +26,11 @@ import { CiEdit } from "react-icons/ci";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoMdMic } from "react-icons/io";
 import { IoChevronBackSharp, IoEyeOutline } from "react-icons/io5";
-import { MdOutlineError, MdOutlineKeyboardArrowDown } from "react-icons/md";
+import {
+  MdOutlineCancel,
+  MdOutlineError,
+  MdOutlineKeyboardArrowDown,
+} from "react-icons/md";
 import {
   RiDeleteBin5Line,
   RiUserFill,
@@ -147,28 +152,6 @@ const engagementData = [
     datetime: <span className="custom-text">Oct 18, 2024 - 1:00 PM</span>,
   },
 ];
-const kanbanCardMenu = [
-  {
-    label: <>View Details</>,
-    icon: <IoEyeOutline style={{ fontSize: 16 }} />,
-    key: "1",
-  },
-  {
-    label: <>Edit</>,
-    icon: <CiEdit style={{ fontSize: 16 }} />,
-    key: "2",
-  },
-  {
-    label: <>Duplicate</>,
-    icon: <HiOutlineDocumentDuplicate style={{ fontSize: 16 }} />,
-    key: "3",
-  },
-  {
-    label: <>Delete</>,
-    icon: <RiDeleteBin5Line style={{ fontSize: 16 }} />,
-    key: "4",
-  },
-];
 
 const leadsStatusList = [
   {
@@ -256,6 +239,7 @@ export const ViewUpdateLeadDetails = ({
   setisVisibleQuickConversation,
   setquickConversationView,
   setselectedConversationDetails,
+  handleCancelApointment,
 }) => {
   const [treatmentOptions, settreatmentOptions] = useState([]);
   const [selectedOption, setselectedOption] = useState([]);
@@ -263,7 +247,6 @@ export const ViewUpdateLeadDetails = ({
     // Can not select days before today and today
     return current && current < moment().startOf("day");
   };
-
   const getTreatmentUrlList = async () => {
     const token = localStorage.getItem("authToken");
     await axios
@@ -328,39 +311,43 @@ export const ViewUpdateLeadDetails = ({
               <MdOutlineKeyboardArrowDown />
             </div>
             <div style={{ marginLeft: 10 }}>
-              <Button
-                style={{ background: "none" }}
-                onClick={() => {
-                  setisViewLeadModalEditable(true);
-                }}
-                icon={<FiEdit />}
-              ></Button>
+              <Tooltip title={"Edit"}>
+                <Button
+                  style={{ background: "none" }}
+                  onClick={() => {
+                    setisViewLeadModalEditable(true);
+                  }}
+                  icon={<FiEdit />}
+                ></Button>
+              </Tooltip>
             </div>
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                height: 30,
-                width: 30,
-                display: "flex",
-                marginLeft: 10,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Dropdown
-                menu={{
-                  items: kanbanCardMenu,
-                  // onSelect: handleclinic,
+          
+            {selectedItemDetails?.appointment_status === "Confirmed" ? (
+              <div
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  height: 30,
+                  width: 30,
+                  display: "flex",
+                  marginLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <BsThreeDots
-                  style={{
-                    cursor: "pointer",
-                  }}
-                />
-              </Dropdown>
-            </div>
+                <Tooltip title={"Cancel Appointment"}>
+                  <Button
+                    style={{ background: "none" }}
+                    onClick={() => {
+                      handleCancelApointment();
+                    }}
+                    icon={<MdOutlineCancel style={{ fontSize: 16 }} />}
+                  />
+                </Tooltip>
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         </div>
       }
@@ -1449,8 +1436,7 @@ export const ViewUpdateLeadDetails = ({
                         ? dayjs(
                             selectedItemDetails?.appointment_date_time
                           ).format("MMM DD,YYYY")
-                        : "-"} {" "}
-  
+                        : "-"}{" "}
                       {selectedItemDetails?.appointment_date_time
                         ? dayjs(
                             selectedItemDetails?.appointment_date_time
@@ -2498,7 +2484,7 @@ export const ViewLeadDetailsShort = ({
               <Text
                 style={{
                   color:
-                    selectedItemDetails?.appointment_status === "Not Confirmed"
+                    selectedItemDetails?.appointment_status === "Not Confirmed" || selectedItemDetails?.appointment_status === "Cancelled" 
                       ? "red"
                       : "#52c41a",
                   fontWeight: "bold",

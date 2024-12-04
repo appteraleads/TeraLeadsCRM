@@ -4862,14 +4862,14 @@ export const BlockIpModal = ({
           openNotificationWithIcon(
             "error",
             "Settings",
-            err?.response?.data?.error || err?.message
+            err?.response?.data?.message || err?.message
           );
         });
     } catch (err) {
       openNotificationWithIcon(
         "error",
         "Settings",
-        err?.response?.data?.error || err?.message
+        err?.response?.data?.message || err?.message
       );
     }
     setbuttonLoader(false);
