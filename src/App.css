@@ -170,9 +170,11 @@
 .ant-form-item {
   margin-bottom: 10px !important;
 }
-.ant-tabs .ant-tabs-tab:hover{
-  color:#3900DB
+
+.ant-tabs .ant-tabs-tab:hover {
+  color: #3900DB
 }
+
 .ant-input-outlined:focus-within {
   border-color: #3900DB
 }
@@ -224,11 +226,11 @@
 }
 
 .ant-btn-variant-solid:hover {
-  color:#fff !important;
+  color: #fff !important;
   background-color: #3900DB !important;
 }
-Ï
-a:hover {
+
+Ï a:hover {
   color: #3900DB;
 }
 
@@ -662,6 +664,10 @@ a {
   color: #fff !important;
 }
 
-.kanban-custom-card .ant-card-body{
+.kanban-custom-card .ant-card-body {
   padding: 15px 15px 10px 15px !important;
+}
+
+.custom-report-card .ant-card-body {
+  padding: 10px !important;
 }

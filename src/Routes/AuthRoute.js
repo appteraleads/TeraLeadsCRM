@@ -189,6 +189,15 @@ const AuthRoute = () => {
           }
         />
          <Route
+          path="/reports"
+          element={
+            <CustomLayout
+              userEmailId={userEmailId}
+              setuserEmailId={setuserEmailId}
+            />
+          }
+        />
+         <Route
           path="/settings"
           element={
             <CustomLayout

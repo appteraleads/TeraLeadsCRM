@@ -39,6 +39,7 @@ import { getInitials } from "../Common/ReturnColumnValue";
 import { FaClinicMedical, FaPlus } from "react-icons/fa";
 import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
+import { Content } from "antd/es/layout/layout";
 
 const Conversations = React.lazy(() => import("../Conversations"));
 const QuickConversation = React.lazy(() =>
@@ -47,7 +48,7 @@ const QuickConversation = React.lazy(() =>
 const Appointments = React.lazy(() => import("../Appointments/index"));
 const Leads = React.lazy(() => import("../Leads"));
 const Settings = React.lazy(() => import("../Settings"));
-
+const Reports = React.lazy(() => import("../Reports"));
 const { Header, Sider } = Layout;
 const { Option } = Select;
 const CustomLayout = () => {
@@ -507,6 +508,9 @@ const CustomLayout = () => {
     } else if (location.pathname === "/appointments") {
       setsidebarkey("2");
       setdefaultValueSearch("appointments");
+    } else if (location.pathname === "/reports") {
+      setsidebarkey("3");
+      setdefaultValueSearch("reports");
     } else if (location.pathname === "/conversations") {
       setsidebarkey("6");
       setdefaultValueSearch("conversations");
@@ -520,7 +524,6 @@ const CustomLayout = () => {
     <>
       <Layout ref={containerRef}>
         {contextHolder}
-
         <Sider
           width={230}
           style={{
@@ -695,6 +698,7 @@ const CustomLayout = () => {
                   </Dropdown>
                   {isFullScreen ? (
                     <MdOutlineZoomInMap
+                      className="custom-text1"
                       onClick={exitFullScreen}
                       style={{
                         fontSize: 22,
@@ -704,6 +708,7 @@ const CustomLayout = () => {
                     />
                   ) : (
                     <MdZoomOutMap
+                      className="custom-text1"
                       onClick={enterFullScreen}
                       style={{
                         fontSize: 22,
@@ -741,52 +746,62 @@ const CustomLayout = () => {
               </Col>
             </Row>
           </Header>
+          <Content>
+            {sidebarkey === "4" ? (
+              <Leads
+                searchContent={searchContent}
+                isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
+                setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
+                selectedItemDetails={selectedItemDetails}
+                setselectedItemDetails={setselectedItemDetails}
+                setisVisibleQuickConversation={setisVisibleQuickConversation}
+                setquickConversationView={setquickConversationView}
+                setselectedConversationDetails={setselectedConversationDetails}
+                loginUserDetails={loginUserDetails}
+              />
+            ) : sidebarkey === "6" ? (
+              <Conversations
+                searchContent={searchContent}
+                loginUserDetails={loginUserDetails}
+              />
+            ) : sidebarkey === "2" ? (
+              <Appointments
+                searchContent={searchContent}
+                openNotificationWithIcon={openNotificationWithIcon}
+                setisVisibleQuickConversation={setisVisibleQuickConversation}
+                setquickConversationView={setquickConversationView}
+                setselectedConversationDetails={setselectedConversationDetails}
+                loginUserDetails={loginUserDetails}
+              />
+            ) : sidebarkey === "3" ? (
+              <Reports
+                searchContent={searchContent}
+                openNotificationWithIcon={openNotificationWithIcon}
+                setisVisibleQuickConversation={setisVisibleQuickConversation}
+                setquickConversationView={setquickConversationView}
+                setselectedConversationDetails={setselectedConversationDetails}
+                loginUserDetails={loginUserDetails}
+              />
+            ) : sidebarkey === "7" ? (
+              <Settings
+                openNotificationWithIcon={openNotificationWithIcon}
+                loginUserDetails={loginUserDetails}
+              />
+            ) : (
+              ""
+            )}
 
-          {sidebarkey === "4" ? (
-            <Leads
-              searchContent={searchContent}
-              isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
-              setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
-              selectedItemDetails={selectedItemDetails}
-              setselectedItemDetails={setselectedItemDetails}
-              setisVisibleQuickConversation={setisVisibleQuickConversation}
-              setquickConversationView={setquickConversationView}
-              setselectedConversationDetails={setselectedConversationDetails}
-              loginUserDetails={loginUserDetails}
-            />
-          ) : sidebarkey === "6" ? (
-            <Conversations
-              searchContent={searchContent}
-              loginUserDetails={loginUserDetails}
-            />
-          ) : sidebarkey === "2" ? (
-            <Appointments
-              searchContent={searchContent}
+            <QuickConversation
               openNotificationWithIcon={openNotificationWithIcon}
-              setisVisibleQuickConversation={setisVisibleQuickConversation}
-              setquickConversationView={setquickConversationView}
+              selectedConversationDetails={selectedConversationDetails}
               setselectedConversationDetails={setselectedConversationDetails}
+              isVisibleQuickConversation={isVisibleQuickConversation}
+              setisVisibleQuickConversation={setisVisibleQuickConversation}
+              quickConversationView={quickConversationView}
+              setquickConversationView={setquickConversationView}
               loginUserDetails={loginUserDetails}
             />
-          ) : sidebarkey === "7" ? (
-            <Settings
-              openNotificationWithIcon={openNotificationWithIcon}
-              loginUserDetails={loginUserDetails}
-            />
-          ) : (
-            ""
-          )}
-
-          <QuickConversation
-            openNotificationWithIcon={openNotificationWithIcon}
-            selectedConversationDetails={selectedConversationDetails}
-            setselectedConversationDetails={setselectedConversationDetails}
-            isVisibleQuickConversation={isVisibleQuickConversation}
-            setisVisibleQuickConversation={setisVisibleQuickConversation}
-            quickConversationView={quickConversationView}
-            setquickConversationView={setquickConversationView}
-            loginUserDetails={loginUserDetails}
-          />
+          </Content>
         </Layout>
       </Layout>
     </>
