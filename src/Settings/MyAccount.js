@@ -39,7 +39,7 @@ const decryptPassword = (encryptedPassword, iv) => {
   return bytes.toString(CryptoJS.enc.Utf8); // Return decrypted password as string
 };
 
-const MyAccount = ({ openNotificationWithIcon }) => {
+const MyAccount = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [fullName, setfullName] = useState();
   const [email, setemail] = useState("");
   const [password, setpassword] = useState();
@@ -169,7 +169,17 @@ const MyAccount = ({ openNotificationWithIcon }) => {
   };
 
   useEffect(() => {
-    handleGetLoginUserDetails();
+    console.log("My Account", loginUserDetails);
+    setprofile_picture(loginUserDetails?.profile_picture);
+    setfullName(loginUserDetails?.dentist_full_name);
+    setemail(loginUserDetails?.email);
+    setpassword(
+      decryptPassword(
+        loginUserDetails?.password,
+        loginUserDetails?.iv_encrypted_password
+      )
+    );
+    // handleGetLoginUserDetails();
   }, []);
 
   return (
@@ -203,7 +213,12 @@ const MyAccount = ({ openNotificationWithIcon }) => {
                   {profile_picture ? (
                     <Avatar size={64} src={profile_picture} />
                   ) : (
-                    <Avatar size={64}>{getInitials(fullName)}</Avatar>
+                    <Avatar
+                      style={{ background: loginUserDetails?.avatar_color }}
+                      size={64}
+                    >
+                      {getInitials(fullName)}
+                    </Avatar>
                   )}
 
                   <Upload

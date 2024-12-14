@@ -73,11 +73,11 @@ export const CreateAppointment = ({
           setleadoptions(temp);
           setFetching(false);
         })
-        .catch((error) => {
+        .catch((err) => {
           openNotificationWithIcon(
             "error",
             "Lead",
-            error?.response?.data || error?.message
+            err?.response?.data?.message || err?.message
           );
         });
     } catch (err) {

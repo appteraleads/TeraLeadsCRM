@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Login from "../Authentication/Login";
 import Signup from "../Authentication/Signup";
 import ForgotPassword from "../Authentication/ForgotPassword";
@@ -10,8 +11,12 @@ import "./Auth.css";
 import { Row, Col, Image, Button, Result } from "antd";
 import TeraLogo from "../assets/logo/teraleadslogo.jpg";
 import CustomLayout from "../Layout";
+import AdminLayout from "../Admin/AdminLayout";
+import { jwtDecode } from "jwt-decode";
+
 const AuthRoute = () => {
   const [userEmailId, setuserEmailId] = useState();
+  const [loginUserDetails, setloginUserDetails] = useState([]);
 
   const RouteComponent = ({ ChildComponent }) => {
     return (
@@ -60,6 +65,14 @@ const AuthRoute = () => {
     );
   };
 
+  useEffect(() => {
+    const decoded = localStorage?.getItem("usertDetailsToken")
+      ? jwtDecode(localStorage?.getItem("usertDetailsToken"))
+      : "";
+    console.log(decoded?.user);
+    setloginUserDetails(decoded?.user);
+  }, [localStorage?.getItem("usertDetailsToken")]);
+
   return (
     <>
       <Routes>
@@ -69,8 +82,8 @@ const AuthRoute = () => {
             <RouteComponent
               ChildComponent={
                 <Login
-                  userEmailId={userEmailId}
                   setuserEmailId={setuserEmailId}
+                  setloginUserDetails={setloginUserDetails}
                 />
               }
             />
@@ -83,8 +96,8 @@ const AuthRoute = () => {
             <RouteComponent
               ChildComponent={
                 <Login
-                  userEmailId={userEmailId}
                   setuserEmailId={setuserEmailId}
+                  setloginUserDetails={setloginUserDetails}
                 />
               }
             />
@@ -161,51 +174,88 @@ const AuthRoute = () => {
           }
         />
 
+        {/* user routes */}
         <Route
           path="/leads"
           element={
             <CustomLayout
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
+              loginUserDetails={loginUserDetails}
             />
           }
         />
+
         <Route
           path="/conversations"
           element={
             <CustomLayout
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
+              loginUserDetails={loginUserDetails}
             />
           }
         />
+
         <Route
           path="/appointments"
           element={
             <CustomLayout
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
+              loginUserDetails={loginUserDetails}
             />
           }
         />
-         <Route
+
+        <Route
           path="/reports"
           element={
             <CustomLayout
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
+              loginUserDetails={loginUserDetails}
             />
           }
         />
-         <Route
+
+        <Route
           path="/settings"
           element={
             <CustomLayout
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
+              loginUserDetails={loginUserDetails}
             />
           }
         />
+
+        {/* super-admin routes */}
+        {loginUserDetails?.role_name === "super-admin" && (
+          <>
+            <Route
+              path="/admin"
+              element={<AdminLayout loginUserDetails={loginUserDetails} />}
+            />
+            <Route
+              path="/admin/clinics"
+              element={<AdminLayout loginUserDetails={loginUserDetails} />}
+            />
+            <Route
+              path="/admin/teams"
+              element={<AdminLayout loginUserDetails={loginUserDetails} />}
+            />
+            <Route
+              path="/admin/billing"
+              element={<AdminLayout loginUserDetails={loginUserDetails} />}
+            />
+            <Route
+              path="/admin/settings"
+              element={<AdminLayout loginUserDetails={loginUserDetails} />}
+            />
+          </>
+        )}
+
         <Route
           path="*"
           element={

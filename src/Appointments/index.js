@@ -169,7 +169,7 @@ const Appointments = ({
         openNotificationWithIcon(
           "error",
           "Appointment",
-          err?.data?.message || err?.message
+          err?.response?.data?.message || err?.message
         );
       });
   };
@@ -207,7 +207,7 @@ const Appointments = ({
       .catch((err) => {
         console.log(err);
 
-        openNotificationWithIcon("error", "Close Lead", err?.message);
+        openNotificationWithIcon("error", "Close Lead",err?.response?.data?.message || err?.message);
         RecordPaymentform.resetFields();
         setbuttonLoader(false);
       });

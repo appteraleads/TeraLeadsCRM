@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Layout,
   Menu,
@@ -10,63 +10,44 @@ import {
   Divider,
   Typography,
   Avatar,
-  Input,
   notification,
-  Select,
   List,
   Badge,
-  Checkbox,
 } from "antd";
 import { IoTime } from "react-icons/io5";
-import TeraleadsLogo from "../assets/logo/TeraleadsRemoveBg.png";
-import { ReactComponent as Usersvg } from "../assets/IconSvg/solar_user-broken.svg";
-import { ReactComponent as Dashboardsvg } from "../assets/IconSvg/icons8-home 1.svg";
-import { ReactComponent as Appointmentssvg } from "../assets/IconSvg/basil_calendar-outline.svg";
-import { ReactComponent as Reportsvg } from "../assets/IconSvg/hugeicons_analytics-up.svg";
-import { ReactComponent as Callsvg } from "../assets/IconSvg/Vector.svg";
-import { ReactComponent as Chatsvg } from "../assets/IconSvg/fluent_chat-16-regular.svg";
-import { ReactComponent as Dentalsvg } from "../assets/IconSvg/Frame 2.svg";
-import { ReactComponent as LogoCircle } from "../assets/logo/teracrmlogoCircle.svg";
+import TeraleadsLogo from "../../assets/logo/TeraleadsRemoveBg.png";
+import { ReactComponent as Usersvg } from "../../assets/IconSvg/solar_user-broken.svg";
+import { ReactComponent as Appointmentssvg } from "../../assets/IconSvg/basil_calendar-outline.svg";
+import { ReactComponent as Chatsvg } from "../../assets/IconSvg/fluent_chat-16-regular.svg";
+import { ReactComponent as Dentalsvg } from "../../assets/IconSvg/Frame 2.svg";
+import { ReactComponent as LogoCircle } from "../../assets/logo/teracrmlogoCircle.svg";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
-import { FiPlusCircle } from "react-icons/fi";
-import { CiSearch } from "react-icons/ci";
+
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { MdZoomOutMap } from "react-icons/md";
-import { useLocation } from "react-router-dom";
+
 import { useNavigate } from "react-router-dom";
-import { SettingsSVG } from "../Common/SettingSidebarIconsSvg";
+import {
+  AdminSVG,
+  BillingPlanSVG,
+  ClinicsSVG,
+  SettingsSVG,
+  TeamSVG,
+} from "../../Common/SettingSidebarIconsSvg";
 import axios from "axios";
-import { getInitials } from "../Common/ReturnColumnValue";
-import { FaClinicMedical, FaPlus } from "react-icons/fa";
+import { getInitials } from "../../Common/ReturnColumnValue";
 import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
 import { Content } from "antd/es/layout/layout";
-import { icons } from "antd/es/image/PreviewGroup";
-
-const Conversations = React.lazy(() => import("../Conversations"));
-const QuickConversation = React.lazy(() =>
-  import("../Common/QuickConversation")
-);
-const Appointments = React.lazy(() => import("../Appointments/index"));
-const Leads = React.lazy(() => import("../Leads"));
-const Settings = React.lazy(() => import("../Settings"));
-const Reports = React.lazy(() => import("../Reports"));
+import Clinics from "../Clinics";
 
 const { Header, Sider } = Layout;
-const { Option } = Select;
-const CustomLayout = ({ loginUserDetails }) => {
+
+const AdminLayout = ({ loginUserDetails }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [api, contextHolder] = notification.useNotification();
   const [sidebarkey, setsidebarkey] = useState("1");
-  const [defaultValueSearch, setdefaultValueSearch] = useState("");
-  const [searchContent, setsearchContent] = useState();
-  const [isVisibleQuickConversation, setisVisibleQuickConversation] =
-    useState(false);
-  const [quickConversationView, setquickConversationView] = useState(null);
-  const [selectedConversationDetails, setselectedConversationDetails] =
-    useState();
   const containerRef = useRef(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [loadingNotification, setloadingNotification] = useState(false);
@@ -74,9 +55,8 @@ const CustomLayout = ({ loginUserDetails }) => {
     useState(false);
   const [notificationDetailsList, setnotificationDetailsList] = useState([]);
   const [unreadCount, setunreadCount] = useState(0);
-  const [isLeadsDetailsModalVisible, setisLeadsDetailsModalVisible] =
-    useState(false);
-  const [selectedItemDetails, setselectedItemDetails] = useState([]);
+
+  console.log(loginUserDetails)
   const handlesetvisibleNotificationDropdown = (visible) => {
     if (visible) {
       handleGetNotificationDetails();
@@ -193,9 +173,6 @@ const CustomLayout = ({ loginUserDetails }) => {
                   onClick={() => {
                     navigate("/leads");
                     handleMarkAllReadNotification(noti?.id);
-                    setselectedItemDetails(noti?.metadata);
-                    setisLeadsDetailsModalVisible(true);
-                    setisNotificationDropdownVisible(false);
                   }}
                 >
                   <Col span={4}>
@@ -302,52 +279,41 @@ const CustomLayout = ({ loginUserDetails }) => {
 
   const sidebaritems = [
     {
-      key: "Home",
-      label: "Home",
+      key: "Admin",
+      label: "Admin",
       type: "group",
       children: [
         {
           key: "1",
-          icon: <Dashboardsvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Dashboard</span>,
-          onClick: () => navigate("/dashboard"),
+          icon: (
+            <div style={{ display: "flex", width: 20 }}>
+              <ClinicsSVG color={sidebarkey === "1" ? "#3900DB" : "#72779E"} />
+            </div>
+          ),
+          label: <span className="custom-text1">Clinics</span>,
+          onClick: () => navigate("/admin/clinics"),
         },
         {
           key: "2",
-          icon: <Appointmentssvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Appointments</span>,
-          onClick: () => navigate("/appointments"),
+          icon: (
+            <div style={{ display: "flex", width: 20 }}>
+              <TeamSVG color={sidebarkey === "2" ? "#3900DB" : "#72779E"} />
+            </div>
+          ),
+          label: <span className="custom-text1">Teams</span>,
+          onClick: () => navigate("/admin/teams"),
         },
         {
           key: "3",
-          icon: <Reportsvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Reports</span>,
-          onClick: () => navigate("/reports"),
-        },
-      ],
-    },
-    {
-      key: "grp",
-      label: "Contacts",
-      type: "group",
-      children: [
-        {
-          key: "4",
-          icon: <Usersvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Leads</span>,
-          onClick: () => navigate("/leads"),
-        },
-        {
-          key: "5",
-          icon: <Callsvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Calls</span>,
-          onClick: () => navigate("/calls"),
-        },
-        {
-          key: "6",
-          icon: <Chatsvg style={{ width: 20 }} />,
-          label: <span className="custom-text1">Conversations</span>,
-          onClick: () => navigate("/conversations"),
+          icon: (
+            <div style={{ display: "flex", width: 20 }}>
+              <BillingPlanSVG
+                color={sidebarkey === "3" ? "#3900DB" : "#72779E"}
+              />
+            </div>
+          ),
+          label: <span className="custom-text1">Billing</span>,
+          onClick: () => navigate("/admin/billing"),
         },
       ],
     },
@@ -361,84 +327,8 @@ const CustomLayout = ({ loginUserDetails }) => {
       </div>
     ),
     label: <span className="custom-text1">Settings</span>,
-    onClick: () => navigate("/settings"),
+    onClick: () => navigate("/admin/settings"),
   };
-
-  const isValidUrl = (value) => {
-    try {
-      // Attempt to create a new URL object
-      new URL(value);
-      return true; // If no error is thrown, the URL is valid
-    } catch (_) {
-      return false; // If an error is thrown, the URL is invalid
-    }
-  };
-
-  const getLogoUrl = (url) => {
-    const domain = new URL(url)?.hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-  };
-
-  const clinicdropitems = [
-    {
-      key: "1",
-      label: "My Clinic",
-      icon: <FaClinicMedical />,
-      disabled: true,
-    },
-    {
-      type: "divider",
-    },
-    ...(Array.isArray(loginUserDetails?.userClinicRoles) &&
-    loginUserDetails.userClinicRoles.length > 0
-      ? loginUserDetails.userClinicRoles.map((item) => ({
-          key: item?.clinic?.id,
-          type: "group",
-          label: (
-            <Space>
-              {item?.clinic?.clinic_favicon ? (
-                <Image
-                  src={item?.clinic?.clinic_favicon}
-                  width={20}
-                  height={20}
-                />
-              ) : (
-                <Avatar shape="square" size={20} />
-              )}
-              <Typography>
-                {item?.clinic?.clinic_name || "Unnamed Clinic"}
-              </Typography>
-            </Space>
-          ),
-
-          children:
-            (Array.isArray(item?.clinic?.websites) &&
-              item?.clinic?.websites.length > 0 &&
-              item?.clinic?.websites.map((web) => ({
-                key: web?.id,
-                label: (
-                  <Space>
-                    <Checkbox checked></Checkbox>
-                    <Avatar
-                      shape="square"
-                      size={20}
-                      src={web?.website_url && isValidUrl(web?.website_url) ? getLogoUrl(web?.website_url) : ""}
-                    />
-                    <Typography>
-                      {web?.website_url || "Unnamed Website"}
-                    </Typography>
-                  </Space>
-                ),
-              }))) ||
-            [],
-        }))
-      : []),
-    // {
-    //   key: "4",
-    //   label: <Typography style={{ color: "#3900DB" }}>New Clinic</Typography>,
-    //   icon: <FaPlus style={{ color: "#3900DB" }} />,
-    // },
-  ];
 
   const openNotificationWithIcon = (type, message, description) => {
     api[type]({
@@ -448,25 +338,8 @@ const CustomLayout = ({ loginUserDetails }) => {
     });
   };
 
-  const handleclinic = ({ key }) => {
-    console.log("handle clinic");
-  };
-
-  const selectbefore = (
-    <Select
-      style={{ width: 140, borderLeft: "1px solid #d9d9d9" }}
-      placeholder="Search for"
-      className="custom-select"
-      value={defaultValueSearch?.toString()}
-    >
-      <Option value="leads">Leads</Option>
-      <Option value="appointment">Appointment</Option>
-      <Option value="conversations">Conversations</Option>
-    </Select>
-  );
-
-  const onClick = (e) => {
-    console.log("click ", e);
+  const handleClickSidebarMenu = (e) => {
+    setsidebarkey(e?.key);
   };
 
   const handleGetNotificationDetails = async (id) => {
@@ -520,25 +393,6 @@ const CustomLayout = ({ loginUserDetails }) => {
       });
   };
 
-  useEffect(() => {
-    if (location.pathname === "/leads") {
-      setsidebarkey("4");
-      setdefaultValueSearch("leads");
-    } else if (location.pathname === "/appointments") {
-      setsidebarkey("2");
-      setdefaultValueSearch("appointments");
-    } else if (location.pathname === "/reports") {
-      setsidebarkey("3");
-      setdefaultValueSearch("reports");
-    } else if (location.pathname === "/conversations") {
-      setsidebarkey("6");
-      setdefaultValueSearch("conversations");
-    } else if (location.pathname === "/settings") {
-      setsidebarkey("7");
-      setdefaultValueSearch("settings");
-    }
-  }, [location]);
-
   return (
     <>
       <Layout ref={containerRef}>
@@ -576,7 +430,9 @@ const CustomLayout = ({ loginUserDetails }) => {
           >
             {/* Main Menu items */}
             <Menu
-              onClick={onClick}
+              onClick={(e) => {
+                handleClickSidebarMenu(e);
+              }}
               selectedKeys={[sidebarkey]}
               mode="inline"
               items={sidebaritems}
@@ -586,6 +442,9 @@ const CustomLayout = ({ loginUserDetails }) => {
             {/* Settings item positioned at the bottom */}
             <Menu
               mode="inline"
+              onClick={(e) => {
+                handleClickSidebarMenu(e);
+              }}
               style={{ padding: 10, background: "none" }}
               items={[
                 {
@@ -617,57 +476,17 @@ const CustomLayout = ({ loginUserDetails }) => {
               }}
             >
               <Col
-                span={6}
+                span={12}
                 style={{ display: "flex", alignItems: "center", padding: 10 }}
               >
-                <Avatar
-                  shape="square"
-                  size={40}
-                  src={
-                    loginUserDetails.userClinicRoles?.[0]?.clinic
-                      ?.clinic_favicon
-                  }
-                />
-                <Dropdown
-                  menu={{
-                    items: clinicdropitems,
-                    onSelect: handleclinic,
-                  }}
-                >
-                  <Space style={{ margin: 10 }}>
-                    <Typography style={{ fontWeight: "bold" }}>
-                      {
-                        loginUserDetails.userClinicRoles?.[0]?.clinic
-                          ?.clinic_name
-                      }
-                    </Typography>
-                    <MdOutlineKeyboardArrowDown
-                      style={{ fontSize: 20, display: "flex" }}
-                    />
-                  </Space>
-                </Dropdown>
+                <AdminSVG />
+                <Typography style={{ fontWeight: 600 ,marginLeft:5}}>
+                  System Admin
+                </Typography>
               </Col>
+
               <Col
-                span={11}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 10,
-                }}
-              >
-                <Input
-                  className="custom-search"
-                  placeholder="Search...."
-                  onChange={(e) => {
-                    setsearchContent(e?.target?.value);
-                  }}
-                  addonAfter={selectbefore}
-                  addonBefore={<CiSearch style={{ fontSize: 20 }} />}
-                />
-              </Col>
-              <Col
-                span={7}
+                span={12}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -683,7 +502,6 @@ const CustomLayout = ({ loginUserDetails }) => {
                     justifyItems: "center",
                   }}
                 >
-                  <FiPlusCircle style={{ fontSize: 22, display: "flex" }} />
                   <Dropdown
                     overlay={menu}
                     trigger={["click"]}
@@ -693,6 +511,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                   >
                     {unreadCount <= 0 ? (
                       <IoIosNotificationsOutline
+                        className="custom-text1"
                         onClick={() => {
                           setisNotificationDropdownVisible(true);
                         }}
@@ -712,6 +531,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                       >
                         <Badge count={unreadCount} color="#3900DB">
                           <IoIosNotificationsOutline
+                            className="custom-text1"
                             onClick={() => {
                               setisNotificationDropdownVisible(true);
                             }}
@@ -746,7 +566,6 @@ const CustomLayout = ({ loginUserDetails }) => {
                       }}
                     />
                   )}
-
                   {loginUserDetails?.profile_picture ? (
                     <Avatar src={loginUserDetails?.profile_picture} />
                   ) : (
@@ -775,61 +594,12 @@ const CustomLayout = ({ loginUserDetails }) => {
               </Col>
             </Row>
           </Header>
-          <Content>
-            {sidebarkey === "4" ? (
-              <Leads
-                searchContent={searchContent}
-                isLeadsDetailsModalVisible={isLeadsDetailsModalVisible}
-                setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
-                selectedItemDetails={selectedItemDetails}
-                setselectedItemDetails={setselectedItemDetails}
-                setisVisibleQuickConversation={setisVisibleQuickConversation}
-                setquickConversationView={setquickConversationView}
-                setselectedConversationDetails={setselectedConversationDetails}
-                loginUserDetails={loginUserDetails}
-              />
-            ) : sidebarkey === "6" ? (
-              <Conversations
-                searchContent={searchContent}
-                loginUserDetails={loginUserDetails}
-              />
-            ) : sidebarkey === "2" ? (
-              <Appointments
-                searchContent={searchContent}
-                openNotificationWithIcon={openNotificationWithIcon}
-                setisVisibleQuickConversation={setisVisibleQuickConversation}
-                setquickConversationView={setquickConversationView}
-                setselectedConversationDetails={setselectedConversationDetails}
-                loginUserDetails={loginUserDetails}
-              />
-            ) : sidebarkey === "3" ? (
-              <Reports
-                searchContent={searchContent}
-                openNotificationWithIcon={openNotificationWithIcon}
-                setisVisibleQuickConversation={setisVisibleQuickConversation}
-                setquickConversationView={setquickConversationView}
-                setselectedConversationDetails={setselectedConversationDetails}
-                loginUserDetails={loginUserDetails}
-              />
-            ) : sidebarkey === "7" ? (
-              <Settings
-                openNotificationWithIcon={openNotificationWithIcon}
-                loginUserDetails={loginUserDetails}
-              />
+          <Content style={{ padding: 20 }}>
+            {sidebarkey === "1" ? (
+              <Clinics loginUserDetails={loginUserDetails} openNotificationWithIcon={openNotificationWithIcon} />
             ) : (
               ""
             )}
-
-            <QuickConversation
-              openNotificationWithIcon={openNotificationWithIcon}
-              selectedConversationDetails={selectedConversationDetails}
-              setselectedConversationDetails={setselectedConversationDetails}
-              isVisibleQuickConversation={isVisibleQuickConversation}
-              setisVisibleQuickConversation={setisVisibleQuickConversation}
-              quickConversationView={quickConversationView}
-              setquickConversationView={setquickConversationView}
-              loginUserDetails={loginUserDetails}
-            />
           </Content>
         </Layout>
       </Layout>
@@ -837,4 +607,4 @@ const CustomLayout = ({ loginUserDetails }) => {
   );
 };
 
-export default CustomLayout;
+export default AdminLayout;

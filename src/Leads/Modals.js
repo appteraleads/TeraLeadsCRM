@@ -4,7 +4,6 @@ import {
   Card,
   Col,
   Divider,
-  Dropdown,
   Input,
   Timeline,
   Modal,
@@ -21,21 +20,14 @@ import {
   Tooltip,
 } from "antd";
 import TabPane from "antd/es/tabs/TabPane";
-import { BsThreeDots } from "react-icons/bs";
-import { CiEdit } from "react-icons/ci";
-import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { IoMdMic } from "react-icons/io";
-import { IoChevronBackSharp, IoEyeOutline } from "react-icons/io5";
+import { IoChevronBackSharp } from "react-icons/io5";
 import {
   MdOutlineCancel,
   MdOutlineError,
   MdOutlineKeyboardArrowDown,
 } from "react-icons/md";
-import {
-  RiDeleteBin5Line,
-  RiUserFill,
-  RiVerifiedBadgeFill,
-} from "react-icons/ri";
+import { RiUserFill, RiVerifiedBadgeFill } from "react-icons/ri";
 import { TiUser } from "react-icons/ti";
 import { leadStatusColorAndTextList } from "../Common/CommonCodeList";
 import { FiEdit } from "react-icons/fi";
@@ -321,7 +313,7 @@ export const ViewUpdateLeadDetails = ({
                 ></Button>
               </Tooltip>
             </div>
-          
+
             {selectedItemDetails?.appointment_status === "Confirmed" ? (
               <div
                 style={{
@@ -2484,7 +2476,9 @@ export const ViewLeadDetailsShort = ({
               <Text
                 style={{
                   color:
-                    selectedItemDetails?.appointment_status === "Not Confirmed" || selectedItemDetails?.appointment_status === "Cancelled" 
+                    selectedItemDetails?.appointment_status ===
+                      "Not Confirmed" ||
+                    selectedItemDetails?.appointment_status === "Cancelled"
                       ? "red"
                       : "#52c41a",
                   fontWeight: "bold",

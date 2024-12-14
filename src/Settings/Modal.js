@@ -5,6 +5,7 @@ import {
   Checkbox,
   Col,
   Divider,
+  Empty,
   Form,
   Input,
   List,
@@ -12,7 +13,7 @@ import {
   Row,
   Select,
   Space,
-  Switch,
+  Table,
   Typography,
 } from "antd";
 import {
@@ -33,7 +34,25 @@ import { MdOutlineBlock, MdOutlineErrorOutline } from "react-icons/md";
 import { getInitials } from "../Common/ReturnColumnValue";
 import { RiUserForbidLine } from "react-icons/ri";
 import { BlockIPTypeOptions } from "../Common/CommonCodeList";
+import { RxCross2 } from "react-icons/rx";
+import { FaRegEdit } from "react-icons/fa";
 const { TextArea } = Input;
+const { Text } = Typography;
+const { Option } = Select;
+const isValidUrl = (value) => {
+  try {
+    // Attempt to create a new URL object
+    new URL(value);
+    return true; // If no error is thrown, the URL is valid
+  } catch (_) {
+    return false; // If an error is thrown, the URL is invalid
+  }
+};
+
+const getLogoUrl = (url) => {
+  const domain = new URL(url)?.hostname;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+};
 
 export const UpdateEmailModal = ({
   isUpdateEmailModalVisible,
@@ -226,7 +245,7 @@ export const UpdatePasswordModal = ({
       dentist_full_name: userDetails?.dentist_full_name,
       type: "password",
     };
-    console.log(values);
+
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
     await axios
@@ -426,7 +445,6 @@ export const OTPVerificationModal = ({
   const [otp, setotp] = useState();
   const formatTime = (time) => (time < 10 ? `0${time}` : time);
   const handleOTPVerificationModal = async (values) => {
-    console.log(values);
     let data = {
       user_id: userDetails?.id,
       otp: otp,
@@ -456,7 +474,7 @@ export const OTPVerificationModal = ({
           handleGetLoginUserDetails();
           OTPVerificationform?.resetFields();
           setisOTPVerificationModalVisible(false);
-          console.log(res?.data);
+
           if (res?.data?.token) {
             localStorage?.setItem("authToken", res?.data?.token);
           }
@@ -588,6 +606,146 @@ export const OTPVerificationModal = ({
   );
 };
 
+export const ShowAllRolesModal = ({
+  showAllRolesModalVisible,
+  setshowAllRolesModalVisible,
+  buttonLoader,
+  setbuttonLoader,
+  clinicDetails,
+  setrolesAndPermissionsModal,
+  clinicRolesList,
+  setisRoleDeleteModalVisible,
+  setupdateRolesAndPermissionsModal,
+  setselectedRoleDetails,
+}) => {
+  return (
+    <Modal
+      title={
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Typography style={{ marginLeft: 10 }}>
+            Roles And Permissions
+          </Typography>
+          <RxCross2
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setshowAllRolesModalVisible(false);
+            }}
+          />
+        </div>
+      }
+      visible={showAllRolesModalVisible}
+      footer={[]}
+      closable={false}
+      width={600}
+      className="custom-modal"
+    >
+      <Row align="middle" gutter={[16, 16]}>
+        <Col span={18}>
+          <Typography style={{ fontWeight: 600 }}>
+            Roles And Permissions
+          </Typography>
+          <Text className="custom-text1">
+            Manage your team’s access and roles within TeraCRM
+          </Text>
+        </Col>
+        <Col span={6} align="end">
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => {
+                setrolesAndPermissionsModal(true);
+              }}
+            >
+              + Create Role
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+      <Divider style={{ margin: "10px 0px" }} />
+      <Typography>Roles ({clinicRolesList.length || 0})</Typography>
+
+      <div>
+        {clinicRolesList?.length <= 0 ? (
+          <>
+            <div
+              style={{
+                display: "flex",
+                justifyItems: "center",
+                justifyContent: "center",
+                padding: 20,
+              }}
+            >
+              <Empty />
+            </div>
+          </>
+        ) : (
+          <>
+            <List
+              style={{ height: "47vh", overflow: "auto", padding: 10 }}
+              itemLayout="horizontal"
+              dataSource={clinicRolesList}
+              renderItem={(item, index) => (
+                <List.Item>
+                  <List.Item.Meta
+                    description={
+                      <>
+                        <Row>
+                          <Col span={12}>
+                            <Typography>{item.role_name}</Typography>
+                            <Typography className="custom-text1">
+                              {item.users ? item.users?.length : 0} Users
+                            </Typography>
+                          </Col>
+                          <Col
+                            span={12}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "end",
+                            }}
+                          >
+                            <Space>
+                              <Button
+                                icon={<FaRegEdit />}
+                                onClick={() => {
+                                  setselectedRoleDetails(item);
+                                  setupdateRolesAndPermissionsModal(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="link"
+                                danger
+                                onClick={() => {
+                                  setselectedRoleDetails(item);
+                                  setisRoleDeleteModalVisible(true);
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            </Space>
+                          </Col>
+                        </Row>
+                      </>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+};
+
 export const RolesAndPermissionsModal = ({
   rolesAndPermissionsModal,
   setrolesAndPermissionsModal,
@@ -595,47 +753,129 @@ export const RolesAndPermissionsModal = ({
   setbuttonLoader,
   openNotificationWithIcon,
   handlegetAllRoles,
+  permissionList,
+  clinicDetails,
 }) => {
   const [RolesAndPermissionsModalform] = Form.useForm();
-  const [roleName, setroleName] = useState();
-  const [fullaccessPermission, setfullaccessPermission] = useState(false);
-  const [appointmentsAccessType, setappointmentsAccessType] = useState();
-  const [leadAccessType, setleadAccessType] = useState();
-  const [conversationAccessType, setconversationAccessType] = useState();
-  const [teamAccessType, setteamAccessType] = useState();
-  const [campaignsAccessType, setcampaignsAccessType] = useState();
-  const [reportsAccessType, setreportsAccessType] = useState();
-  const [selectedPermissionList, setselectedPermissionList] = useState([]);
-  const [reviewAllPermission, setreviewAllPermission] = useState(false);
-  const [disableDropDown, setdisableDropDown] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  const handlePermissionChange = (checked, permissionCode) => {
-    const updatedPermissionList = [...selectedPermissionList];
+  // Handle checkbox change
+  const handleCheckboxChange = (checked, code) => {
+    setSelectedPermissions((prev) =>
+      checked ? [...prev, code] : prev.filter((item) => item !== code)
+    );
+  };
+  const columns = [
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      render: (_, record) => (
+        <>
+          {record?.type === "View" ? (
+            <Checkbox
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Edit",
+      dataIndex: "edit",
+      key: "edit",
+      render: (_, record) => (
+        <>
+          {record?.type === "Edit" ? (
+            <Checkbox
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Full Access",
+      dataIndex: "fullAccess",
+      key: "fullAccess",
+      render: (_, record) => (
+        <>
+          {record?.type === "FullAccess" ? (
+            <Checkbox
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Limited",
+      dataIndex: "limited",
+      key: "limited",
+      render: (_, record) => (
+        <>
+          {record?.type === "Limited" ? (
+            <Checkbox
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+  ];
 
-    if (checked) {
-      if (!updatedPermissionList.includes(permissionCode)) {
-        updatedPermissionList.push(permissionCode);
-      }
-    } else {
-      const index = updatedPermissionList.indexOf(permissionCode);
-      if (index > -1) {
-        updatedPermissionList.splice(index, 1);
-      }
-    }
-    setselectedPermissionList(updatedPermissionList);
+  const generateTableData = (categoryData) => {
+    const rows = [];
+    Object.keys(categoryData).forEach((type) => {
+      categoryData[type].forEach((permission) => {
+        rows.push({
+          key: permission.id,
+          code: permission.code,
+          description: permission.description,
+          type: permission.type,
+        });
+      });
+    });
+    return rows;
   };
 
-  const handleReview = () => {
-    setreviewAllPermission(true);
-  };
-
-  const handleSubmitRolesAndPermissions = async () => {
+  const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
+
+    if (selectedPermissions?.length <= 0) {
+      openNotificationWithIcon("error", "Settings", "Please select permission");
+      setbuttonLoader(false);
+      return;
+    }
     let data = {
-      role_name: roleName,
-      permission_group: selectedPermissionList.join(","),
+      clinic_id: clinicDetails.id,
+      role_name: values?.role_name,
+      description: values?.description,
+      permission_group: selectedPermissions.join(","),
     };
+
     try {
       await axios
         .post(
@@ -654,6 +894,7 @@ export const RolesAndPermissionsModal = ({
             "Settings",
             "Role created successfully"
           );
+          RolesAndPermissionsModalform?.resetFields();
           setrolesAndPermissionsModal(false);
         })
         .catch((err) => {
@@ -680,17 +921,6 @@ export const RolesAndPermissionsModal = ({
       style={{ top: 20 }}
       title={
         <div style={{ display: "flex", alignItems: "center" }}>
-          {reviewAllPermission ? (
-            <Button
-              onClick={() => {
-                setreviewAllPermission(false);
-              }}
-              icon={<IoChevronBackSharp />}
-            ></Button>
-          ) : (
-            ""
-          )}
-
           <Typography style={{ marginLeft: 10 }}>
             Roles And Permissions
           </Typography>
@@ -716,33 +946,22 @@ export const RolesAndPermissionsModal = ({
               >
                 Cancel
               </Button>
-              {!reviewAllPermission ? (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    RolesAndPermissionsModalform?.submit();
-                  }}
-                  loading={buttonLoader}
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    handleSubmitRolesAndPermissions();
-                  }}
-                  loading={buttonLoader}
-                >
-                  Create
-                </Button>
-              )}
+
+              <Button
+                type="primary"
+                onClick={() => {
+                  RolesAndPermissionsModalform?.submit();
+                }}
+                loading={buttonLoader}
+              >
+                Create
+              </Button>
             </Space>
           </div>
         </>
       }
       closable={false}
-      width={600}
+      width={700}
       className="custom-modal"
     >
       <div
@@ -758,50 +977,13 @@ export const RolesAndPermissionsModal = ({
             style={{ width: 12, display: "contents" }}
           />
           <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
-            {!reviewAllPermission ? "Create New Role" : "Review Roles"}
+            Create New Role
           </Typography>
         </div>
-        {!reviewAllPermission ? (
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <Switch
-              checked={fullaccessPermission}
-              onChange={(e) => {
-                if (e) {
-                  setappointmentsAccessType("fullaccess");
-                  setleadAccessType("fullaccess");
-                  setconversationAccessType("fullaccess");
-                  setteamAccessType("fullaccess");
-                  setcampaignsAccessType("fullaccess");
-                  setreportsAccessType("fullaccess");
-                  const updatedPermissionList = [...selectedPermissionList];
-                  updatedPermissionList.push(
-                    "AAT:FA",
-                    "LAT:E:DL",
-                    "COAT:FA",
-                    "TAT:FA",
-                    "CPAT:FA",
-                    "RAT:FA"
-                  );
-                  setselectedPermissionList(updatedPermissionList);
-                  setdisableDropDown(true);
-                } else {
-                  setselectedPermissionList([]);
-                  setdisableDropDown(false);
-                }
-                setfullaccessPermission(e);
-              }}
-            ></Switch>
-            <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
-              Full Access
-            </Typography>
-          </div>
-        ) : (
-          ""
-        )}
       </div>
       <Divider style={{ margin: "10px 0px" }} />
       <Form
-        onFinish={handleReview}
+        onFinish={handleSubmitRolesAndPermissions}
         form={RolesAndPermissionsModalform}
         layout="vertical"
         style={{ padding: "10px 0px" }}
@@ -822,1609 +1004,75 @@ export const RolesAndPermissionsModal = ({
                 },
               ]}
             >
-              {!reviewAllPermission ? (
-                <Input
-                  style={{ width: "100%" }}
-                  value={roleName}
-                  onChange={(e) => {
-                    setroleName(e?.target?.value);
-                  }}
-                />
-              ) : (
-                <Typography>{roleName}</Typography>
-              )}
+              <Input style={{ width: "100%" }} />
             </Form.Item>
+            <Form.Item
+              label={
+                <div className="custom-text1">
+                  Description<span style={{ color: "red" }}>*</span>
+                </div>
+              }
+              name="description"
+            >
+              <Input style={{ width: "100%" }} />
+            </Form.Item>
+
             <div style={{ height: "50vh", overflow: "auto", paddingRight: 20 }}>
-              {/* Appointment */}
               <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <AppointmentsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Appointments
-                  </Typography>
-                </div>
                 <Divider style={{ margin: "10px 0px" }} />
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={appointmentsAccessType}
-                      onSelect={(e) => {
-                        setappointmentsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("AAT:FA")) {
-                            updatedPermissionList.push("AAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("AAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {appointmentsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
+                {Object.keys(permissionList || {}).map((category) => (
+                  <div key={category} style={{ marginBottom: "20px" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      {category === "Appointments" ? (
+                        <AppointmentsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Lead" ? (
+                        <LeadsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Conversations" ? (
+                        <ConversationsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Team" ? (
+                        <TeamSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Campaigns" ? (
+                        <CampaignsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Reports" ? (
+                        <ReportsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
                       ) : (
                         ""
                       )}
 
-                      <Space direction="vertical">
-                        {appointmentsAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:V:AAA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>Access all appointments</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <>
-                                <Checkbox
-                                  style={{ marginBottom: 5 }}
-                                  onChange={(e) => {
-                                    handlePermissionChange(
-                                      e.target.checked,
-                                      "AAT:V:AAA"
-                                    );
-                                  }}
-                                  checked={selectedPermissionList.includes(
-                                    "AAT:V:AAA"
-                                  )}
-                                >
-                                  Access all appointments
-                                </Checkbox>
-                              </>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:V:VOAA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> View only assigned appointments.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:V:VOAA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:V:VOAA"
-                                )}
-                              >
-                                View only assigned appointments.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {appointmentsAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList?.includes("AAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:E:RCUA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    Reschedule, cancel, or update appointments.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:RCUA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:RCUA"
-                                )}
-                              >
-                                Reschedule, cancel, or update appointments.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:E:CNA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new appointments.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:CNA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:CNA"
-                                )}
-                              >
-                                Create new appointments.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "AAT:E:MTSFSD"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Manage time slots for specific dates.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:MTSFSD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:MTSFSD"
-                                )}
-                              >
-                                Manage time slots for specific dates.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {appointmentsAccessType === "fullaccess" && (
-                          <Typography
-                            style={{ color: "#595959" }}
-                            onChange={(e) => {
-                              handlePermissionChange(
-                                e.target.checked,
-                                "AAT:FA"
-                              );
-                            }}
-                            checked={selectedPermissionList.includes("AAT:FA")}
-                          >
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
+                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
+                        {category}
+                      </Typography>
+                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
+                        Permissions
+                      </Typography>
                     </div>
-                  )}
-                </Row>
-              </div>
-              {/* Leads */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <LeadsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Leads
-                  </Typography>
-                </div>
 
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={leadAccessType}
-                      onSelect={(e) => {
-                        setleadAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("LAT:FA")) {
-                            updatedPermissionList.push("LAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("LAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
+                    <Table
+                      columns={columns}
+                      size="small"
+                      dataSource={generateTableData(permissionList[category])}
+                      pagination={false}
                     />
-                  ) : (
-                    ""
-                  )}
-
-                  {leadAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {leadAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "LAT:V:AALITS"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>Access all leads in the system.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:AALITS"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:AALITS"
-                                )}
-                              >
-                                Access all leads in the system.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:V:VOAL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> View only assigned leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:VOAL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:VOAL"
-                                )}
-                              >
-                                View only assigned leads.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:V:SLD") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> See lead details</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:SLD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:SLD"
-                                )}
-                              >
-                                See lead details
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {leadAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:ANL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Add new leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:ANL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:ANL"
-                                )}
-                              >
-                                Add new leads.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:ULD") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Update lead details</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:ULD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:ULD"
-                                )}
-                              >
-                                Update lead details
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:RLTTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Reassign leads to team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:RLTTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:RLTTM"
-                                )}
-                              >
-                                Reassign leads to team members.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:DL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Delete leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:DL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:DL"
-                                )}
-                              >
-                                Delete leads.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {leadAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Conversationa */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <ConversationsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Conversation
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={conversationAccessType}
-                      onSelect={(e) => {
-                        setconversationAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("COAT:FA")) {
-                            updatedPermissionList.push("COAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index =
-                            updatedPermissionList.indexOf("COAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "limited",
-                          label: "Limited",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {conversationAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {conversationAccessType === "limited" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:ASC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access SMS conversations</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:ASC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:ASC"
-                                )}
-                              >
-                                Access SMS conversations
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:AEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access email conversations</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:AEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:AEC"
-                                )}
-                              >
-                                Access email conversations
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:AOAC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access only assigned conversations.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:AOAC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:AOAC"
-                                )}
-                              >
-                                Access only assigned conversations.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:SAR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Send and reply</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:SAR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:SAR"
-                                )}
-                              >
-                                Send and reply
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:ARCTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Assign or reassign conversations to team
-                                    members.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:ARCTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:ARCTM"
-                                )}
-                              >
-                                Assign or reassign conversations to team
-                                members.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {conversationAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Team */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <TeamSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Team
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={teamAccessType}
-                      onSelect={(e) => {
-                        setteamAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("TAT:FA")) {
-                            updatedPermissionList.push("TAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("TAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-                  {teamAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {teamAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:V:SLATM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>See a list of all team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:V:SLATM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:V:SLATM"
-                                )}
-                              >
-                                See a list of all team members.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "TAT:V:VRPAEM"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    View roles and permissions assigned to each
-                                    member.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:V:VRPAEM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:V:VRPAEM"
-                                )}
-                              >
-                                View roles and permissions assigned to each
-                                member.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {teamAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:E:IRTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Invite or remove team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:E:IRTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:E:IRTM"
-                                )}
-                              >
-                                Invite or remove team members.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {teamAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Campaigns */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <CampaignsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Campaigns
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={campaignsAccessType}
-                      onSelect={(e) => {
-                        setcampaignsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("CPAT:FA")) {
-                            updatedPermissionList.push("CPAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index =
-                            updatedPermissionList.indexOf("CPAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {campaignsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {campaignsAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "CPAT:V:SLATM"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Access all campaigns (SMS and email).
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:V:SLATM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:V:SLATM"
-                                )}
-                              >
-                                Access all campaigns (SMS and email).
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:V:VPM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>View performance metrics</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:V:VPM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:V:VPM"
-                                )}
-                              >
-                                View performance metrics
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {campaignsAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:CNSC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new SMS campaigns</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:CNSC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:CNSC"
-                                )}
-                              >
-                                Create new SMS campaigns
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:CNEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new email campaigns</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:CNEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:CNEC"
-                                )}
-                              >
-                                Create new email campaigns
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:EDEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Edit or delete existing campaigns.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:EDEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:EDEC"
-                                )}
-                              >
-                                Edit or delete existing campaigns.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {campaignsAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Reports */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <ReportsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Reports
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={reportsAccessType}
-                      onSelect={(e) => {
-                        setreportsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("RAT:FA")) {
-                            updatedPermissionList.push("RAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("RAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "limited",
-                          label: "Limited",
-                        },
-
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {reportsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {reportsAccessType === "limited" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:LR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Leads reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:LR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:LR"
-                                )}
-                              >
-                                Leads reports
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:AR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Appointments reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:AR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:AR"
-                                )}
-                              >
-                                Appointments reports
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:FR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Financial reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:FR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:FR"
-                                )}
-                              >
-                                Financial reports
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {reportsAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
+                  </div>
+                ))}
               </div>
             </div>
           </Col>
@@ -2442,49 +1090,128 @@ export const EditRolesAndPermissionModal = ({
   openNotificationWithIcon,
   handlegetAllRoles,
   selectedRoleDetails,
+  permissionList,
 }) => {
   const [RolesAndPermissionsModalform] = Form.useForm();
-  const [roleName, setroleName] = useState();
-  const [fullaccessPermission, setfullaccessPermission] = useState(false);
-  const [appointmentsAccessType, setappointmentsAccessType] = useState();
-  const [leadAccessType, setleadAccessType] = useState();
-  const [conversationAccessType, setconversationAccessType] = useState();
-  const [teamAccessType, setteamAccessType] = useState();
-  const [campaignsAccessType, setcampaignsAccessType] = useState();
-  const [reportsAccessType, setreportsAccessType] = useState();
-  const [selectedPermissionList, setselectedPermissionList] = useState();
-  const [reviewAllPermission, setreviewAllPermission] = useState(false);
-  const [disableDropDown, setdisableDropDown] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  const handlePermissionChange = (checked, permissionCode) => {
-    const updatedPermissionList = [...selectedPermissionList];
-
-    if (checked) {
-      if (!updatedPermissionList.includes(permissionCode)) {
-        updatedPermissionList.push(permissionCode);
-      }
-    } else {
-      const index = updatedPermissionList.indexOf(permissionCode);
-      if (index > -1) {
-        updatedPermissionList.splice(index, 1);
-      }
-    }
-    setselectedPermissionList(updatedPermissionList);
+  // Handle checkbox change
+  const handleCheckboxChange = (checked, code) => {
+    setSelectedPermissions((prev) =>
+      checked ? [...prev, code] : prev.filter((item) => item !== code)
+    );
   };
 
-  const handleReview = () => {
-    setreviewAllPermission(true);
+  const columns = [
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      render: (_, record) => (
+        <>
+          {record?.type === "View" ? (
+            <Checkbox
+              checked={selectedPermissions?.includes(record?.code)}
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Edit",
+      dataIndex: "edit",
+      key: "edit",
+      render: (_, record) => (
+        <>
+          {record?.type === "Edit" ? (
+            <Checkbox
+              checked={selectedPermissions?.includes(record?.code)}
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Full Access",
+      dataIndex: "fullAccess",
+      key: "fullAccess",
+      render: (_, record) => (
+        <>
+          {record?.type === "FullAccess" ? (
+            <Checkbox
+              checked={selectedPermissions?.includes(record?.code)}
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+    {
+      title: "Limited",
+      dataIndex: "limited",
+      key: "limited",
+      render: (_, record) => (
+        <>
+          {record?.type === "Limited" ? (
+            <Checkbox
+              checked={selectedPermissions?.includes(record?.code)}
+              onChange={(e) =>
+                handleCheckboxChange(e.target.checked, record.code)
+              }
+            />
+          ) : (
+            "-"
+          )}
+        </>
+      ),
+    },
+  ];
+
+  const generateTableData = (categoryData) => {
+    const rows = [];
+    Object.keys(categoryData).forEach((type) => {
+      categoryData[type].forEach((permission) => {
+        rows.push({
+          key: permission.id,
+          code: permission.code,
+          description: permission.description,
+          type: permission.type,
+        });
+      });
+    });
+    return rows;
   };
 
-  const handleSubmitRolesAndPermissions = async () => {
+  const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
 
     let data = {
       id: selectedRoleDetails?.id,
-      role_name: roleName,
-      permission_group: selectedPermissionList.join(","),
+      role_name: values?.role_name,
+      description: values?.description,
+      permission_group: selectedPermissions.join(","),
     };
+
     try {
       await axios
         .post(
@@ -2526,29 +1253,22 @@ export const EditRolesAndPermissionModal = ({
 
   useEffect(() => {
     let temp = selectedRoleDetails?.permission_group?.split(",");
-    setselectedPermissionList(temp);
+    setSelectedPermissions(temp);
     RolesAndPermissionsModalform?.setFieldValue(
       "role_name",
       selectedRoleDetails?.role_name
     );
-    setroleName(selectedRoleDetails?.role_name);
+    RolesAndPermissionsModalform?.setFieldValue(
+      "description",
+      selectedRoleDetails?.description
+    );
   }, [selectedRoleDetails]);
+
   return (
     <Modal
       style={{ top: 20 }}
       title={
         <div style={{ display: "flex", alignItems: "center" }}>
-          {reviewAllPermission ? (
-            <Button
-              onClick={() => {
-                setreviewAllPermission(false);
-              }}
-              icon={<IoChevronBackSharp />}
-            ></Button>
-          ) : (
-            ""
-          )}
-
           <Typography style={{ marginLeft: 10 }}>
             Update Roles And Permissions
           </Typography>
@@ -2573,33 +1293,22 @@ export const EditRolesAndPermissionModal = ({
               >
                 Cancel
               </Button>
-              {!reviewAllPermission ? (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    RolesAndPermissionsModalform?.submit();
-                  }}
-                  loading={buttonLoader}
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    handleSubmitRolesAndPermissions();
-                  }}
-                  loading={buttonLoader}
-                >
-                  Update
-                </Button>
-              )}
+
+              <Button
+                type="primary"
+                onClick={() => {
+                  RolesAndPermissionsModalform?.submit();
+                }}
+                loading={buttonLoader}
+              >
+                Update
+              </Button>
             </Space>
           </div>
         </>
       }
       closable={false}
-      width={600}
+      width={700}
       className="custom-modal"
     >
       <div
@@ -2615,50 +1324,13 @@ export const EditRolesAndPermissionModal = ({
             style={{ width: 12, display: "contents" }}
           />
           <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
-            {!reviewAllPermission ? "Update New Role" : "Review Roles"}
+            Create New Role
           </Typography>
         </div>
-        {!reviewAllPermission ? (
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <Switch
-              checked={fullaccessPermission}
-              onChange={(e) => {
-                if (e) {
-                  setappointmentsAccessType("fullaccess");
-                  setleadAccessType("fullaccess");
-                  setconversationAccessType("fullaccess");
-                  setteamAccessType("fullaccess");
-                  setcampaignsAccessType("fullaccess");
-                  setreportsAccessType("fullaccess");
-                  const updatedPermissionList = [...selectedPermissionList];
-                  updatedPermissionList.push(
-                    "AAT:FA",
-                    "LAT:E:DL",
-                    "COAT:FA",
-                    "TAT:FA",
-                    "CPAT:FA",
-                    "RAT:FA"
-                  );
-                  setselectedPermissionList(updatedPermissionList);
-                  setdisableDropDown(true);
-                } else {
-                  setselectedPermissionList([]);
-                  setdisableDropDown(false);
-                }
-                setfullaccessPermission(e);
-              }}
-            ></Switch>
-            <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
-              Full Access
-            </Typography>
-          </div>
-        ) : (
-          ""
-        )}
       </div>
       <Divider style={{ margin: "10px 0px" }} />
       <Form
-        onFinish={handleReview}
+        onFinish={handleSubmitRolesAndPermissions}
         form={RolesAndPermissionsModalform}
         layout="vertical"
         style={{ padding: "10px 0px" }}
@@ -2679,1609 +1351,75 @@ export const EditRolesAndPermissionModal = ({
                 },
               ]}
             >
-              {!reviewAllPermission ? (
-                <Input
-                  style={{ width: "90%" }}
-                  value={roleName}
-                  onChange={(e) => {
-                    setroleName(e?.target?.value);
-                  }}
-                />
-              ) : (
-                <Typography>{roleName}</Typography>
-              )}
+              <Input style={{ width: "100%" }} />
             </Form.Item>
+            <Form.Item
+              label={
+                <div className="custom-text1">
+                  Description<span style={{ color: "red" }}>*</span>
+                </div>
+              }
+              name="description"
+            >
+              <Input style={{ width: "100%" }} />
+            </Form.Item>
+
             <div style={{ height: "50vh", overflow: "auto", paddingRight: 20 }}>
-              {/* Appointment */}
               <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <AppointmentsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Appointments
-                  </Typography>
-                </div>
                 <Divider style={{ margin: "10px 0px" }} />
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={appointmentsAccessType}
-                      onSelect={(e) => {
-                        setappointmentsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("AAT:FA")) {
-                            updatedPermissionList.push("AAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("AAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {appointmentsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
+                {Object.keys(permissionList || {}).map((category) => (
+                  <div key={category} style={{ marginBottom: "20px" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      {category === "Appointments" ? (
+                        <AppointmentsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Lead" ? (
+                        <LeadsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Conversations" ? (
+                        <ConversationsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Team" ? (
+                        <TeamSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Campaigns" ? (
+                        <CampaignsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
+                      ) : category === "Reports" ? (
+                        <ReportsSVG
+                          color={"#72779E"}
+                          style={{ width: 12, display: "contents" }}
+                        />
                       ) : (
                         ""
                       )}
 
-                      <Space direction="vertical">
-                        {appointmentsAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:V:AAA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>Access all appointments</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <>
-                                <Checkbox
-                                  style={{ marginBottom: 5 }}
-                                  onChange={(e) => {
-                                    handlePermissionChange(
-                                      e.target.checked,
-                                      "AAT:V:AAA"
-                                    );
-                                  }}
-                                  checked={selectedPermissionList.includes(
-                                    "AAT:V:AAA"
-                                  )}
-                                >
-                                  Access all appointments
-                                </Checkbox>
-                              </>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:V:VOAA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> View only assigned appointments.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:V:VOAA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:V:VOAA"
-                                )}
-                              >
-                                View only assigned appointments.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {appointmentsAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList?.includes("AAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:E:RCUA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    Reschedule, cancel, or update appointments.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:RCUA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:RCUA"
-                                )}
-                              >
-                                Reschedule, cancel, or update appointments.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("AAT:E:CNA") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new appointments.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:CNA"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:CNA"
-                                )}
-                              >
-                                Create new appointments.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "AAT:E:MTSFSD"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Manage time slots for specific dates.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "AAT:E:MTSFSD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "AAT:E:MTSFSD"
-                                )}
-                              >
-                                Manage time slots for specific dates.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {appointmentsAccessType === "fullaccess" && (
-                          <Typography
-                            style={{ color: "#595959" }}
-                            onChange={(e) => {
-                              handlePermissionChange(
-                                e.target.checked,
-                                "AAT:FA"
-                              );
-                            }}
-                            checked={selectedPermissionList.includes("AAT:FA")}
-                          >
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
+                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
+                        {category}
+                      </Typography>
+                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
+                        Permissions
+                      </Typography>
                     </div>
-                  )}
-                </Row>
-              </div>
-              {/* Leads */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <LeadsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Leads
-                  </Typography>
-                </div>
 
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={leadAccessType}
-                      onSelect={(e) => {
-                        setleadAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("LAT:FA")) {
-                            updatedPermissionList.push("LAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("LAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
+                    <Table
+                      columns={columns}
+                      size="small"
+                      dataSource={generateTableData(permissionList[category])}
+                      pagination={false}
                     />
-                  ) : (
-                    ""
-                  )}
-
-                  {leadAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {leadAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "LAT:V:AALITS"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>Access all leads in the system.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:AALITS"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:AALITS"
-                                )}
-                              >
-                                Access all leads in the system.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:V:VOAL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> View only assigned leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:VOAL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:VOAL"
-                                )}
-                              >
-                                View only assigned leads.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:V:SLD") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> See lead details</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:V:SLD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:V:SLD"
-                                )}
-                              >
-                                See lead details
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {leadAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:ANL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Add new leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:ANL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:ANL"
-                                )}
-                              >
-                                Add new leads.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:ULD") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Update lead details</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:ULD"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:ULD"
-                                )}
-                              >
-                                Update lead details
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:RLTTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Reassign leads to team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:RLTTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:RLTTM"
-                                )}
-                              >
-                                Reassign leads to team members.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("LAT:E:DL") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Delete leads.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "LAT:E:DL"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "LAT:E:DL"
-                                )}
-                              >
-                                Delete leads.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {leadAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Conversationa */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <ConversationsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Conversation
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={conversationAccessType}
-                      onSelect={(e) => {
-                        setconversationAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("COAT:FA")) {
-                            updatedPermissionList.push("COAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index =
-                            updatedPermissionList.indexOf("COAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "limited",
-                          label: "Limited",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {conversationAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {conversationAccessType === "limited" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:ASC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access SMS conversations</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:ASC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:ASC"
-                                )}
-                              >
-                                Access SMS conversations
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:AEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access email conversations</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:AEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:AEC"
-                                )}
-                              >
-                                Access email conversations
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:AOAC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Access only assigned conversations.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:AOAC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:AOAC"
-                                )}
-                              >
-                                Access only assigned conversations.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:SAR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Send and reply</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:SAR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:SAR"
-                                )}
-                              >
-                                Send and reply
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CAT:L:ARCTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Assign or reassign conversations to team
-                                    members.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CAT:L:ARCTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CAT:L:ARCTM"
-                                )}
-                              >
-                                Assign or reassign conversations to team
-                                members.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {conversationAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Team */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <TeamSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Team
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={teamAccessType}
-                      onSelect={(e) => {
-                        setteamAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("TAT:FA")) {
-                            updatedPermissionList.push("TAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("TAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-                  {teamAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {teamAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:V:SLATM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>See a list of all team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:V:SLATM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:V:SLATM"
-                                )}
-                              >
-                                See a list of all team members.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "TAT:V:VRPAEM"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    View roles and permissions assigned to each
-                                    member.
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:V:VRPAEM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:V:VRPAEM"
-                                )}
-                              >
-                                View roles and permissions assigned to each
-                                member.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {teamAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("TAT:E:IRTM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Invite or remove team members.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "TAT:E:IRTM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "TAT:E:IRTM"
-                                )}
-                              >
-                                Invite or remove team members.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {teamAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Campaigns */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <CampaignsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Campaigns
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={campaignsAccessType}
-                      onSelect={(e) => {
-                        setcampaignsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("CPAT:FA")) {
-                            updatedPermissionList.push("CPAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index =
-                            updatedPermissionList.indexOf("CPAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "view",
-                          label: "View",
-                        },
-                        {
-                          value: "edit",
-                          label: "Edit",
-                        },
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {campaignsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {campaignsAccessType === "view" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes(
-                                "CPAT:V:SLATM"
-                              ) ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>
-                                    {" "}
-                                    Access all campaigns (SMS and email).
-                                  </li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:V:SLATM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:V:SLATM"
-                                )}
-                              >
-                                Access all campaigns (SMS and email).
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:V:VPM") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li>View performance metrics</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:V:VPM"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:V:VPM"
-                                )}
-                              >
-                                View performance metrics
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {campaignsAccessType === "edit" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:AVP") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> All “View” permissions.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:AVP"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:AVP"
-                                )}
-                              >
-                                All “View” permissions.
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:CNSC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new SMS campaigns</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:CNSC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:CNSC"
-                                )}
-                              >
-                                Create new SMS campaigns
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:CNEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Create new email campaigns</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:CNEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:CNEC"
-                                )}
-                              >
-                                Create new email campaigns
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("CPAT:E:EDEC") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Edit or delete existing campaigns.</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ color: "#595959" }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "CPAT:E:EDEC"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "CPAT:E:EDEC"
-                                )}
-                              >
-                                Edit or delete existing campaigns.
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-                        {campaignsAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
-              </div>
-              {/* Reports */}
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <ReportsSVG
-                    color={"#72779E"}
-                    style={{ width: 12, display: "contents" }}
-                  />
-                  <Typography style={{ fontWeight: 500, marginLeft: 8 }}>
-                    Reports
-                  </Typography>
-                </div>
-
-                <Divider style={{ margin: "10px 0px" }} />
-
-                <Row>
-                  {!reviewAllPermission ? (
-                    <Typography
-                      className="custom-text1"
-                      style={{ marginBottom: 8 }}
-                    >
-                      Access Type
-                    </Typography>
-                  ) : (
-                    ""
-                  )}
-                  {!reviewAllPermission ? (
-                    <Select
-                      style={{
-                        width: "100%",
-                        marginBottom: 10,
-                      }}
-                      disabled={disableDropDown}
-                      value={reportsAccessType}
-                      onSelect={(e) => {
-                        setreportsAccessType(e);
-                        if (e === "fullaccess") {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          if (!updatedPermissionList.includes("RAT:FA")) {
-                            updatedPermissionList.push("RAT:FA");
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        } else {
-                          const updatedPermissionList = [
-                            ...selectedPermissionList,
-                          ];
-                          const index = updatedPermissionList.indexOf("RAT:FA");
-                          if (index > -1) {
-                            updatedPermissionList.splice(index, 1);
-                          }
-                          setselectedPermissionList(updatedPermissionList);
-                        }
-                      }}
-                      placeholder="Select"
-                      optionFilterProp="label"
-                      options={[
-                        {
-                          value: "limited",
-                          label: "Limited",
-                        },
-
-                        {
-                          value: "fullaccess",
-                          label: "Full Access",
-                        },
-                      ]}
-                    />
-                  ) : (
-                    ""
-                  )}
-
-                  {reportsAccessType && (
-                    <div>
-                      {!reviewAllPermission ? (
-                        <Typography
-                          className="custom-text1"
-                          style={{ fontWeight: 500, marginBottom: 8 }}
-                        >
-                          Permissions
-                        </Typography>
-                      ) : (
-                        ""
-                      )}
-                      <Space direction="vertical">
-                        {reportsAccessType === "limited" && (
-                          <>
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:LR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Leads reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:LR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:LR"
-                                )}
-                              >
-                                Leads reports
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:AR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Appointments reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:AR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:AR"
-                                )}
-                              >
-                                Appointments reports
-                              </Checkbox>
-                            )}
-                            {reviewAllPermission ? (
-                              selectedPermissionList.includes("RAT:L:FR") ? (
-                                <ul
-                                  style={{
-                                    padding: 0,
-                                    margin: "0px 0px 0px 20px",
-                                  }}
-                                >
-                                  <li> Financial reports</li>
-                                </ul>
-                              ) : (
-                                ""
-                              )
-                            ) : (
-                              <Checkbox
-                                style={{ marginBottom: 5 }}
-                                onChange={(e) => {
-                                  handlePermissionChange(
-                                    e.target.checked,
-                                    "RAT:L:FR"
-                                  );
-                                }}
-                                checked={selectedPermissionList.includes(
-                                  "RAT:L:FR"
-                                )}
-                              >
-                                Financial reports
-                              </Checkbox>
-                            )}
-                          </>
-                        )}
-
-                        {reportsAccessType === "fullaccess" && (
-                          <Typography style={{ color: "#595959" }}>
-                            Full Access
-                          </Typography>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                </Row>
+                  </div>
+                ))}
               </div>
             </div>
           </Col>
@@ -4300,16 +1438,18 @@ export const InviteTeamMemberModal = ({
   openNotificationWithIcon,
   rolesList,
   getAllClinicUserDetails,
+  clinicDetails,
 }) => {
   const [InviteTeamMemberform] = Form.useForm();
   const [options, setoptions] = useState([]);
-
+  console.log(clinicDetails);
   const handleSendInviteTeamMember = async (values) => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
-    values.clinic_id = loginUserDetails?.clinic_id;
-    values.clinic_name = loginUserDetails?.clinic_name;
-    values.clinic_website = loginUserDetails?.clinic_website;
+   
+    values.clinic_id = clinicDetails?.id;
+    values.clinic_name = clinicDetails?.clinic_name;
+
     try {
       await axios
         .post(
@@ -4317,7 +1457,7 @@ export const InviteTeamMemberModal = ({
           values,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+               Authorization: `Bearer ${token}`,
             },
           }
         )
@@ -4472,7 +1612,47 @@ export const InviteTeamMemberModal = ({
               <Input style={{ width: "100%" }} />
             </Form.Item>
           </Col>
-
+          <Col span={24}>
+            <Form.Item
+              label={
+                <div className="custom-text1">
+                  Website<span style={{ color: "red" }}>*</span>
+                </div>
+              }
+              name="website_id"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a Website!",
+                },
+              ]}
+            >
+              <Select
+                style={{
+                  width: "100%",
+                }}
+              >
+                {clinicDetails?.websites?.map((item) => {
+                  return (
+                    <Option key={item?.id} value={item?.id} >
+                      <Space>
+                        <Avatar
+                          shape="square"
+                          size={20}
+                          src={
+                            item?.website_url && isValidUrl(item?.website_url)
+                              ? getLogoUrl(item?.website_url)
+                              : ""
+                          }
+                        />
+                        <Typography>{item?.website_user_name}</Typography>{" "}
+                      </Space>
+                    </Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
+          </Col>
           <Col span={24}>
             <Form.Item
               label={
@@ -4601,13 +1781,15 @@ export const DeleteRole = ({
   handlegetAllRoles,
   getAllClinicUserDetails,
   rolesoptions,
+  clinicDetails,
 }) => {
-  const handleChange = async (value, item) => {
+  const handleChange = async (role_id, user_id, website_id) => {
     const token = localStorage.getItem("authToken");
     let data = {
-      role_id: value?.id,
-      role_name: value?.role_name,
-      user_id: item?.id,
+      clinic_id: clinicDetails?.id,
+      role_id: role_id,
+      user_id: user_id,
+      website_id: website_id,
     };
 
     setbuttonLoader(true);
@@ -4655,6 +1837,7 @@ export const DeleteRole = ({
             "Settings",
             "Role deleted successfully"
           );
+          setisRoleDeleteModalVisible(false);
           handlegetAllRoles();
         })
         .catch((err) => {
@@ -4671,9 +1854,7 @@ export const DeleteRole = ({
     setbuttonLoader(false);
   };
 
-  useEffect(() => {
-    console.log(selectedRoleDetails);
-  }, [selectedRoleDetails]);
+  useEffect(() => {}, [selectedRoleDetails]);
 
   return (
     <Modal
@@ -4706,7 +1887,7 @@ export const DeleteRole = ({
               type="primary"
               onClick={handleDeleteRole}
               loading={buttonLoader}
-              disabled={selectedRoleDetails?.userCount <= 0 ? false : true}
+              disabled={selectedRoleDetails?.users?.length <= 0 ? false : true}
             >
               Delete
             </Button>
@@ -4714,10 +1895,10 @@ export const DeleteRole = ({
         </div>
       }
       closable={false}
-      width={selectedRoleDetails?.userCount <= 0 ? 450 : 650}
+      width={selectedRoleDetails?.users?.length <= 0 ? 450 : 750}
       className="custom-modal"
     >
-      {selectedRoleDetails?.userCount <= 0 ? (
+      {selectedRoleDetails?.users?.length <= 0 ? (
         <Typography style={{ padding: "0 10px" }}>
           Are you sure you want to delete this role?
         </Typography>
@@ -4779,14 +1960,28 @@ export const DeleteRole = ({
                   }
                   description={
                     <>
-                      <Row>
-                        <Col span={12}>
-                          <Typography>{item.dentist_full_name}</Typography>
-                          <Typography>{item.email}</Typography>
+                      <Row style={{ display: "flex", alignItems: "center" }}>
+                        <Col span={8}>
+                          <Typography>{item?.dentist_full_name}</Typography>
+                          <Typography>{item?.email}</Typography>
                         </Col>
-
+                        <Col span={8}>
+                          <Space>
+                            <Avatar
+                              shape="square"
+                              size={20}
+                              src={
+                                item?.website_url &&
+                                isValidUrl(item?.website_url)
+                                  ? getLogoUrl(item?.website_url)
+                                  : ""
+                              }
+                            />
+                            <Typography>{item?.website_name}</Typography>
+                          </Space>
+                        </Col>
                         <Col
-                          span={12}
+                          span={8}
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -4795,13 +1990,17 @@ export const DeleteRole = ({
                         >
                           <Space>
                             <Select
-                              value={item.role_name}
+                              defaultValue={selectedRoleDetails.role_name}
                               style={{
                                 width: 180,
                               }}
                               placeholder="Select role"
-                              onChange={(e, data) => {
-                                handleChange(data?.item, item);
+                              onChange={(e, text) => {
+                                handleChange(
+                                  text?.item?.id,
+                                  item?.id,
+                                  item?.website_id
+                                );
                               }}
                               options={rolesoptions}
                             />
@@ -4848,7 +2047,6 @@ export const BlockIpModal = ({
           }
         )
         .then((res) => {
-          console.log(res);
           setisBlockIpModalVisible();
           getAllBlockDetails();
           openNotificationWithIcon(

@@ -671,3 +671,7 @@ a {
 .custom-report-card .ant-card-body {
   padding: 10px !important;
 }
+
+.create-clinic-modal-row{
+  padding: 10px 0px 10px 0px;
+}

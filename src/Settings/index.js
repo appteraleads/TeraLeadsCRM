@@ -56,44 +56,52 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
           ),
           onClick: () => setsettingSidebarValue("My Account"),
         },
-        {
-          key: "2",
-          icon: (
-            <div>
-              <ClinicDetailsSVG
-                color={
-                  settingSidebarValue === "Clinic Details"
-                    ? "#3900DB"
-                    : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Clinic Details
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Clinic Details"),
-        },
-        {
-          key: "3",
-          icon: (
-            <div>
-              <TeamSVG
-                color={settingSidebarValue === "Team" ? "#3900DB" : "#72779E"}
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Team
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Team"),
-        },
+        ...(loginUserDetails?.id ===
+        loginUserDetails?.userClinicRoles?.[0]?.clinic?.owner_id
+          ? [
+              {
+                key: "2",
+                icon: (
+                  <div>
+                    <ClinicDetailsSVG
+                      color={
+                        settingSidebarValue === "Clinic Details"
+                          ? "#3900DB"
+                          : "#72779E"
+                      }
+                      style={{ width: 20 }}
+                    />
+                  </div>
+                ),
+                label: (
+                  <span className="custom-text1" style={{ padding: 2 }}>
+                    Clinic Details
+                  </span>
+                ),
+                onClick: () => setsettingSidebarValue("Clinic Details"),
+              },
+              {
+                key: "3",
+                icon: (
+                  <div>
+                    <TeamSVG
+                      color={
+                        settingSidebarValue === "Team" ? "#3900DB" : "#72779E"
+                      }
+                      style={{ width: 20 }}
+                    />
+                  </div>
+                ),
+                label: (
+                  <span className="custom-text1" style={{ padding: 2 }}>
+                    Team
+                  </span>
+                ),
+                onClick: () => setsettingSidebarValue("Team"),
+              },
+            ]
+          : []),
+
         {
           key: "4",
           icon: (
@@ -442,7 +450,10 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
           </Header>
           <Content style={{ padding: 10, background: "#FCFDFF" }}>
             {settingSidebarValue === "My Account" ? (
-              <MyAccount openNotificationWithIcon={openNotificationWithIcon} />
+              <MyAccount
+                openNotificationWithIcon={openNotificationWithIcon}
+                loginUserDetails={loginUserDetails}
+              />
             ) : settingSidebarValue === "Clinic Details" ? (
               <div style={{ display: "flex" }}>
                 <ClinicDetails

@@ -4,23 +4,27 @@ import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.s
 import axios from "axios";
 import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 const Login = () => {
   const navigate = useNavigate();
   const [alertMsg, setalertMsg] = useState("");
   const [alertDes, setalertDes] = useState("");
   const [alertType, setalertType] = useState("");
   const [alertDisplay, setalertDisplay] = useState(false);
-
   const [buttonloader, setbuttonloader] = useState(false);
   const onFinish = (values) => {
     setbuttonloader(true);
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/login`, values)
       .then((res) => {
-        console.log(res)
+        const decoded = jwtDecode(res?.data?.usertDetailsToken);
         localStorage.setItem("authToken", res?.data?.token);
-        localStorage.setItem("userColumn", res?.data?.userColumn || '');
-        window.location.replace("/leads");
+        localStorage.setItem("usertDetailsToken", res?.data?.usertDetailsToken);
+        localStorage.setItem("userColumn", res?.data?.userColumn || "");
+        console.log(decoded);
+        if (decoded?.user?.role_name === "super-admin")
+          window.location.replace("/admin");
+        else window.location.replace("/leads");
         setbuttonloader(false);
       })
       .catch((err) => {
@@ -30,7 +34,6 @@ const Login = () => {
         setalertDisplay(true);
         setbuttonloader(false);
       });
- 
   };
 
   const handleGoogleLogin = async () => {
@@ -51,7 +54,6 @@ const Login = () => {
     if (token) {
       // Store the token in local storage
       localStorage.setItem("authToken", token);
-
       // Remove the token from the URL
       urlParams.delete("token");
       navigate("/leads");
@@ -146,7 +148,12 @@ const Login = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button loading={buttonloader} className="custom-primary-button" htmlType="submit" block>
+              <Button
+                loading={buttonloader}
+                className="custom-primary-button"
+                htmlType="submit"
+                block
+              >
                 Login
               </Button>
             </Form.Item>

@@ -15,6 +15,8 @@ import {
   TimePicker,
   Image,
   Skeleton,
+  Table,
+  Select,
 } from "antd";
 import {
   FacebookIconSvg,
@@ -191,6 +193,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
       sunday_from: sundayFrom ? sundayFrom : undefined,
       sunday_to: sundayTo ? sundayTo : undefined,
       sunday_closed: sundayClosed,
+
       whatsapp_number: whatsappNumber ? whatsappNumber : undefined,
       instagram_url: instagramUrl ? instagramUrl : undefined,
       facebook_url: facebookUrl ? facebookUrl : undefined,
@@ -295,6 +298,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
           setSundayFrom(temp?.sunday_from ? temp?.sunday_from : "");
           setSundayTo(temp?.sunday_to ? temp?.sunday_to : "");
           setSundayClosed(temp?.sunday_closed === "true" ? true : false);
+
           setWhatsappNumber(temp?.whatsapp_number ? temp?.whatsapp_number : "");
           setInstagramUrl(temp?.instagram_url ? temp?.instagram_url : "");
           setFacebookUrl(temp?.facebook_url ? temp?.facebook_url : "");
@@ -319,7 +323,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
     }
     setpageloader(false);
   };
-
+  
   const items = [
     {
       key: "1",
@@ -336,6 +340,8 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
             </>
           ) : (
             <>
+
+
               <Card bordered={false} style={{ width: "100%" }}>
                 <Row align="middle" gutter={[16, 16]}>
                   <Col span={12}>
@@ -1408,7 +1414,191 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
   ];
 
   useEffect(() => {
-    handleClinicDetails();
+    setclinicLogo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_logo
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_logo
+        : ""
+    );
+    setclinicFavicon(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_favicon
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_favicon
+        : ""
+    );
+    setclinicName(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_name
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_name
+        : ""
+    );
+    setclinicPhoneNumber(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_phone_number
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_phone_number
+        : ""
+    );
+    setclinicWebsite(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_website
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_website
+        : ""
+    );
+    setclinicAddressState(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_state
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_state
+        : ""
+    );
+    setclinicAddressZIPCode(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_zip_code
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic
+            ?.clinic_address_zip_code
+        : ""
+    );
+    setclinicAddressStreet(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_street
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_street
+        : ""
+    );
+    setclinicAddressCity(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_city
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_city
+        : ""
+    );
+    setclinicAddressCountry(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_country
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_country
+        : ""
+    );
+
+    setMondayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_from
+        : ""
+    );
+    setMondayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_to
+        : ""
+    );
+    setMondayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_closed === "true"
+        ? true
+        : false
+    );
+    setTuesdayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_from
+        : ""
+    );
+    setTuesdayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_to
+        : ""
+    );
+    setTuesdayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_closed === "true"
+        ? true
+        : false
+    );
+    setWednesdayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_from
+        : ""
+    );
+    setWednesdayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_to
+        : ""
+    );
+    setWednesdayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_closed ===
+        "true"
+        ? true
+        : false
+    );
+    setThursdayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_from
+        : ""
+    );
+    setThursdayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_to
+        : ""
+    );
+    setThursdayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_closed === "true"
+        ? true
+        : false
+    );
+    setFridayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_from
+        : ""
+    );
+    setFridayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_to
+        : ""
+    );
+    setFridayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_closed === "true"
+        ? true
+        : false
+    );
+    setSaturdayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_from
+        : ""
+    );
+    setSaturdayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_to
+        : ""
+    );
+    setSaturdayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_closed === "true"
+        ? true
+        : false
+    );
+    setSundayFrom(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_from
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_from
+        : ""
+    );
+    setSundayTo(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_to
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_to
+        : ""
+    );
+    setSundayClosed(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_closed === "true"
+        ? true
+        : false
+    );
+
+    setWhatsappNumber(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.whatsapp_number
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.whatsapp_number
+        : ""
+    );
+    setInstagramUrl(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.instagram_url
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.instagram_url
+        : ""
+    );
+    setFacebookUrl(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.facebook_url
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.facebook_url
+        : ""
+    );
+    setXUrl(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.x_url
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.x_url
+        : ""
+    );
+    setTiktokUrl(
+      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tiktok_url
+        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tiktok_url
+        : ""
+    );
+    // handleClinicDetails();
   }, []);
 
   return (

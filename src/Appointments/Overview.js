@@ -384,13 +384,13 @@ const Overview = ({
               "Confirmation Email Sent Successfully"
             );
           })
-          .catch((error) => {
-            console.log(error);
+          .catch((err) => {
+            console.log(err);
             setbuttonLoader(false);
             openNotificationWithIcon(
               "error",
               "Appointment",
-              error?.data?.message || error?.message
+              err?.response?.data?.message || err?.message
             );
           });
       } else {
