@@ -16,6 +16,8 @@ import {
   TimePicker,
   Image,
   Skeleton,
+  Tooltip,
+  Tag,
 } from "antd";
 import {
   FacebookIconSvg,
@@ -28,7 +30,8 @@ import imageCompression from "browser-image-compression";
 import { RiZzzFill } from "react-icons/ri";
 import dayjs from "dayjs";
 import axios from "axios";
-
+import { DeleteOutlined, LinkOutlined } from "@ant-design/icons";
+import {DeleteWebsite} from "./Modal";
 const { Text } = Typography;
 
 const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
@@ -80,6 +83,53 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [tiktokUrl, setTiktokUrl] = useState("");
 
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [currentValue, setCurrentValue] = useState("");
+
+  const [clinic_dialer_number, setclinic_dialer_number] = useState();
+  const [websiteList, setwebsiteList] = useState([]);
+  const [websitedeleteConfirmation, setwebsitedeleteConfirmation] =
+    useState(false);
+const [seletedwebsitefordelete,setseletedwebsitefordelete]=useState([])
+const [clinicData,setclinicData]=useState([])
+
+  const handleInputChange = (e) => {
+    setCurrentValue(e.target.value);
+  };
+
+  const isValidUrl = (value) => {
+    try {
+      // Attempt to create a new URL object
+      new URL(value);
+      return true; // If no error is thrown, the URL is valid
+    } catch (_) {
+      return false; // If an error is thrown, the URL is invalid
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      // Example usage
+      if (isValidUrl(currentValue?.trim())) {
+        if (currentValue?.trim() && !websiteList?.includes(currentValue.trim())) {
+          // setwebsiteList([...websiteList, currentValue.trim()]);
+        }
+        // setCurrentValue();
+      } else {
+        openNotificationWithIcon("error", "Clinic", "Please enter valid URL");
+      }
+    }
+  };
+
+  const handleRemoveValue = (removedValue) => {
+    setwebsitedeleteConfirmation(true)
+    // setwebsiteList(websiteList.filter((v) => v !== removedValue));
+  };
+
+  const getLogoUrl = (url) => {
+    const domain = new URL(url)?.hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  };
 
   const handleClinicLogoChange = async (file) => {
     setUnsavedChanges(true);
@@ -252,7 +302,8 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
           }
         )
         .then((res) => {
-          let temp = res?.data?.[0];
+          let temp = res?.data;
+          setclinicData(res?.data)
           setclinicLogo(temp?.clinic_logo ? temp?.clinic_logo : "");
           setclinicFavicon(temp?.clinic_favicon ? temp?.clinic_favicon : "");
           setclinicName(temp?.clinic_name ? temp?.clinic_name : "");
@@ -303,6 +354,14 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
           setFacebookUrl(temp?.facebook_url ? temp?.facebook_url : "");
           setXUrl(temp?.x_url ? temp?.x_url : "");
           setTiktokUrl(temp?.tiktok_url ? temp?.tiktok_url : "");
+
+          setclinic_dialer_number(
+            temp?.clinic_dialer_number ? temp?.clinic_dialer_number : ""
+          );
+
+          setwebsiteList(
+            temp?.websites ? temp?.websites: []
+          );
         })
         .catch((err) => {
           console.log(err);
@@ -322,7 +381,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
     }
     setpageloader(false);
   };
-  
+
   const items = [
     {
       key: "1",
@@ -339,8 +398,6 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
             </>
           ) : (
             <>
-
-
               <Card bordered={false} style={{ width: "100%" }}>
                 <Row align="middle" gutter={[16, 16]}>
                   <Col span={12}>
@@ -444,7 +501,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
                       Clinic Phone Number
                     </Typography>
                     <Text className="custom-text1">
-                      Your name as it will appear across your profile.
+                      Your Phone Number as it will appear across your profile.
                     </Text>
                   </Col>
                   <Col span={12}>
@@ -463,30 +520,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
                   </Col>
                 </Row>
                 <Divider />
-                <Row style={{ display: "flex", alignItems: "center" }}>
-                  <Col span={12}>
-                    <Typography style={{ fontWeight: 600 }}>
-                      Clinic Website
-                    </Typography>
-                    <Text className="custom-text1">
-                      Your name as it will appear across your profile.
-                    </Text>
-                  </Col>
-                  <Col span={12}>
-                    <Typography>Website</Typography>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <Input
-                        onChange={(e) => {
-                          setclinicWebsite(e?.target?.value);
-                          setUnsavedChanges(true);
-                        }}
-                        value={clinicWebsite}
-                        placeholder="Enter website url"
-                        style={{ width: "100%" }}
-                      />
-                    </div>
-                  </Col>
-                </Row>
+
                 <Row justify="start" style={{ padding: "15px 0px 0px 0px" }}>
                   <Col>
                     <Space align="center">
@@ -1402,7 +1436,7 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
                   </Text>
                 </Col>
                 <Col span={12}>
-                  <Input disabled value={"+13083050002"}></Input>
+                  <Input disabled value={clinic_dialer_number}></Input>
                 </Col>
               </Row>
             </Card>
@@ -1410,199 +1444,105 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
         </>
       ),
     },
+    {
+      key: "4",
+      label: "Website",
+      children: (
+        <>
+          <>
+            <Row style={{ display: "flex", alignItems: "center", padding: 10 }}>
+              <Col span={24}>
+                <Typography style={{ fontWeight: 600 }}>
+                  Clinic Website
+                </Typography>
+
+                <Input
+                  className="custom-text1"
+                  placeholder="Please enter clinic website"
+                  value={currentValue}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                />
+              </Col>
+              <Col span={24}>
+                {websiteList?.map((val, index) => (
+                  <Tag
+                    key={index}
+                    className="custom-text1"
+                    style={{
+                      padding: 10,
+                      margin: "10px 0px 10px 0px",
+                      background: "#FCF9FF",
+                      border: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      borderRadius: 10,
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Tooltip title="Open Link">
+                      <a
+                        href={val?.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#72779E", display: "flex" }}
+                      >
+                        <LinkOutlined
+                          style={{ marginRight: 10, fontSize: 14 }}
+                        />
+                        <Image
+                          src={getLogoUrl(val?.website_url)}
+                          alt="Website Logo"
+                          preview={false}
+                          style={{
+                            width: 20,
+                            height: 20,
+                            marginRight: 8,
+                            borderRadius: 4,
+                            objectFit: "contain",
+                          }}
+                        />
+                        <Typography>{val?.website_url}</Typography>
+                      </a>
+                    </Tooltip>
+
+                    <Tooltip title="Delete">
+                      <DeleteOutlined
+                        onClick={() => {handleRemoveValue(val);setseletedwebsitefordelete(val)}}
+                        style={{
+                          color: "#ff4d4f",
+                          cursor: "pointer",
+                          fontSize: 14,
+                        }}
+                      />
+                    </Tooltip>
+                  </Tag>
+                ))}
+              </Col>
+            </Row>
+          </>
+        </>
+      ),
+    },
   ];
 
   useEffect(() => {
-    setclinicLogo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_logo
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_logo
-        : ""
-    );
-    setclinicFavicon(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_favicon
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_favicon
-        : ""
-    );
-    setclinicName(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_name
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_name
-        : ""
-    );
-    setclinicPhoneNumber(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_phone_number
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_phone_number
-        : ""
-    );
-    setclinicWebsite(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_website
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_website
-        : ""
-    );
-    setclinicAddressState(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_state
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_state
-        : ""
-    );
-    setclinicAddressZIPCode(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_zip_code
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic
-            ?.clinic_address_zip_code
-        : ""
-    );
-    setclinicAddressStreet(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_street
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_street
-        : ""
-    );
-    setclinicAddressCity(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_city
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_city
-        : ""
-    );
-    setclinicAddressCountry(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_country
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.clinic_address_country
-        : ""
-    );
-
-    setMondayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_from
-        : ""
-    );
-    setMondayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_to
-        : ""
-    );
-    setMondayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.monday_closed === "true"
-        ? true
-        : false
-    );
-    setTuesdayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_from
-        : ""
-    );
-    setTuesdayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_to
-        : ""
-    );
-    setTuesdayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tuesday_closed === "true"
-        ? true
-        : false
-    );
-    setWednesdayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_from
-        : ""
-    );
-    setWednesdayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_to
-        : ""
-    );
-    setWednesdayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.wednesday_closed ===
-        "true"
-        ? true
-        : false
-    );
-    setThursdayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_from
-        : ""
-    );
-    setThursdayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_to
-        : ""
-    );
-    setThursdayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.thursday_closed === "true"
-        ? true
-        : false
-    );
-    setFridayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_from
-        : ""
-    );
-    setFridayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_to
-        : ""
-    );
-    setFridayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.friday_closed === "true"
-        ? true
-        : false
-    );
-    setSaturdayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_from
-        : ""
-    );
-    setSaturdayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_to
-        : ""
-    );
-    setSaturdayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.saturday_closed === "true"
-        ? true
-        : false
-    );
-    setSundayFrom(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_from
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_from
-        : ""
-    );
-    setSundayTo(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_to
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_to
-        : ""
-    );
-    setSundayClosed(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.sunday_closed === "true"
-        ? true
-        : false
-    );
-
-    setWhatsappNumber(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.whatsapp_number
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.whatsapp_number
-        : ""
-    );
-    setInstagramUrl(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.instagram_url
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.instagram_url
-        : ""
-    );
-    setFacebookUrl(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.facebook_url
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.facebook_url
-        : ""
-    );
-    setXUrl(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.x_url
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.x_url
-        : ""
-    );
-    setTiktokUrl(
-      loginUserDetails?.userClinicRoles?.[0]?.clinic?.tiktok_url
-        ? loginUserDetails?.userClinicRoles?.[0]?.clinic?.tiktok_url
-        : ""
-    );
-    // handleClinicDetails();
+    handleClinicDetails();
   }, []);
 
   return (
     <>
       <Tabs defaultActiveKey="1" items={items} style={{ width: "100%" }} />
+
+      <DeleteWebsite
+        websitedeleteConfirmation={websitedeleteConfirmation}
+        setwebsitedeleteConfirmation={setwebsitedeleteConfirmation}
+        seletedwebsitefordelete={seletedwebsitefordelete}
+        buttonLoader={buttonLoader}
+        setbuttonLoader={setbuttonLoader}
+        handleClinicDetails={handleClinicDetails}
+        openNotificationWithIcon={openNotificationWithIcon}
+      />
     </>
   );
 };

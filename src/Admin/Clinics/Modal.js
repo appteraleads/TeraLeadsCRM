@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Avatar,
   Button,
@@ -32,10 +33,14 @@ import {
   EyeTwoTone,
   LinkOutlined,
 } from "@ant-design/icons";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import {
+  parsePhoneNumberFromString,
+  parsePhoneNumber,
+} from "libphonenumber-js";
 import dayjs from "dayjs";
 import { RiZzzFill } from "react-icons/ri";
 import axios from "axios";
+import { decryptPassword, parsePhone } from "../../Common/CommonFuntions";
 const { Option } = Select;
 
 export const CreateNewClinicModal = ({
@@ -53,7 +58,12 @@ export const CreateNewClinicModal = ({
   const [clinicLogo, setclinicLogo] = useState();
   const [clinicFavicon, setclinicFavicon] = useState();
   const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState();
+  const [selectedCountryPhoneNumber, setselectedCountryPhoneNumber] =
+    useState();
+  const [
+    selectedCountryPhoneNumberDialer,
+    setselectedCountryPhoneNumberDialer,
+  ] = useState();
 
   const [mondayFrom, setMondayFrom] = useState();
   const [mondayTo, setMondayTo] = useState();
@@ -147,14 +157,28 @@ export const CreateNewClinicModal = ({
     const fullNumber = `${dialCode}${phoneNumber}`;
     const phoneNumberObject = parsePhoneNumberFromString(
       fullNumber,
-      selectedCountry.code
+      selectedCountryPhoneNumber?.code
+    );
+
+    if (phoneNumberObject && !phoneNumberObject?.isValid()) {
+      crearteNewClinicModalForm.resetFields(["clinic_phone_number"]);
+      message.error("Please enter a valid clinic phone number.");
+    }
+    return phoneNumberObject?.isValid();
+  };
+
+  const handleValidationDialer = (dialCode, phoneNumber) => {
+    const fullNumber = `${dialCode}${phoneNumber}`;
+    const phoneNumberObject = parsePhoneNumberFromString(
+      fullNumber,
+      selectedCountryPhoneNumberDialer?.code
     );
 
     if (phoneNumberObject && !phoneNumberObject.isValid()) {
       crearteNewClinicModalForm.resetFields(["clinic_phone_number"]);
-      message.error("Please enter a valid clinic phone number.");
+      message.error("Please enter a valid dialer phone number.");
     }
-    return phoneNumberObject.isValid();
+    return phoneNumberObject?.isValid();
   };
 
   const addServices = (val) => {
@@ -302,24 +326,50 @@ export const CreateNewClinicModal = ({
 
   const handleCountryChange = (value) => {
     const [code, dialCode] = value.split("|");
-    setSelectedCountry({ code, dialCode });
+    setselectedCountryPhoneNumber({ code, dialCode });
+  };
+
+  const handleCountryChangeDialer = (value) => {
+    const [code, dialCode] = value.split("|");
+    setselectedCountryPhoneNumberDialer({ code, dialCode });
   };
 
   const handleCreateNewClinic = async (values) => {
-    setbuttonLoader(true);
-    const completePhoneNumber = `${selectedCountry.dialCode}${values.clinic_phone_number}`;
-
-    const valid = await handleValidation(
-      selectedCountry.dialCode,
-      values.clinic_phone_number
-    );
-
-    if (!valid) {
-      console.log("Phone number is invalid. Terminating function.");
+    // setbuttonLoader(true);
+    const completePhoneNumber = `${selectedCountryPhoneNumber?.dialCode}${values?.clinic_phone_number}`;
+    const completePhoneNumberDialer = `${selectedCountryPhoneNumberDialer?.dialCode}${values?.clinic_dialer}`;
+    if (!selectedCountryPhoneNumber?.dialCode) {
+      message.error("Please select country code for clinic phone number");
+      setbuttonLoader(false);
       return;
     }
 
-    // Create the data object
+   
+    const valid = await handleValidation(
+      selectedCountryPhoneNumber?.dialCode,
+      values?.clinic_phone_number
+    );
+    if (!valid) {
+      console.log("Phone number is invalid. Terminating function.");
+      setbuttonLoader(false);
+      return;
+    }
+
+    if (!selectedCountryPhoneNumberDialer?.dialCode) {
+      message.error("Please select country code for dialer phone number");
+      setbuttonLoader(false);
+      return;
+    }
+    const validdialer = await handleValidationDialer(
+      selectedCountryPhoneNumberDialer?.dialCode,
+      values?.clinic_dialer
+    );
+    if (!validdialer) {
+      console.log("Dialer Phone number is invalid. Terminating function.");
+      setbuttonLoader(false);
+      return;
+    }
+
     let data = {
       dentist_full_name: values?.dentist_full_name,
       clinic_name: values?.clinic_name,
@@ -363,7 +413,8 @@ export const CreateNewClinicModal = ({
       in_house_arch_lab_yn: values?.in_house_arch_lab_yn,
       arch_digital_workflow_yn: values?.arch_digital_workflow_yn,
       services_frequently: values?.services_frequently,
-      clinic_dialer_number: values?.clinic_dialer,
+
+      clinic_dialer_number: completePhoneNumberDialer,
 
       clinic_website: websiteList,
     };
@@ -544,9 +595,10 @@ export const CreateNewClinicModal = ({
                       showSearch
                       style={{ width: "40%" }}
                       value={
-                        selectedCountry?.code && selectedCountry?.dialCode
-                          ? `${selectedCountry?.code}|${selectedCountry?.dialCode}`
-                          : ""
+                        selectedCountryPhoneNumber?.code &&
+                        selectedCountryPhoneNumber?.dialCode
+                          ? `${selectedCountryPhoneNumber?.code}|${selectedCountryPhoneNumber?.dialCode}`
+                          : undefined
                       }
                       placeholder="search code"
                       onChange={handleCountryChange}
@@ -1600,14 +1652,55 @@ export const CreateNewClinicModal = ({
                 <Typography>Clinic Dialer Number </Typography>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="clinic_dialer"
-                  label={
-                    <Typography className="custom-text1">Number</Typography>
-                  }
-                >
-                  <Input placeholder="Please enter dialer number" />
-                </Form.Item>
+                <Input.Group compact>
+                  <Select
+                    showSearch
+                    style={{ width: "40%" }}
+                    value={
+                      selectedCountryPhoneNumberDialer?.code &&
+                      selectedCountryPhoneNumberDialer?.dialCode
+                        ? `${selectedCountryPhoneNumberDialer?.code}|${selectedCountryPhoneNumberDialer?.dialCode}`
+                        : undefined
+                    }
+                    placeholder="Search code"
+                    onChange={handleCountryChangeDialer}
+                    optionFilterProp="children"
+                    filterOption={(input, option) => {
+                      const searchText = input?.toLowerCase();
+                      const dialCode = option?.value.split("|")[1];
+                      return dialCode?.includes(searchText);
+                    }}
+                  >
+                    {countries.map((country) => (
+                      <Option
+                        key={country?.code}
+                        value={`${country?.code}|${country?.dialCode}`}
+                      >
+                        <span>
+                          <img
+                            src={country?.flag}
+                            alt={country?.name}
+                            style={{
+                              width: 16,
+                              height: 12,
+                              marginRight: 8,
+                              borderRadius: 2,
+                            }}
+                          />
+                          ({country?.dialCode})
+                        </span>
+                      </Option>
+                    ))}
+                  </Select>
+
+                  <Form.Item name="clinic_dialer" noStyle>
+                    <Input
+                      className="custom-text1"
+                      style={{ width: "60%" }}
+                      placeholder="Enter dialer phone number"
+                    />
+                  </Form.Item>
+                </Input.Group>
               </Col>
             </Row>
           </TabPane>
@@ -1691,25 +1784,26 @@ export const VieworEditClinicDetailsModal = ({
   setisVieworEditClinicDetailsModal,
   openModeClinicDetails,
   selectedClinicDetails,
+  setselectedClinicDetails,
   openNotificationWithIcon,
   buttonLoader,
   setbuttonLoader,
   getAllClinicDetails,
 }) => {
-  
   const [VieworEditClinicDetailsModalForm] = Form.useForm();
   const [services, setservices] = useState([]);
   const [currentValue, setCurrentValue] = useState("");
   const [websiteList, setwebsiteList] = useState([]);
 
-  const [clinicLogo, setclinicLogo] = useState(
-    selectedClinicDetails?.clinic_logo
-  );
-  const [clinicFavicon, setclinicFavicon] = useState(
-    selectedClinicDetails?.clinic_favicon
-  );
+  const [clinicLogo, setclinicLogo] = useState();
+  const [clinicFavicon, setclinicFavicon] = useState();
   const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState();
+  const [selectedCountryPhoneNumber, setselectedCountryPhoneNumber] =
+    useState();
+  const [
+    selectedCountryPhoneNumberDialer,
+    setselectedCountryPhoneNumberDialer,
+  ] = useState();
 
   const [mondayFrom, setMondayFrom] = useState();
   const [mondayTo, setMondayTo] = useState();
@@ -1803,14 +1897,28 @@ export const VieworEditClinicDetailsModal = ({
     const fullNumber = `${dialCode}${phoneNumber}`;
     const phoneNumberObject = parsePhoneNumberFromString(
       fullNumber,
-      selectedCountry.code
+      selectedCountryPhoneNumber?.code
+    );
+
+    if (phoneNumberObject && !phoneNumberObject?.isValid()) {
+      VieworEditClinicDetailsModalForm.resetFields(["clinic_phone_number"]);
+      message.error("Please enter a valid clinic phone number.");
+    }
+    return phoneNumberObject?.isValid();
+  };
+
+  const handleValidationDialer = (dialCode, phoneNumber) => {
+    const fullNumber = `${dialCode}${phoneNumber}`;
+    const phoneNumberObject = parsePhoneNumberFromString(
+      fullNumber,
+      selectedCountryPhoneNumberDialer?.code
     );
 
     if (phoneNumberObject && !phoneNumberObject.isValid()) {
       VieworEditClinicDetailsModalForm.resetFields(["clinic_phone_number"]);
-      message.error("Please enter a valid clinic phone number.");
+      message.error("Please enter a valid dialer phone number.");
     }
-    return phoneNumberObject.isValid();
+    return phoneNumberObject?.isValid();
   };
 
   const addServices = (val) => {
@@ -1866,8 +1974,10 @@ export const VieworEditClinicDetailsModal = ({
   };
 
   const getLogoUrl = (url) => {
-    const domain = new URL(url)?.hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    if (isValidUrl(url)) {
+      const domain = new URL(url)?.hostname;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    }
   };
 
   const handleRemoveValue = (removedValue) => {
@@ -1935,6 +2045,7 @@ export const VieworEditClinicDetailsModal = ({
   const handleFaviconDelete = () => {
     setclinicFavicon();
   };
+
   const fetchCountries = async () => {
     try {
       const response = await fetch("https://restcountries.com/v3.1/all");
@@ -1952,7 +2063,6 @@ export const VieworEditClinicDetailsModal = ({
   };
 
   useEffect(() => {
-    console.log(selectedClinicDetails)
     setwebsiteList(
       selectedClinicDetails?.clinic_website
         ? selectedClinicDetails?.clinic_website?.split(",")
@@ -2041,38 +2151,137 @@ export const VieworEditClinicDetailsModal = ({
     setSundayClosed(
       selectedClinicDetails?.sunday_closed === "true" ? true : false
     );
+    
+    if (
+      selectedClinicDetails?.owner?.password &&
+      selectedClinicDetails?.owner?.iv_encrypted_password
+    ) {
+      VieworEditClinicDetailsModalForm?.setFieldValue(
+        "password",
+        decryptPassword(
+          selectedClinicDetails?.owner?.password,
+          selectedClinicDetails?.owner?.iv_encrypted_password
+        )
+      );
+    }
 
-   
+    VieworEditClinicDetailsModalForm?.setFieldValue(
+      "dentist_full_name",
+      selectedClinicDetails?.owner?.dentist_full_name
+    );
 
+    if (selectedClinicDetails?.clinic_phone_number) {
+      const phoneNumber = parsePhoneNumber(
+        selectedClinicDetails?.clinic_phone_number
+      );
+
+      if (phoneNumber && phoneNumber?.isValid()) {
+        const country = countries.find(
+          (c) => c.dialCode === `+${phoneNumber.countryCallingCode}`
+        );
+
+        if (country) {
+          setselectedCountryPhoneNumber({
+            code: country.code,
+            dialCode: country.dialCode,
+          });
+          VieworEditClinicDetailsModalForm?.setFieldValue(
+            "clinic_phone_number",
+            phoneNumber?.nationalNumber
+          );
+        } else {
+          setselectedCountryPhoneNumber();
+        }
+      }
+    }
+
+    if (selectedClinicDetails?.clinic_dialer_number) {
+      const phoneNumber = parsePhoneNumber(
+        selectedClinicDetails?.clinic_phone_number
+      );
+      if (phoneNumber && phoneNumber.isValid()) {
+        const country = countries.find(
+          (c) => c.dialCode === `+${phoneNumber.countryCallingCode}`
+        );
+        if (country) {
+          setselectedCountryPhoneNumberDialer({
+            code: country.code,
+            dialCode: country.dialCode,
+          });
+          VieworEditClinicDetailsModalForm?.setFieldValue(
+            "clinic_dialer",
+            phoneNumber?.nationalNumber
+          );
+        } else {
+          setselectedCountryPhoneNumberDialer();
+        }
+      }
+    }
+    VieworEditClinicDetailsModalForm?.setFieldValue(
+      "clinic_name",
+      selectedClinicDetails?.clinic_name
+    );
+    VieworEditClinicDetailsModalForm?.setFieldValue(
+      "email",
+      selectedClinicDetails?.owner?.email
+    );
+    setclinicLogo(selectedClinicDetails?.clinic_logo);
+    setclinicFavicon(selectedClinicDetails?.clinic_favicon);
     fetchCountries();
+  
   }, [selectedClinicDetails]);
 
   const handleCountryChange = (value) => {
     const [code, dialCode] = value.split("|");
-    setSelectedCountry({ code, dialCode });
+    setselectedCountryPhoneNumber({ code, dialCode });
+  };
+
+  const handleCountryChangeDialer = (value) => {
+    const [code, dialCode] = value.split("|");
+    setselectedCountryPhoneNumberDialer({ code, dialCode });
   };
 
   const handleUpdateClinicDetails = async (values) => {
     setbuttonLoader(true);
-    const completePhoneNumber = `${selectedCountry?.dialCode}${values?.clinic_phone_number}`;
+    const completePhoneNumber = `${selectedCountryPhoneNumber?.dialCode}${values?.clinic_phone_number}`;
+    const completePhoneNumberDialer = `${selectedCountryPhoneNumberDialer?.dialCode}${values?.clinic_dialer}`;
+    if (!selectedCountryPhoneNumber?.dialCode) {
+      message.error("Please select country code for clinic phone number");
+      setbuttonLoader(false);
+      return;
+    }
   
-    // const valid = await handleValidation(
-    //   selectedCountry.dialCode,
-    //   values.clinic_phone_number
-    // );
+    const valid = await handleValidation(
+      selectedCountryPhoneNumber?.dialCode,
+      values?.clinic_phone_number
+    );
+    if (!valid) {
+      console.log("Phone number is invalid. Terminating function.");
+      setbuttonLoader(false);
+      return;
+    }
 
-    // if (!valid) {
-    //   console.log("Phone number is invalid. Terminating function.");
-    //   return;
-    // }
+    if (!selectedCountryPhoneNumberDialer?.dialCode) {
+      message.error("Please select country code for dialer phone number");
+      setbuttonLoader(false);
+      return;
+    }
+    const validdialer = await handleValidationDialer(
+      selectedCountryPhoneNumberDialer?.dialCode,
+      values?.clinic_dialer
+    );
+    console.log( selectedCountryPhoneNumberDialer?.dialCode, values?.clinic_dialer)
+    if (!validdialer) {
+      console.log("Dialer Phone number is invalid. Terminating function.");
+      setbuttonLoader(false);
+      return;
+    }
 
-    // Create the data object
-    
     let data = {
       id: selectedClinicDetails?.id,
       dentist_full_name: values?.dentist_full_name || undefined,
       clinic_name: values?.clinic_name || undefined,
-    //   clinic_phone_number: completePhoneNumber || undefined,
+      clinic_phone_number: completePhoneNumber || undefined,
       email: values?.email || undefined,
       password: values?.password || undefined,
       clinic_logo: clinicLogo || undefined,
@@ -2112,7 +2321,8 @@ export const VieworEditClinicDetailsModal = ({
       in_house_arch_lab_yn: values?.in_house_arch_lab_yn || undefined,
       arch_digital_workflow_yn: values?.arch_digital_workflow_yn || undefined,
       services_frequently: values?.services_frequently || undefined,
-      clinic_dialer_number: values?.clinic_dialer || undefined,
+
+      clinic_dialer_number: completePhoneNumberDialer || undefined,
 
       clinic_website: websiteList || undefined,
     };
@@ -2156,6 +2366,7 @@ export const VieworEditClinicDetailsModal = ({
           <Button
             icon={<IoChevronBackSharp />}
             onClick={() => {
+              setselectedClinicDetails();
               setisVieworEditClinicDetailsModal(false);
             }}
           ></Button>
@@ -2186,7 +2397,7 @@ export const VieworEditClinicDetailsModal = ({
                   <Button
                     onClick={() => {
                       VieworEditClinicDetailsModalForm?.resetFields();
-
+                      setselectedClinicDetails();
                       setisVieworEditClinicDetailsModal(false);
                     }}
                   >
@@ -2245,11 +2456,6 @@ export const VieworEditClinicDetailsModal = ({
                     }
                   >
                     <Input
-                      defaultValue={
-                        selectedClinicDetails?.owner?.dentist_full_name
-                          ? selectedClinicDetails?.owner?.dentist_full_name
-                          : ""
-                      }
                       placeholder="Please enter dentist full name"
                       className="custom-text1"
                     />
@@ -2281,11 +2487,6 @@ export const VieworEditClinicDetailsModal = ({
                     }
                   >
                     <Input
-                      defaultValue={
-                        selectedClinicDetails?.clinic_name
-                          ? selectedClinicDetails?.clinic_name
-                          : ""
-                      }
                       className="custom-text1"
                       placeholder="Please enter clinic name"
                     />
@@ -2323,9 +2524,10 @@ export const VieworEditClinicDetailsModal = ({
                         showSearch
                         style={{ width: "40%" }}
                         value={
-                          selectedCountry?.code && selectedCountry?.dialCode
-                            ? `${selectedCountry?.code}|${selectedCountry?.dialCode}`
-                            : ""
+                          selectedCountryPhoneNumber?.code &&
+                          selectedCountryPhoneNumber?.dialCode
+                            ? `${selectedCountryPhoneNumber?.code}|${selectedCountryPhoneNumber?.dialCode}`
+                            : undefined
                         }
                         placeholder="search code"
                         onChange={handleCountryChange}
@@ -2394,11 +2596,6 @@ export const VieworEditClinicDetailsModal = ({
                     }
                   >
                     <Input
-                      defaultValue={
-                        selectedClinicDetails?.owner?.email
-                          ? selectedClinicDetails?.owner?.email
-                          : ""
-                      }
                       className="custom-text1"
                       placeholder="Please enter email"
                     />
@@ -2418,16 +2615,7 @@ export const VieworEditClinicDetailsModal = ({
                 <Typography>Clinic Password</Typography>
               </Col>
               <Col span={12}>
-                {openModeClinicDetails === "view" ? (
-                  <Input.Password
-                    value={"3423423423"}
-                    className="custom-text1"
-                    placeholder="Please enter password"
-                    iconRender={(visible) =>
-                      visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-                    }
-                  />
-                ) : (
+               
                   <Form.Item
                     name="password"
                     label={
@@ -2442,7 +2630,7 @@ export const VieworEditClinicDetailsModal = ({
                       }
                     />
                   </Form.Item>
-                )}
+                
               </Col>
             </Row>
             <Divider style={{ margin: 0 }} />
@@ -3477,24 +3665,60 @@ export const VieworEditClinicDetailsModal = ({
               <Col span={12}>
                 {openModeClinicDetails === "view" ? (
                   <Typography className="custom-text1">
-                    {selectedClinicDetails?.clinic_dialer || "-"}
+                    {selectedClinicDetails?.clinic_dialer_number || "-"}
                   </Typography>
                 ) : (
-                  <Form.Item
-                    name="clinic_dialer"
-                    label={
-                      <Typography className="custom-text1">Number</Typography>
-                    }
-                  >
-                    <Input
-                      placeholder="Please enter dialer number"
-                      defaultValue={
-                        selectedClinicDetails?.clinic_dialer
-                          ? selectedClinicDetails?.clinic_dialer
-                          : ""
-                      }
-                    />
-                  </Form.Item>
+                
+                    <Input.Group compact>
+                      <Select
+                        showSearch
+                        style={{ width: "40%" }}
+                        value={
+                          selectedCountryPhoneNumberDialer?.code &&
+                          selectedCountryPhoneNumberDialer?.dialCode
+                            ? `${selectedCountryPhoneNumberDialer?.code}|${selectedCountryPhoneNumberDialer?.dialCode}`
+                            : undefined
+                        }
+                        placeholder="search code"
+                        onChange={handleCountryChangeDialer}
+                        optionFilterProp="children"
+                        filterOption={(input, option) => {
+                          const searchText = input?.toLowerCase();
+                          const dialCode = option?.value.split("|")[1];
+                          return dialCode?.includes(searchText);
+                        }}
+                      >
+                        {countries.map((country) => (
+                          <Option
+                            placeholder="search code"
+                            key={country?.code}
+                            value={`${country?.code}|${country?.dialCode}`}
+                          >
+                            <span>
+                              <img
+                                src={country?.flag}
+                                alt={country?.name}
+                                style={{
+                                  width: 16,
+                                  height: 12,
+                                  marginRight: 8,
+                                  borderRadius: 2,
+                                }}
+                              />
+                              ({country?.dialCode})
+                            </span>
+                          </Option>
+                        ))}
+                      </Select>
+                      <Form.Item name="clinic_dialer" noStyle>
+                        <Input
+                          className="custom-text1"
+                          style={{ width: "60%" }}
+                          placeholder="Enter phone number"
+                        />
+                      </Form.Item>
+                    </Input.Group>
+               
                 )}
               </Col>
             </Row>

@@ -853,20 +853,6 @@ export const RolesAndPermissionsModal = ({
     },
   ];
 
-  const generateTableData = (categoryData) => {
-    const rows = [];
-    Object.keys(categoryData).forEach((type) => {
-      categoryData[type].forEach((permission) => {
-        rows.push({
-          key: permission.id,
-          code: permission.code,
-          description: permission.description,
-          type: permission.type,
-        });
-      });
-    });
-    return rows;
-  };
 
   const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
@@ -969,7 +955,7 @@ export const RolesAndPermissionsModal = ({
         </>
       }
       closable={false}
-      width={700}
+      width={800}
       className="custom-modal"
     >
       <div
@@ -1072,13 +1058,92 @@ export const RolesAndPermissionsModal = ({
                         Permissions
                       </Typography>
                     </div>
-
-                    <Table
-                      columns={columns}
-                      size="small"
-                      dataSource={generateTableData(permissionList[category])}
-                      pagination={false}
-                    />
+                    <Row>
+                      {permissionList[category]["View"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["Edit"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["Limited"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["FullAccess"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                    </Row>
                   </div>
                 ))}
               </div>
@@ -1109,106 +1174,7 @@ export const EditRolesAndPermissionModal = ({
       checked ? [...prev, code] : prev.filter((item) => item !== code)
     );
   };
-
-  const columns = [
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: "View",
-      dataIndex: "view",
-      key: "view",
-      render: (_, record) => (
-        <>
-          {record?.type === "View" ? (
-            <Checkbox
-              checked={selectedPermissions?.includes(record?.code)}
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Edit",
-      dataIndex: "edit",
-      key: "edit",
-      render: (_, record) => (
-        <>
-          {record?.type === "Edit" ? (
-            <Checkbox
-              checked={selectedPermissions?.includes(record?.code)}
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Full Access",
-      dataIndex: "fullAccess",
-      key: "fullAccess",
-      render: (_, record) => (
-        <>
-          {record?.type === "FullAccess" ? (
-            <Checkbox
-              checked={selectedPermissions?.includes(record?.code)}
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Limited",
-      dataIndex: "limited",
-      key: "limited",
-      render: (_, record) => (
-        <>
-          {record?.type === "Limited" ? (
-            <Checkbox
-              checked={selectedPermissions?.includes(record?.code)}
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-  ];
-
-  const generateTableData = (categoryData) => {
-    const rows = [];
-    Object.keys(categoryData).forEach((type) => {
-      categoryData[type].forEach((permission) => {
-        rows.push({
-          key: permission.id,
-          code: permission.code,
-          description: permission.description,
-          type: permission.type,
-        });
-      });
-    });
-    return rows;
-  };
-
+  
   const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
@@ -1419,13 +1385,97 @@ export const EditRolesAndPermissionModal = ({
                         Permissions
                       </Typography>
                     </div>
-
-                    <Table
-                      columns={columns}
-                      size="small"
-                      dataSource={generateTableData(permissionList[category])}
-                      pagination={false}
-                    />
+                    <Row>
+                      {permissionList[category]["View"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                checked={selectedPermissions?.includes(permissionlist?.code)}
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["Edit"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                 checked={selectedPermissions?.includes(permissionlist?.code)}
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["Limited"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                 checked={selectedPermissions?.includes(permissionlist?.code)}
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                      {permissionList[category]["FullAccess"]?.map(
+                        (permissionlist) => {
+                          return (
+                            <Col span={12} style={{ padding: 5 }}>
+                              <Space>
+                                <Checkbox
+                                 checked={selectedPermissions?.includes(permissionlist?.code)}
+                                  onChange={(e) =>
+                                    handleCheckboxChange(
+                                      e.target.checked,
+                                      permissionlist.code
+                                    )
+                                  }
+                                ></Checkbox>
+                                <Typography>
+                                  {permissionlist?.description}
+                                </Typography>
+                              </Space>
+                            </Col>
+                          );
+                        }
+                      )}
+                    </Row>
+                  
                   </div>
                 ))}
               </div>
@@ -1468,7 +1518,7 @@ export const InviteTeamMemberModal = ({
     );
   };
 
-  const handleChangeRole = (websiteId, role_id,role_name) => {
+  const handleChangeRole = (websiteId, role_id, role_name) => {
     setselectedInviteWebsiteOrRole((prevWebsites) => {
       const websiteExistsAndSelected = prevWebsites.some(
         (website) => website.website_id === websiteId && website.selected
@@ -1530,7 +1580,7 @@ export const InviteTeamMemberModal = ({
       clinic_name: clinicDetails?.clinic_name,
       email: email,
       dentist_full_name: full_name,
-      website_selected:selectedInviteWebsiteOrRole
+      website_selected: selectedInviteWebsiteOrRole,
     };
 
     try {
@@ -1589,12 +1639,12 @@ export const InviteTeamMemberModal = ({
     let temp = clinicDetails?.websites?.map((item) => {
       return {
         website_id: item?.id,
-        website_name:item?.website_user_name,
+        website_name: item?.website_user_name,
         role_id: null,
         selected: false,
       };
     });
-    console?.log(temp);
+
     setselectedInviteWebsiteOrRole(temp);
   }, [clinicDetails]);
 
@@ -1812,8 +1862,8 @@ export const InviteTeamMemberModal = ({
                                   width: "100%",
                                 }}
                                 placeholder="Select role"
-                                onChange={(e,val) => {
-                                  handleChangeRole(item?.id, e,val?.label);
+                                onChange={(e, val) => {
+                                  handleChangeRole(item?.id, e, val?.label);
                                 }}
                                 options={options}
                               />
@@ -2939,7 +2989,7 @@ export const UpdateBlockIpModal = ({
     setbuttonLoader(true);
     values.clinic_id = loginUserDetails?.clinic_id;
     values.block_id = selectedblocklead?.id;
-   
+
     try {
       const token = localStorage.getItem("authToken");
 
@@ -3168,6 +3218,205 @@ export const UpdateBlockIpModal = ({
       </Form>
 
       <Divider />
+    </Modal>
+  );
+};
+
+export const DeleteWebsite = ({
+  websitedeleteConfirmation,
+  setwebsitedeleteConfirmation,
+  seletedwebsitefordelete,
+  buttonLoader,
+  setbuttonLoader,
+  handleClinicDetails,
+  openNotificationWithIcon,
+}) => {
+  const handleDeleteWebsite = async () => {
+    setbuttonLoader(true);
+    const token = localStorage.getItem("authToken");
+
+    let data = {
+      clinic_id: seletedwebsitefordelete?.clinic_id,
+      website_id: seletedwebsitefordelete?.id,
+    };
+
+    try {
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/deleteClinicWebsite`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          handleClinicDetails();
+          setwebsitedeleteConfirmation(false);
+          openNotificationWithIcon(
+            "success",
+            "Settings",
+            "Website deleted successfully"
+          );
+          setbuttonLoader(false);
+        })
+        .catch((err) => {
+          console.log(err?.response?.data?.message);
+          openNotificationWithIcon(
+            "error",
+            "Settings",
+            err?.response?.data?.message || err?.message
+          );
+        });
+    } catch (err) {
+      openNotificationWithIcon(
+        "error",
+        "Settings",
+        err?.response?.data?.message || err?.message
+      );
+    }
+    console.log(seletedwebsitefordelete);
+    setbuttonLoader(false);
+  };
+
+  return (
+    <Modal
+      title={
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Button
+            onClick={() => setwebsitedeleteConfirmation(false)}
+            icon={<IoChevronBackSharp />}
+          />
+          <Typography style={{ marginLeft: 10 }}>
+            Delete Confirmation
+          </Typography>
+        </div>
+      }
+      visible={websitedeleteConfirmation}
+      footer={
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            padding: "0px 10px 10px 0px",
+          }}
+        >
+          <Space>
+            <Button onClick={() => setwebsitedeleteConfirmation(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={() => {
+                handleDeleteWebsite();
+              }}
+              loading={buttonLoader}
+            >
+              Delete
+            </Button>
+          </Space>
+        </div>
+      }
+      closable={false}
+      width={seletedwebsitefordelete?.userWebsiteRoles?.length <= 0 ? 450 : 600}
+      className="custom-modal"
+    >
+      {seletedwebsitefordelete?.userWebsiteRoles?.length <= 0 ? (
+        <>
+          <Typography style={{ padding: "0 10px" }}>
+            Are you sure you want to delete this website?
+          </Typography>
+        </>
+      ) : (
+        <>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <TeamSVG
+              color={"#72779E"}
+              style={{ width: 15, display: "contents" }}
+            />
+            <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
+              Delete {seletedwebsitefordelete?.website_user_name} Website
+            </Typography>
+          </div>
+          <Divider style={{ margin: "10px 0px" }} />
+          <Row>
+            <Col span={22}>
+              <Typography className="custom-text1">
+                Are you sure you want to delete this website? This website is
+                currently accessible to the following users:
+              </Typography>
+            </Col>
+          </Row>
+          <List
+            style={{
+              height: "40vh",
+              overflow: "auto",
+              padding: "10px 10px 100px 10px",
+            }}
+            itemLayout="horizontal"
+            dataSource={seletedwebsitefordelete?.userWebsiteRoles}
+            renderItem={(item, index) => (
+              <List.Item>
+                <List.Item.Meta
+                  avatar={
+                    item?.user?.profile_picture ? (
+                      <Avatar src={item?.user?.profile_picture} size={40} />
+                    ) : (
+                      <Avatar
+                        size={40}
+                        style={{ background: item?.user?.avatar_color }}
+                      >
+                        {getInitials(item?.user?.dentist_full_name)}
+                      </Avatar>
+                    )
+                  }
+                  description={
+                    <>
+                      <Row style={{ display: "flex", alignItems: "center" }}>
+                        <Col span={12}>
+                          <Typography>
+                            {item?.user?.dentist_full_name}
+                          </Typography>
+                          <Typography>{item?.user?.email}</Typography>
+                        </Col>
+                        <Col
+                          span={12}
+                          style={{ display: "flex", justifyContent: "end" }}
+                        >
+                          <Typography>{item?.role?.role_name}</Typography>
+                        </Col>
+                      </Row>
+                    </>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+          <Row
+            style={{
+              background: "#FFDBDB",
+              padding: 10,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Col span={2}>
+              <MdOutlineErrorOutline
+                style={{ color: "#E21D12", fontSize: 30 }}
+              />
+            </Col>
+            <Col span={22}>
+              <Typography style={{ color: "#E21D12" }}>
+                Deleting this website will revoke access for all users and
+                remove all associated data.
+              </Typography>
+            </Col>
+          </Row>
+        </>
+      )}
     </Modal>
   );
 };

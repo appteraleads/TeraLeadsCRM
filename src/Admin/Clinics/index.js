@@ -382,6 +382,7 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
         setisVieworEditClinicDetailsModal={setisVieworEditClinicDetailsModal}
         openModeClinicDetails={openModeClinicDetails}
         selectedClinicDetails={selectedClinicDetails}
+        setselectedClinicDetails={setselectedClinicDetails}
         openNotificationWithIcon={openNotificationWithIcon}
         buttonLoader={buttonLoader}
         setbuttonLoader={setbuttonLoader}

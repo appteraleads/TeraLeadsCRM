@@ -170,7 +170,7 @@ const MyAccount = ({ openNotificationWithIcon, loginUserDetails }) => {
   };
 
   useEffect(() => {
-    console.log("My Account", loginUserDetails);
+ 
     setprofile_picture(loginUserDetails?.profile_picture);
     setfullName(loginUserDetails?.dentist_full_name);
     setemail(loginUserDetails?.email);
