@@ -107,15 +107,20 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
 
   clinicsWebsiteList?.forEach((web) => {
     web?.userWebsiteRoles?.forEach((userdata) => {
+      const invitationAccepted = clinicDetails?.userClinicRoles?.find(
+        (item) => item?.user_id === userdata?.user?.id
+      )?.invitation_accepted;
+
       const userObject = {
         ...userdata?.user,
+        invitation_accepted: invitationAccepted,
         websites: [
           {
             website_name: web?.website_user_name,
             role_name: userdata?.role?.role_name,
-            website_id:web?.id,
-            role_id:userdata?.role?.id,
-            accesslevel:userdata?.accesslevel
+            website_id: web?.id,
+            role_id: userdata?.role?.id,
+            accesslevel: userdata?.accesslevel,
           },
         ],
       };
@@ -133,17 +138,22 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           {
             website_name: web?.website_user_name,
             role_name: userdata?.role?.role_name,
-            website_id:web?.id,
-            role_id:userdata?.role?.id,
-            accesslevel:userdata?.accesslevel
+            website_id: web?.id,
+            role_id: userdata?.role?.id,
+            accesslevel: userdata?.accesslevel,
           },
         ];
+
+        // Ensure invitation_accepted is updated for the existing user
+        existingUser.invitation_accepted = invitationAccepted;
       } else {
         // Push the new user object with the websites array
         dataSource.push(userObject);
       }
     });
   });
+
+
 
   //   {
   //     title: "Users",
@@ -217,7 +227,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       key: "user",
       width: 300,
       render: (_, record) => {
-        if (!record?.activated_yn) {
+        if (!record?.invitation_accepted) {
           return {
             children: (
               <div style={{ display: "flex", alignItems: "center" }}>
@@ -342,7 +352,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 : ""
             }
           />
-          <Typography style={{ textTransform: "capitalize" }}>{web?.website_user_name}</Typography>
+          <Typography style={{ textTransform: "capitalize" }}>
+            {web?.website_user_name}
+          </Typography>
         </Space>
       ),
       dataIndex: web?.website_user_name,
@@ -434,6 +446,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           }
         )
         .then((res) => {
+          console.log(res?.data);
           setclinicDetails(res?.data?.clinics);
           setclinicsWebsiteList(res?.data?.clinics?.websites);
           setloaderList(false);
