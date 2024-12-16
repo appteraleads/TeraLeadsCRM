@@ -19,7 +19,6 @@ import TeraleadsLogo from "../../assets/logo/TeraleadsRemoveBg.png";
 import { ReactComponent as Usersvg } from "../../assets/IconSvg/solar_user-broken.svg";
 import { ReactComponent as Appointmentssvg } from "../../assets/IconSvg/basil_calendar-outline.svg";
 import { ReactComponent as Chatsvg } from "../../assets/IconSvg/fluent_chat-16-regular.svg";
-import { ReactComponent as Dentalsvg } from "../../assets/IconSvg/Frame 2.svg";
 import { ReactComponent as LogoCircle } from "../../assets/logo/teracrmlogoCircle.svg";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 

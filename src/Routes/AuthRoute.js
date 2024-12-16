@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "../Authentication/Login";
 import Signup from "../Authentication/Signup";
 import ForgotPassword from "../Authentication/ForgotPassword";
@@ -89,9 +89,21 @@ const AuthRoute = () => {
             />
           }
         />
-
         <Route
           path="/login"
+          element={
+            <RouteComponent
+              ChildComponent={
+                <Login
+                  setuserEmailId={setuserEmailId}
+                  setloginUserDetails={setloginUserDetails}
+                />
+              }
+            />
+          }
+        />
+        <Route
+          path="/login/:token"
           element={
             <RouteComponent
               ChildComponent={

@@ -25,7 +25,7 @@ import { ReactComponent as Appointmentssvg } from "../assets/IconSvg/basil_calen
 import { ReactComponent as Reportsvg } from "../assets/IconSvg/hugeicons_analytics-up.svg";
 import { ReactComponent as Callsvg } from "../assets/IconSvg/Vector.svg";
 import { ReactComponent as Chatsvg } from "../assets/IconSvg/fluent_chat-16-regular.svg";
-import { ReactComponent as Dentalsvg } from "../assets/IconSvg/Frame 2.svg";
+
 import { ReactComponent as LogoCircle } from "../assets/logo/teracrmlogoCircle.svg";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FiPlusCircle } from "react-icons/fi";
@@ -37,11 +37,11 @@ import { useNavigate } from "react-router-dom";
 import { SettingsSVG } from "../Common/SettingSidebarIconsSvg";
 import axios from "axios";
 import { getInitials } from "../Common/ReturnColumnValue";
-import { FaClinicMedical, FaPlus } from "react-icons/fa";
+import { FaClinicMedical } from "react-icons/fa";
 import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
 import { Content } from "antd/es/layout/layout";
-import { icons } from "antd/es/image/PreviewGroup";
+
 
 const Conversations = React.lazy(() => import("../Conversations"));
 const QuickConversation = React.lazy(() =>
@@ -83,7 +83,7 @@ const CustomLayout = ({ loginUserDetails }) => {
     }
     setisNotificationDropdownVisible(visible);
   };
-
+ 
   const enterFullScreen = () => {
     if (containerRef.current.requestFullscreen) {
       containerRef.current.requestFullscreen();

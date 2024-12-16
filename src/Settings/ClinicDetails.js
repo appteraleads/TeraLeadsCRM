@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -15,8 +16,6 @@ import {
   TimePicker,
   Image,
   Skeleton,
-  Table,
-  Select,
 } from "antd";
 import {
   FacebookIconSvg,

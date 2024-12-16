@@ -1,17 +1,35 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Checkbox, Image, Divider, Alert } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Checkbox,
+  Image,
+  Divider,
+  Alert,
+  notification,
+} from "antd";
 import GoogleIcon from "../assets/logo/google_logo-google_icongoogle-512 (1) 1.svg";
 import axios from "axios";
 import facebookLogo from "../assets/logo/fbIcon_round_gradient.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 const Login = () => {
   const navigate = useNavigate();
+  const { token } = useParams();
   const [alertMsg, setalertMsg] = useState("");
   const [alertDes, setalertDes] = useState("");
   const [alertType, setalertType] = useState("");
   const [alertDisplay, setalertDisplay] = useState(false);
   const [buttonloader, setbuttonloader] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
+  const openNotificationWithIcon = (type, messageType, message) => {
+    api[type]({
+      message: messageType,
+      description: message,
+    });
+  };
   const onFinish = (values) => {
     setbuttonloader(true);
     axios
@@ -47,6 +65,35 @@ const Login = () => {
     }
   };
 
+  const activationUser = () => {
+    let data = {
+      token: token,
+    };
+    if (token) {
+      axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/activate`,
+          data
+        )
+        .then((res) => {
+          openNotificationWithIcon("success", "Success", res?.data?.message);
+          navigate("/login");
+        })
+        .catch((err) => {
+          navigate("/login");
+          openNotificationWithIcon(
+            "error",
+            "Error",
+            err?.response?.data?.message || err?.message
+          );
+        });
+    }
+  };
+
+  useEffect(() => {
+    activationUser();
+  }, [token]);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
@@ -62,6 +109,7 @@ const Login = () => {
 
   return (
     <>
+      {contextHolder}
       <div className="login-container-left">
         <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
           {alertDisplay ? (

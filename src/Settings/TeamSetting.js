@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
   Row,
@@ -11,6 +12,7 @@ import {
   Menu,
   Input,
   Table,
+  Dropdown,
 } from "antd";
 import { IoIosSearch } from "react-icons/io";
 import { HiOutlineUserAdd } from "react-icons/hi";
@@ -20,6 +22,7 @@ import {
   DeleteUser,
   EditRolesAndPermissionModal,
   InviteTeamMemberModal,
+  ManageAccessModal,
   RolesAndPermissionsModal,
   ShowAllRolesModal,
 } from "./Modal";
@@ -28,16 +31,17 @@ import axios from "axios";
 import { getInitials } from "../Common/ReturnColumnValue";
 import { IoSettingsOutline } from "react-icons/io5";
 
+import { BiDotsHorizontal } from "react-icons/bi";
+
 const { Text } = Typography;
 const { Option } = Select;
 
 const isValidUrl = (value) => {
   try {
-    // Attempt to create a new URL object
     new URL(value);
-    return true; // If no error is thrown, the URL is valid
+    return true;
   } catch (_) {
-    return false; // If an error is thrown, the URL is invalid
+    return false;
   }
 };
 
@@ -45,6 +49,7 @@ const getLogoUrl = (url) => {
   const domain = new URL(url)?.hostname;
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 };
+
 const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [showAllRolesModalVisible, setshowAllRolesModalVisible] =
     useState(false);
@@ -68,6 +73,36 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [clinicsWebsiteList, setclinicsWebsiteList] = useState([]);
   const [clinicRolesList, setclinicRolesList] = useState([]);
   const [clinicDetails, setclinicDetails] = useState([]);
+  const [manageAccessModalVisible, setmanageAccessModalVisible] =
+    useState(false);
+
+  const menu = (item) => {
+    return (
+      <Menu>
+        <Menu.Item
+          key="1"
+          icon={<IoSettingsOutline size={15} />}
+          onClick={() => {
+            setseletedUserDetails(item);
+            setmanageAccessModalVisible(true);
+          }}
+        >
+          Manage Access
+        </Menu.Item>
+        <Menu.Item
+          key="2"
+          icon={<AiOutlineDelete size={15} />}
+          onClick={() => {
+            setseletedUserDetails(item);
+            setisUserDeleteModalVisible(true);
+          }}
+        >
+          Delete
+        </Menu.Item>
+      </Menu>
+    );
+  };
+
   let dataSource = [];
 
   clinicsWebsiteList?.forEach((web) => {
@@ -78,6 +113,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           {
             website_name: web?.website_user_name,
             role_name: userdata?.role?.role_name,
+            website_id:web?.id,
+            role_id:userdata?.role?.id,
+            accesslevel:userdata?.accesslevel
           },
         ],
       };
@@ -95,6 +133,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           {
             website_name: web?.website_user_name,
             role_name: userdata?.role?.role_name,
+            website_id:web?.id,
+            role_id:userdata?.role?.id,
+            accesslevel:userdata?.accesslevel
           },
         ];
       } else {
@@ -174,37 +215,55 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       title: "Users",
       dataIndex: "user",
       key: "user",
-      width: 250, // Adjust as needed
+      width: 300,
       render: (_, record) => {
         if (!record?.activated_yn) {
-          // Spanning the row across all columns
           return {
             children: (
               <div style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  {record.profile_picture ? (
-                    <Avatar
-                      size="large"
-                      src={record.profile_picture}
-                      style={{ marginRight: 10 }}
-                    />
-                  ) : (
-                    <Avatar
-                      style={{
-                        background: record?.avatar_color,
-                        marginRight: 10,
-                      }}
-                      size="large"
-                    >
-                      {getInitials(record.dentist_full_name)}
-                    </Avatar>
-                  )}
-                  <div>
-                    <div style={{ fontWeight: "500" }}>
-                      {record.dentist_full_name}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: 270,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: 270,
+                    }}
+                  >
+                    {record.profile_picture ? (
+                      <Avatar
+                        size="large"
+                        src={record.profile_picture}
+                        style={{ marginRight: 10 }}
+                      />
+                    ) : (
+                      <Avatar
+                        style={{
+                          background: record?.avatar_color,
+                          marginRight: 10,
+                        }}
+                        size="large"
+                      >
+                        {getInitials(record.dentist_full_name)}
+                      </Avatar>
+                    )}
+                    <div>
+                      <div style={{ fontWeight: "500" }}>
+                        {record.dentist_full_name}
+                      </div>
+                      <div style={{ color: "#888" }}>{record.email}</div>
                     </div>
-                    <div style={{ color: "#888" }}>{record.email}</div>
                   </div>
+
+                  <Dropdown overlay={menu(record)}>
+                    <BiDotsHorizontal style={{ cursor: "pointer" }} />
+                  </Dropdown>
                 </div>
                 <div
                   style={{
@@ -231,30 +290,41 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
             props: { colSpan: columns.length },
           };
         }
-
         // Default content for active users
         return (
-          <div style={{ display: "flex", alignItems: "center" }}>
-            {record.profile_picture ? (
-              <Avatar
-                size="large"
-                src={record.profile_picture}
-                style={{ marginRight: 10 }}
-              />
-            ) : (
-              <Avatar
-                style={{ background: record?.avatar_color, marginRight: 10 }}
-                size="large"
-              >
-                {getInitials(record.dentist_full_name)}
-              </Avatar>
-            )}
-            <div>
-              <div style={{ fontWeight: "500" }}>
-                {record.dentist_full_name}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {record.profile_picture ? (
+                <Avatar
+                  size="large"
+                  src={record.profile_picture}
+                  style={{ marginRight: 10 }}
+                />
+              ) : (
+                <Avatar
+                  style={{ background: record?.avatar_color, marginRight: 10 }}
+                  size="large"
+                >
+                  {getInitials(record.dentist_full_name)}
+                </Avatar>
+              )}
+              <div>
+                <div style={{ fontWeight: "500" }}>
+                  {record.dentist_full_name}
+                </div>
+                <div style={{ color: "#888" }}>{record.email}</div>
               </div>
-              <div style={{ color: "#888" }}>{record.email}</div>
             </div>
+
+            <Dropdown overlay={menu(record)}>
+              <BiDotsHorizontal style={{ cursor: "pointer" }} />
+            </Dropdown>
           </div>
         );
       },
@@ -272,7 +342,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 : ""
             }
           />
-          <Typography>{web?.website_user_name}</Typography>
+          <Typography style={{ textTransform: "capitalize" }}>{web?.website_user_name}</Typography>
         </Space>
       ),
       dataIndex: web?.website_user_name,
@@ -307,23 +377,6 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       },
     })),
   ];
-
-  const userOptions = (item) => {
-    return (
-      <Menu>
-        <Menu.Item
-          key="1"
-          icon={<AiOutlineDelete size={15} />}
-          onClick={() => {
-            setseletedUserDetails(item);
-            setisUserDeleteModalVisible(true);
-          }}
-        >
-          Delete
-        </Menu.Item>
-      </Menu>
-    );
-  };
 
   const handlegetAllRoles = async (search) => {
     const token = localStorage.getItem("authToken");
@@ -513,6 +566,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         </Col>
       </Row>
       <Divider style={{ margin: "10px 0px" }} />
+
       <Table
         columns={columns}
         dataSource={dataSource}
@@ -523,16 +577,6 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           y: "60vh",
         }}
       />
-      {/* <Table
-        columns={columns}
-        dataSource={dataSource}
-        pagination={false}
-        loading={loaderList}
-        scroll={{
-          x: "max-content",
-          y: "60vh",
-        }}
-      /> */}
 
       <ShowAllRolesModal
         showAllRolesModalVisible={showAllRolesModalVisible}
@@ -590,7 +634,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         setbuttonLoader={setbuttonLoader}
         openNotificationWithIcon={openNotificationWithIcon}
         getAllClinicUserDetails={getAllClinicUserDetails}
+        clinicDetails={clinicDetails}
       />
+
       <DeleteRole
         isRoleDeleteModalVisible={isRoleDeleteModalVisible}
         setisRoleDeleteModalVisible={setisRoleDeleteModalVisible}
@@ -602,6 +648,17 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         getAllClinicUserDetails={getAllClinicUserDetails}
         rolesoptions={rolesoptions}
         clinicDetails={clinicDetails}
+      />
+
+      <ManageAccessModal
+        manageAccessModalVisible={manageAccessModalVisible}
+        setmanageAccessModalVisible={setmanageAccessModalVisible}
+        buttonLoader={buttonLoader}
+        setbuttonLoader={setbuttonLoader}
+        clinicDetails={clinicDetails}
+        seletedUserDetails={seletedUserDetails}
+        openNotificationWithIcon={openNotificationWithIcon}
+        getAllClinicUserDetails={getAllClinicUserDetails}
       />
     </>
   );

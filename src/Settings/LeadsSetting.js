@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -22,7 +23,6 @@ import axios from "axios";
 import { IoIosSearch } from "react-icons/io";
 import { MdDeleteOutline, MdOutlineBlock } from "react-icons/md";
 import { BlockIpModal, UpdateBlockIpModal } from "./Modal";
-import { HiDotsHorizontal } from "react-icons/hi";
 import dayjs from "dayjs";
 import { BsThreeDots } from "react-icons/bs";
 import { FaRegEdit } from "react-icons/fa";

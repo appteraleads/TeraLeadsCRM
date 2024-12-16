@@ -13,7 +13,9 @@ import {
   Row,
   Select,
   Space,
+  Switch,
   Table,
+  Tag,
   Typography,
 } from "antd";
 import {
@@ -29,16 +31,18 @@ import {
 import { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
-import { IoChevronBackSharp } from "react-icons/io5";
+import { IoChevronBackSharp, IoSettingsOutline } from "react-icons/io5";
 import { MdOutlineBlock, MdOutlineErrorOutline } from "react-icons/md";
 import { getInitials } from "../Common/ReturnColumnValue";
 import { RiUserForbidLine } from "react-icons/ri";
 import { BlockIPTypeOptions } from "../Common/CommonCodeList";
 import { RxCross2 } from "react-icons/rx";
 import { FaRegEdit } from "react-icons/fa";
+import { IoIosArrowBack } from "react-icons/io";
+import { FaArrowRight } from "react-icons/fa";
 const { TextArea } = Input;
 const { Text } = Typography;
-const { Option } = Select;
+
 const isValidUrl = (value) => {
   try {
     // Attempt to create a new URL object
@@ -51,6 +55,10 @@ const isValidUrl = (value) => {
 
 const getLogoUrl = (url) => {
   const domain = new URL(url)?.hostname;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+};
+
+const getLogoUrlDomain = (domain) => {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 };
 
@@ -1442,22 +1450,97 @@ export const InviteTeamMemberModal = ({
 }) => {
   const [InviteTeamMemberform] = Form.useForm();
   const [options, setoptions] = useState([]);
-  console.log(clinicDetails);
-  const handleSendInviteTeamMember = async (values) => {
+  const [full_name, setfull_name] = useState();
+  const [email, setemail] = useState();
+  const [selectedInviteWebsiteOrRole, setselectedInviteWebsiteOrRole] =
+    useState([]);
+
+  const [next, setnext] = useState(false);
+
+  const handleCheckboxChange = (websiteId, event) => {
+    const isChecked = event.target.checked;
+    setselectedInviteWebsiteOrRole((prevWebsites) =>
+      prevWebsites.map((website) =>
+        website.website_id === websiteId
+          ? { ...website, selected: isChecked }
+          : website
+      )
+    );
+  };
+
+  const handleChangeRole = (websiteId, role_id,role_name) => {
+    setselectedInviteWebsiteOrRole((prevWebsites) => {
+      const websiteExistsAndSelected = prevWebsites.some(
+        (website) => website.website_id === websiteId && website.selected
+      );
+
+      if (!websiteExistsAndSelected) {
+        openNotificationWithIcon(
+          "error",
+          "Settings",
+          "Please select website first"
+        );
+        return prevWebsites;
+      }
+
+      return prevWebsites.map((website) =>
+        website.website_id === websiteId
+          ? { ...website, role_id: role_id, role_name: role_name }
+          : website
+      );
+    });
+  };
+
+  const handleSendInviteTeamMember = async () => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
-   
-    values.clinic_id = clinicDetails?.id;
-    values.clinic_name = clinicDetails?.clinic_name;
+
+    const noSelection = !selectedInviteWebsiteOrRole.some(
+      (website) => website.selected
+    );
+
+    if (noSelection) {
+      openNotificationWithIcon(
+        "error",
+        "Settings",
+        "Please select at least one website."
+      );
+      setbuttonLoader(false);
+
+      return;
+    }
+
+    const noRolesAssigned = !selectedInviteWebsiteOrRole.some(
+      (website) => website.selected && website.role_id
+    );
+
+    if (noRolesAssigned) {
+      openNotificationWithIcon(
+        "error",
+        "Settings",
+        "Please assign a role to the selected website."
+      );
+      setbuttonLoader(false);
+
+      return;
+    }
+
+    let data = {
+      clinic_id: clinicDetails?.id,
+      clinic_name: clinicDetails?.clinic_name,
+      email: email,
+      dentist_full_name: full_name,
+      website_selected:selectedInviteWebsiteOrRole
+    };
 
     try {
       await axios
         .post(
           `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/inviteTeamMember`,
-          values,
+          data,
           {
             headers: {
-               Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         )
@@ -1503,21 +1586,33 @@ export const InviteTeamMemberModal = ({
   }, [rolesList]);
 
   useEffect(() => {
-    if (loginUserDetails?.clinic_name) {
-      InviteTeamMemberform?.setFieldValue(
-        "clinic_name",
-        loginUserDetails.clinic_name
-      );
-      InviteTeamMemberform?.setFieldValue(
-        "clinic_website",
-        loginUserDetails.clinic_website
-      );
-    }
-  }, [isInviteTeamMemberModalVisible, loginUserDetails]);
+    let temp = clinicDetails?.websites?.map((item) => {
+      return {
+        website_id: item?.id,
+        website_name:item?.website_user_name,
+        role_id: null,
+        selected: false,
+      };
+    });
+    console?.log(temp);
+    setselectedInviteWebsiteOrRole(temp);
+  }, [clinicDetails]);
+
   return (
     <Modal
       title={
         <div style={{ display: "flex", alignItems: "center" }}>
+          {next ? (
+            <Button
+              onClick={() => {
+                setnext(false);
+              }}
+              icon={<IoChevronBackSharp />}
+            ></Button>
+          ) : (
+            ""
+          )}
+
           <Typography style={{ marginLeft: 10 }}>Team</Typography>
         </div>
       }
@@ -1541,15 +1636,38 @@ export const InviteTeamMemberModal = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="primary"
-                loading={buttonLoader}
-                onClick={() => {
-                  InviteTeamMemberform.submit();
-                }}
-              >
-                Send Invitation
-              </Button>
+              {next ? (
+                <Button
+                  type="primary"
+                  loading={buttonLoader}
+                  onClick={() => {
+                    InviteTeamMemberform.submit();
+                  }}
+                >
+                  Send Invitation
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  loading={buttonLoader}
+                  onClick={async () => {
+                    try {
+                      // Validate full_name and email before proceeding
+                      await InviteTeamMemberform.validateFields([
+                        "full_name",
+                        "email",
+                      ]);
+                      setnext(true); // Go to the next step
+                    } catch (error) {
+                      console.log("Validation failed:", error);
+                    }
+                  }}
+                  icon={<FaArrowRight />}
+                  iconPosition={"end"}
+                >
+                  Next
+                </Button>
+              )}
             </Space>
           </div>
         </>
@@ -1575,109 +1693,666 @@ export const InviteTeamMemberModal = ({
         style={{ padding: "10px 0px" }}
       >
         <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              label={
-                <div className="custom-text1">
-                  Full Name<span style={{ color: "red" }}>*</span>
-                </div>
-              }
-              name="full_name"
-              rules={[
-                {
-                  required: true,
-                  message: "Please enter a full name!",
-                },
-              ]}
-            >
-              <Input style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              label={
-                <div className="custom-text1">
-                  Email<span style={{ color: "red" }}>*</span>
-                </div>
-              }
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  type: "email",
-                  message: "Please enter a valid email!",
-                },
-              ]}
-            >
-              <Input style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              label={
-                <div className="custom-text1">
-                  Website<span style={{ color: "red" }}>*</span>
-                </div>
-              }
-              name="website_id"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select a Website!",
-                },
-              ]}
-            >
-              <Select
+          {!next ? (
+            <>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    <div className="custom-text1">
+                      Full Name<span style={{ color: "red" }}>*</span>
+                    </div>
+                  }
+                  name="full_name"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter a full name!",
+                    },
+                  ]}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      setfull_name(e?.target?.value);
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    <div className="custom-text1">
+                      Email<span style={{ color: "red" }}>*</span>
+                    </div>
+                  }
+                  name="email"
+                  rules={[
+                    {
+                      required: true,
+                      type: "email",
+                      message: "Please enter a valid email!",
+                    },
+                  ]}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      setemail(e?.target?.value);
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+            </>
+          ) : (
+            <>
+              <Space
                 style={{
-                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: 20,
                 }}
               >
-                {clinicDetails?.websites?.map((item) => {
-                  return (
-                    <Option key={item?.id} value={item?.id} >
-                      <Space>
-                        <Avatar
-                          shape="square"
-                          size={20}
-                          src={
-                            item?.website_url && isValidUrl(item?.website_url)
-                              ? getLogoUrl(item?.website_url)
-                              : ""
-                          }
-                        />
-                        <Typography>{item?.website_user_name}</Typography>{" "}
-                      </Space>
-                    </Option>
-                  );
-                })}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={24}>
-            <Form.Item
-              label={
-                <div className="custom-text1">
-                  Role<span style={{ color: "red" }}>*</span>
-                </div>
-              }
-              name="role_id"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select a role!",
-                },
-              ]}
-            >
-              <Select
-                style={{
-                  width: "100%",
-                }}
-                options={options}
+                <Avatar
+                  src={clinicDetails?.clinic_favicon}
+                  size={30}
+                  shape="square"
+                ></Avatar>
+                <Typography>{clinicDetails?.clinic_name}</Typography>
+              </Space>
+              <List
+                style={{ width: "100%" }}
+                dataSource={clinicDetails?.websites}
+                renderItem={(item, index) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      description={
+                        <>
+                          <Row>
+                            <Col span={14}>
+                              <Space
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Checkbox
+                                  key={index}
+                                  onChange={(e) => {
+                                    handleCheckboxChange(item?.id, e);
+                                  }}
+                                />
+                                <Avatar
+                                  shape="square"
+                                  size={18}
+                                  src={
+                                    item?.website_user_name
+                                      ? getLogoUrlDomain(
+                                          item?.website_user_name + ".com"
+                                        )
+                                      : ""
+                                  }
+                                />
+                                <Typography
+                                  style={{ textTransform: "capitalize" }}
+                                >
+                                  {item?.website_user_name}
+                                </Typography>
+                              </Space>
+                            </Col>
+                            <Col
+                              span={10}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "end",
+                              }}
+                            >
+                              <Select
+                                style={{
+                                  width: "100%",
+                                }}
+                                placeholder="Select role"
+                                onChange={(e,val) => {
+                                  handleChangeRole(item?.id, e,val?.label);
+                                }}
+                                options={options}
+                              />
+                            </Col>
+                          </Row>
+                        </>
+                      }
+                    />
+                  </List.Item>
+                )}
               />
-            </Form.Item>
-          </Col>
+            </>
+          )}
         </Row>
       </Form>
+    </Modal>
+  );
+};
+
+export const ManageAccessModal = ({
+  manageAccessModalVisible,
+  setmanageAccessModalVisible,
+  buttonLoader,
+  setbuttonLoader,
+  clinicDetails,
+  seletedUserDetails,
+  openNotificationWithIcon,
+  getAllClinicUserDetails,
+}) => {
+  const [selectedWebsite, setselectedWebsite] = useState();
+  const [selectedRoleId, setselectedRoleId] = useState();
+  const [selectedWebsiteId, setselectedWebsiteId] = useState();
+
+  const [accesslevelData, setaccesslevelData] = useState([]);
+  const [appointmentsAccess, setappointmentsAccess] = useState(false);
+  const [leadaAccess, setleadaAccess] = useState(false);
+  const [conversationsAccess, setconversationsAccess] = useState(false);
+  const [teamAccess, setteamAccess] = useState(false);
+  const [campaignsAccess, setcampaignsAccess] = useState(false);
+  const [reportsAccess, setreportsAccess] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+
+  const handleSubmitAccess = async () => {
+    const token = localStorage.getItem("authToken");
+    setbuttonLoader(true);
+    let data = {
+      access_level_id: accesslevelData?.id || undefined,
+      user_id: seletedUserDetails?.id,
+      clinic_id: clinicDetails?.id,
+      role_id: selectedRoleId,
+      website_id: selectedWebsiteId,
+      appointments: appointmentsAccess,
+      lead: leadaAccess,
+      conversations: conversationsAccess,
+      team: teamAccess,
+      campaigns: campaignsAccess,
+      reports: reportsAccess,
+    };
+
+    try {
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/createOrUpdateAccessLevel`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          setUnsavedChanges(false);
+          getAllClinicUserDetails();
+          openNotificationWithIcon(
+            "success",
+            "Settings",
+            "Access updated successfully"
+          );
+        })
+        .catch((err) => {
+          openNotificationWithIcon(
+            "error",
+            "Settings",
+            err?.response?.data?.message || err?.message
+          );
+          console.log(err);
+        });
+    } catch (err) {
+      openNotificationWithIcon(
+        "error",
+        "Settings",
+        err?.response?.data?.message || err?.message
+      );
+      console.log(err);
+    }
+    setbuttonLoader(false);
+  };
+
+  useEffect(() => {
+    setappointmentsAccess(accesslevelData?.appointments);
+    setleadaAccess(accesslevelData?.lead);
+    setconversationsAccess(accesslevelData?.conversations);
+    setteamAccess(accesslevelData?.team);
+    setcampaignsAccess(accesslevelData?.campaigns);
+    setreportsAccess(accesslevelData?.reports);
+  }, [accesslevelData]);
+  return (
+    <Modal
+      title={
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Button
+            onClick={() => {
+              setmanageAccessModalVisible(false);
+              setselectedWebsite();
+              setaccesslevelData();
+            }}
+            icon={<IoChevronBackSharp />}
+          ></Button>
+          <Typography style={{ marginLeft: 10 }}>User Details</Typography>
+        </div>
+      }
+      visible={manageAccessModalVisible}
+      footer={
+        <>
+          {unsavedChanges ? (
+            <>
+              <Divider style={{ margin: 5 }} />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  padding: 10,
+                }}
+              >
+                <Space>
+                  {unsavedChanges && (
+                    <Text type="danger">You have unsaved changes</Text>
+                  )}
+
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      handleSubmitAccess();
+                    }}
+                    loading={buttonLoader}
+                  >
+                    Save
+                  </Button>
+                </Space>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
+        </>
+      }
+      closable={false}
+      width={600}
+      className="custom-modal"
+    >
+      <Row
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Col span={12}>
+          <Row
+            style={{
+              display: "flex",
+              alignItems: "center",
+            }}
+            gutter={[5, 5]}
+          >
+            <Col style={{ display: "flex", justifyContent: "center" }}>
+              {seletedUserDetails.profile_picture ? (
+                <Avatar size="large" src={seletedUserDetails.profile_picture} />
+              ) : (
+                <Avatar
+                  style={{
+                    background: seletedUserDetails?.avatar_color,
+                  }}
+                  size="large"
+                >
+                  {getInitials(seletedUserDetails.dentist_full_name)}
+                </Avatar>
+              )}
+            </Col>
+            <Col>
+              <Typography> {seletedUserDetails?.dentist_full_name}</Typography>
+              <Typography> {seletedUserDetails?.email}</Typography>
+            </Col>
+          </Row>
+        </Col>
+
+        <Col
+          span={12}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
+          }}
+        >
+          <Space>
+            <Typography> Account Admin</Typography>
+            <Switch />
+          </Space>
+        </Col>
+      </Row>
+      <Divider style={{ margin: "10px 0px" }} />
+      {selectedWebsite ? (
+        <>
+          <Button
+            type="link"
+            icon={<IoIosArrowBack />}
+            onClick={() => {
+              setselectedWebsite();
+              setaccesslevelData();
+            }}
+            style={{ padding: 0 }}
+          >
+            Assigned Websites
+          </Button>
+
+          <Typography style={{ marginTop: 10 }}>
+            <Space style={{ display: "flex", alignItems: "center" }}>
+              <Avatar
+                shape="square"
+                size={18}
+                src={
+                  selectedWebsite
+                    ? getLogoUrlDomain(selectedWebsite + ".com")
+                    : ""
+                }
+              />
+              <Typography style={{ textTransform: "capitalize" }}>
+                {selectedWebsite} Access Level
+              </Typography>
+            </Space>
+          </Typography>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <AppointmentsSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Appointments</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={appointmentsAccess}
+                  onChange={(e) => {
+                    setappointmentsAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <LeadsSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Leads</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={leadaAccess}
+                  onChange={(e) => {
+                    setleadaAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <ConversationsSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Conversations</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={conversationsAccess}
+                  onChange={(e) => {
+                    setconversationsAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <TeamSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Team</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={teamAccess}
+                  onChange={(e) => {
+                    setteamAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <CampaignsSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Campaigns</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={campaignsAccess}
+                  onChange={(e) => {
+                    setcampaignsAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+          <Row>
+            <Col span={10}>
+              <Space style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <ReportsSVG
+                    color={"#72779E"}
+                    style={{ width: 12, display: "flex" }}
+                  />
+                </div>
+
+                <Typography>Reports</Typography>
+              </Space>
+            </Col>
+            <Col
+              span={14}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end",
+              }}
+            >
+              <Space>
+                <Typography> Access </Typography>
+                <Switch
+                  checked={reportsAccess}
+                  onChange={(e) => {
+                    setreportsAccess(e);
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "15px 0px 15px 0px" }} />
+        </>
+      ) : (
+        <>
+          <Row>
+            Assigned Websites {seletedUserDetails?.websites?.length || 0}
+          </Row>
+          <Row>
+            <List
+              style={{ width: "100%" }}
+              dataSource={seletedUserDetails?.websites}
+              renderItem={(item) => (
+                <List.Item>
+                  <List.Item.Meta
+                    title={
+                      <Typography
+                        style={{ color: "#72779EF0", fontWeight: 400 }}
+                      >
+                        {item?.role_name}
+                      </Typography>
+                    }
+                    description={
+                      <>
+                        <Row>
+                          <Col span={10}>
+                            <Tag
+                              style={{
+                                background: "#EDEAFF",
+                                borderRadius: 5,
+                              }}
+                            >
+                              <Space
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Avatar
+                                  shape="square"
+                                  size={18}
+                                  src={
+                                    item?.website_name
+                                      ? getLogoUrlDomain(
+                                          item?.website_name + ".com"
+                                        )
+                                      : ""
+                                  }
+                                />
+                                <Typography
+                                  style={{ textTransform: "capitalize" }}
+                                >
+                                  {item?.website_name}
+                                </Typography>
+                              </Space>
+                            </Tag>
+                          </Col>
+                          <Col
+                            span={14}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "end",
+                            }}
+                          >
+                            <Space
+                              style={{ display: "flex", alignItems: "center" }}
+                            >
+                              <IoSettingsOutline
+                                size={15}
+                                style={{ display: "flex" }}
+                              />
+                              <Typography
+                                onClick={() => {
+                                  setselectedWebsite(item?.website_name);
+                                  setselectedRoleId(item?.role_id);
+                                  setselectedWebsiteId(item?.website_id);
+                                  setaccesslevelData(item?.accesslevel);
+                                }}
+                                style={{ cursor: "pointer" }}
+                              >
+                                Access Level
+                              </Typography>
+                            </Space>
+                          </Col>
+                        </Row>
+                      </>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Row>
+        </>
+      )}
     </Modal>
   );
 };
@@ -1690,13 +2365,15 @@ export const DeleteUser = ({
   buttonLoader,
   setbuttonLoader,
   getAllClinicUserDetails,
+  clinicDetails,
 }) => {
   const handleDelete = async () => {
     setbuttonLoader(true);
     const token = localStorage.getItem("authToken");
+
     await axios
       .delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/delete-user/${seletedUserDetails?.id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/delete-user/${clinicDetails?.id}/${seletedUserDetails?.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1722,6 +2399,7 @@ export const DeleteUser = ({
         setisUserDeleteModalVisible(false);
         setbuttonLoader(false);
       });
+    setbuttonLoader(false);
   };
   return (
     <Modal
@@ -2261,7 +2939,7 @@ export const UpdateBlockIpModal = ({
     setbuttonLoader(true);
     values.clinic_id = loginUserDetails?.clinic_id;
     values.block_id = selectedblocklead?.id;
-    let data = {};
+   
     try {
       const token = localStorage.getItem("authToken");
 
