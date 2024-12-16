@@ -1570,6 +1570,7 @@ export const InviteTeamMemberModal = ({
         "Settings",
         "Please assign a role to the selected website."
       );
+ 
       setbuttonLoader(false);
 
       return;
@@ -1595,6 +1596,7 @@ export const InviteTeamMemberModal = ({
           }
         )
         .then((res) => {
+          setnext(false);
           InviteTeamMemberform?.resetFields();
           getAllClinicUserDetails();
           openNotificationWithIcon(
