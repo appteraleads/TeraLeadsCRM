@@ -24,6 +24,7 @@ import {
 } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
+import { getInitials } from "../Common/ReturnColumnValue";
 
 const { Text } = Typography;
 
@@ -50,7 +51,11 @@ const NoteContent = styled.div`
   font-size: 14px;
 `;
 
-const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
+const Notes = ({
+  selectedLeadDetails,
+  openNotificationWithIcon,
+  clinicUsers,
+}) => {
   const [initialeditorState, setinitialeditorState] = useState(
     EditorState.createEmpty()
   );
@@ -61,36 +66,47 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
   const [noteLoader, setnoteLoader] = useState(false);
   const [loadingButton, setLoadingButton] = useState(false);
   const [editNoteId, setEditNoteId] = useState(null);
-  const users = ["Fatima", "Noor Aleyan", "Michael", "Adam", "John", "Jane"];
+  const [mentionUserList, setmentionUserList] = useState([]);
+  const [userMentioninLeadlist, setuserMentioninLeadlist] = useState([]);
+  const [websiteUser, setwebsiteUser] = useState([]);
+
+  const addToUserMentionList = (username) => {
+    setuserMentioninLeadlist((prevList) => {
+      if (!prevList.includes(username)) {
+        return [...prevList, username];
+      }
+      return prevList;
+    });
+  };
 
   const oninitialEditorStateChange = (state) => {
     setinitialeditorState(state);
+
     const currentContent = state.getCurrentContent();
     const text = currentContent.getPlainText();
     const lastWord = text.split(" ").pop();
 
-    if (lastWord.startsWith("@")) {
-      const query = lastWord.slice(1);
-      const suggestions = users.filter((user) =>
-        user.toLowerCase().includes(query.toLowerCase())
+    // Extract mentions from editor content
+    const rawContent = convertToRaw(currentContent);
+    const currentMentions = [];
+    Object.values(rawContent.entityMap).forEach((entity) => {
+      if (entity.type === "MENTION") {
+        currentMentions.push(entity.data.mention);
+      }
+    });
+
+    // Update userMentioninLeadlist by removing deleted mentions
+    setuserMentioninLeadlist((prevList) => {
+      const updatedList = prevList.filter((mention) =>
+        currentMentions.includes(mention)
       );
-      setMentionSuggestions(suggestions);
-      setMentioning(true);
-    } else {
-      setMentioning(false);
-      setMentionSuggestions([]);
-    }
-  };
+      return updatedList;
+    });
 
-  const onEditorStateChange = (state) => {
-    setEditorState(state);
-    const currentContent = state.getCurrentContent();
-    const text = currentContent.getPlainText();
-    const lastWord = text.split(" ").pop();
-
+    // Handle live mention suggestions
     if (lastWord.startsWith("@")) {
       const query = lastWord.slice(1);
-      const suggestions = users.filter((user) =>
+      const suggestions = mentionUserList.filter((user) =>
         user.toLowerCase().includes(query.toLowerCase())
       );
       setMentionSuggestions(suggestions);
@@ -105,9 +121,10 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
     const contentState = initialeditorState.getCurrentContent();
     const selectionState = initialeditorState.getSelection();
     const mentionText = `${mention} `;
-
+    addToUserMentionList(mention);
     const mentionEntityKey = contentState.createEntity("MENTION", "IMMUTABLE", {
       mention,
+      href: `http://localhost:3000`,
     });
     const entityKey = mentionEntityKey.getLastCreatedEntityKey();
 
@@ -129,11 +146,48 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
     setMentioning(false);
   };
 
+  const onEditorStateChange = (state) => {
+    setEditorState(state);
+    const currentContent = state.getCurrentContent();
+    const text = currentContent.getPlainText();
+    const lastWord = text.split(" ").pop();
+
+    if (lastWord.startsWith("@")) {
+      const query = lastWord.slice(1);
+      const suggestions = mentionUserList.filter((user) =>
+        user.toLowerCase().includes(query.toLowerCase())
+      );
+      setMentionSuggestions(suggestions);
+      setMentioning(true);
+    } else {
+      setMentioning(false);
+      setMentionSuggestions([]);
+    }
+  };
+
+  function convertHTMLToPlainText(html) {
+    // Create a DOM parser
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    // Select all mention elements
+    const mentions = doc.querySelectorAll("[data-mention]");
+
+    // Replace mentions with their text content
+    mentions.forEach((mention) => {
+      const mentionText = mention.textContent.trim();
+      mention.replaceWith(`${mentionText}`);
+    });
+
+    // Return the plain text content
+    return doc.body.textContent.trim();
+  }
+
   const updateinsertMention = (mention) => {
     const contentState = editorState.getCurrentContent();
     const selectionState = editorState.getSelection();
     const mentionText = `${mention} `;
-
+    addToUserMentionList(mention);
     const mentionEntityKey = contentState.createEntity("MENTION", "IMMUTABLE", {
       mention,
     });
@@ -171,6 +225,28 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
     const data = await response.json();
     return { data: { link: data.url } };
   };
+ 
+  const findUserIds = (userList, userArray) => {
+    const matchedIds = [];
+    userArray.forEach((userObj) => {
+      if (userList.includes(userObj?.user.dentist_full_name)) {
+        matchedIds.push(userObj?.user?.id);
+      }
+    });
+    return matchedIds;
+  };
+
+  const removeHref = (htmlContent) => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+
+    const links = tempDiv.querySelectorAll("a");
+    links.forEach((link) => {
+      link.removeAttribute("href");
+    });
+
+    return tempDiv.innerHTML;
+  };
 
   const saveNote = async () => {
     setLoadingButton(true);
@@ -181,10 +257,17 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
           : initialeditorState.getCurrentContent()
       )
     );
+
+    const userIds = findUserIds(userMentioninLeadlist, websiteUser);
     const data = {
-      content,
+      content: removeHref(content),
+      plain_text: convertHTMLToPlainText(content),
+      userIds: userIds || undefined,
       lead_id: selectedLeadDetails?.id,
+      lead_name:
+        selectedLeadDetails?.first_name + " " + selectedLeadDetails?.last_name,
     };
+
     const token = localStorage.getItem("authToken");
     const url = editNoteId
       ? `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/update-note/${editNoteId}`
@@ -268,8 +351,39 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
     setnoteLoader(false);
   };
 
+  const getLeadAssociatedUser = async () => {
+    setnoteLoader(true);
+    const token = localStorage.getItem("authToken");
+    try {
+      await axios
+        .get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLeadAssociatedUser/${selectedLeadDetails?.user_name}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          const matchedUsers = [];
+          setwebsiteUser(res?.data?.websiteUser);
+          res?.data?.websiteUser?.forEach((item) => {
+            matchedUsers.push(item?.user?.dentist_full_name);
+          });
+          setmentionUserList(matchedUsers);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+    setnoteLoader(false);
+  };
+
   useEffect(() => {
     getNotes();
+    getLeadAssociatedUser();
   }, [selectedLeadDetails]);
 
   return (
@@ -288,14 +402,21 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
                           <div>
                             {item?.User?.profile_picture ? (
                               <Avatar
+                                size={30}
                                 src={item?.User?.profile_picture}
                                 alt="AI Agent"
                               />
                             ) : (
                               <Avatar
-                                src={item?.User?.profile_picture}
-                                alt="AI Agent"
-                              />
+                                style={{
+                                  backgroundColor: item?.User?.avatar_color,
+                                }}
+                                size={30}
+                              >
+                                {item?.User?.dentist_full_name
+                                  ? getInitials(item?.User?.dentist_full_name)
+                                  : ""}
+                              </Avatar>
                             )}
 
                             <Text style={{ marginLeft: 8 }}>
@@ -306,7 +427,7 @@ const Notes = ({ selectedLeadDetails, openNotificationWithIcon }) => {
                         <NoteContent>
                           {editNoteId === item.id ? (
                             <>
-                              <StyledEditor>
+                              <StyledEditor style={{ marginTop: 5 }}>
                                 <Editor
                                   editorState={editorState}
                                   onEditorStateChange={onEditorStateChange}

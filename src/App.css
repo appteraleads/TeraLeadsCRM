@@ -675,3 +675,21 @@ a {
 .create-clinic-modal-row{
   padding: 10px 0px 10px 0px;
 }
+
+.ant-menu{
+  border: none;
+}
+
+.multi-line-ellipsis {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+a:hover{
+  color: #3900DB;
+}

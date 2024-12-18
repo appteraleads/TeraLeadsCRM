@@ -18,6 +18,7 @@ import {
   DatePicker,
   TimePicker,
   Tooltip,
+  Dropdown,
 } from "antd";
 import TabPane from "antd/es/tabs/TabPane";
 import { IoMdMic } from "react-icons/io";
@@ -51,6 +52,7 @@ import { FaCalendar } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { GoScreenFull } from "react-icons/go";
 import { BiEdit } from "react-icons/bi";
+import { ClinicUserOptionsList } from "../Common/CommmonComponent";
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -232,9 +234,16 @@ export const ViewUpdateLeadDetails = ({
   setquickConversationView,
   setselectedConversationDetails,
   handleCancelApointment,
+  clinicUsers,
+  handleGetAllleadsKanbanView,
 }) => {
   const [treatmentOptions, settreatmentOptions] = useState([]);
   const [selectedOption, setselectedOption] = useState([]);
+  const [visiblelUserAssignedDropdown, setvisiblelUserAssignedDropdown] =
+    useState();
+  const handlevisiblelUserAssignedDropdownChange = (visible, cardId) => {
+    setvisiblelUserAssignedDropdown(visible ? cardId : null);
+  };
   const disabledDate = (current) => {
     // Can not select days before today and today
     return current && current < moment().startOf("day");
@@ -283,25 +292,79 @@ export const ViewUpdateLeadDetails = ({
             ></Button>
             <Typography style={{ marginLeft: 10 }}>Lead Details</Typography>
           </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <IoMdMic style={{ fontSize: 16 }} />
-            <Typography>AI Agent</Typography>
+          <Space style={{ display: "flex", alignItems: "center" }}>
+            <Space>
+              <IoMdMic style={{ fontSize: 16, display: "flex" }} />
+              <Typography>AI Agent</Typography>
+            </Space>
+
             <Switch defaultChecked style={{ marginLeft: 10 }} />
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                height: 30,
-                width: 50,
-                display: "flex",
-                marginLeft: 10,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
+            <Dropdown
+              overlay={
+                <ClinicUserOptionsList
+                  clinicUsers={clinicUsers}
+                  lead={selectedItemDetails}
+                  handlevisiblelUserAssignedDropdownChange={
+                    handlevisiblelUserAssignedDropdownChange
+                  }
+                  handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+                  openNotificationWithIcon={openNotificationWithIcon}
+                  setisLeadsDetailsModalVisible={setisLeadsDetailsModalVisible}
+                />
+              }
+              trigger={["click"]}
+              placement="bottomCenter"
+              visible={visiblelUserAssignedDropdown === selectedItemDetails?.id}
+              onVisibleChange={(visible) =>
+                handlevisiblelUserAssignedDropdownChange(
+                  visible,
+                  selectedItemDetails?.id
+                )
+              }
             >
-              <Avatar size={"small"}> A</Avatar>
-              <MdOutlineKeyboardArrowDown />
-            </div>
+              <div
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+
+                  width: "auto",
+                  padding: 5,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {selectedItemDetails?.User ? (
+                  <>
+                    {selectedItemDetails?.User?.profile_picture ? (
+                      <Avatar
+                        size={25}
+                        src={selectedItemDetails?.User?.profile_picture}
+                      ></Avatar>
+                    ) : (
+                      <Avatar
+                        style={{
+                          backgroundColor:
+                            selectedItemDetails?.User?.avatar_color,
+                        }}
+                        size={25}
+                      >
+                        {selectedItemDetails?.User?.dentist_full_name
+                          ? getInitials(
+                              selectedItemDetails?.User?.dentist_full_name
+                            )
+                          : ""}
+                      </Avatar>
+                    )}
+                  </>
+                ) : (
+                  <Typography className="custom-text1">Assign</Typography>
+                )}
+
+                <MdOutlineKeyboardArrowDown className="custom-text1" />
+              </div>
+            </Dropdown>
             <div style={{ marginLeft: 10 }}>
               <Tooltip title={"Edit"}>
                 <Button
@@ -340,7 +403,7 @@ export const ViewUpdateLeadDetails = ({
             ) : (
               ""
             )}
-          </div>
+          </Space>
         </div>
       }
       open={isLeadsDetailsModalVisible}
@@ -1351,6 +1414,7 @@ export const ViewUpdateLeadDetails = ({
             <Notes
               selectedLeadDetails={selectedItemDetails}
               openNotificationWithIcon={openNotificationWithIcon}
+              clinicUsers={clinicUsers}
             />
             <Card
               style={{

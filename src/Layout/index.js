@@ -42,7 +42,6 @@ import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
 import { Content } from "antd/es/layout/layout";
 
-
 const Conversations = React.lazy(() => import("../Conversations"));
 const QuickConversation = React.lazy(() =>
   import("../Common/QuickConversation")
@@ -77,13 +76,15 @@ const CustomLayout = ({ loginUserDetails }) => {
   const [isLeadsDetailsModalVisible, setisLeadsDetailsModalVisible] =
     useState(false);
   const [selectedItemDetails, setselectedItemDetails] = useState([]);
+  const [userSeletedWebsiteList, setuserSeletedWebsiteList] = useState([]);
+  const [clinicUsers, setclinicUsers] = useState([]);
   const handlesetvisibleNotificationDropdown = (visible) => {
     if (visible) {
       handleGetNotificationDetails();
     }
     setisNotificationDropdownVisible(visible);
   };
- 
+
   const enterFullScreen = () => {
     if (containerRef.current.requestFullscreen) {
       containerRef.current.requestFullscreen();
@@ -172,6 +173,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                         dangerouslySetInnerHTML={{
                           __html: noti?.message?.trim(),
                         }}
+                        className="multi-line-ellipsis"
                       />
                     </Typography>
                     <Space style={{ display: "flex", alignItems: "center" }}>
@@ -216,6 +218,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                         dangerouslySetInnerHTML={{
                           __html: noti?.message?.trim(),
                         }}
+                        className="multi-line-ellipsis"
                       />
                     </Typography>
                     <Space style={{ display: "flex", alignItems: "center" }}>
@@ -251,6 +254,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                         dangerouslySetInnerHTML={{
                           __html: noti?.message?.trim(),
                         }}
+                        className="multi-line-ellipsis"
                       />
                     </Typography>
                     <Typography>
@@ -283,6 +287,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                         dangerouslySetInnerHTML={{
                           __html: noti?.message?.trim(),
                         }}
+                        className="multi-line-ellipsis"
                       />
                     </Typography>
                     <Typography>
@@ -379,6 +384,20 @@ const CustomLayout = ({ loginUserDetails }) => {
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   };
 
+  const handleCheckboxChange = (websiteUserName, checked) => {
+    setuserSeletedWebsiteList((prev) => {
+      if (checked) {
+        // Add website_user_name if not already in the list
+        return prev.includes(websiteUserName)
+          ? prev
+          : [...prev, websiteUserName];
+      } else {
+        // Remove website_user_name if unchecked
+        return prev.filter((name) => name !== websiteUserName);
+      }
+    });
+  };
+
   const clinicdropitems = [
     {
       key: "1",
@@ -418,11 +437,25 @@ const CustomLayout = ({ loginUserDetails }) => {
                 key: web?.id,
                 label: (
                   <Space>
-                    <Checkbox checked></Checkbox>
+                    <Checkbox
+                      checked={userSeletedWebsiteList.includes(
+                        web.website_user_name
+                      )}
+                      onChange={(e) =>
+                        handleCheckboxChange(
+                          web?.website_user_name,
+                          e.target.checked
+                        )
+                      }
+                    ></Checkbox>
                     <Avatar
                       shape="square"
                       size={20}
-                      src={web?.website_url && isValidUrl(web?.website_url) ? getLogoUrl(web?.website_url) : ""}
+                      src={
+                        web?.website_url && isValidUrl(web?.website_url)
+                          ? getLogoUrl(web?.website_url)
+                          : ""
+                      }
                     />
                     <Typography>
                       {web?.website_url || "Unnamed Website"}
@@ -433,11 +466,6 @@ const CustomLayout = ({ loginUserDetails }) => {
             [],
         }))
       : []),
-    // {
-    //   key: "4",
-    //   label: <Typography style={{ color: "#3900DB" }}>New Clinic</Typography>,
-    //   icon: <FaPlus style={{ color: "#3900DB" }} />,
-    // },
   ];
 
   const openNotificationWithIcon = (type, message, description) => {
@@ -521,6 +549,68 @@ const CustomLayout = ({ loginUserDetails }) => {
   };
 
   useEffect(() => {
+    let temp = loginUserDetails?.userClinicRoles?.flatMap((clinicRole) => 
+      clinicRole?.clinic?.websites?.map((website) => website?.website_user_name) || []
+    );
+    let tempUserData = [];
+
+    loginUserDetails?.userClinicRoles?.forEach((clinicRole) => {
+      clinicRole?.clinic?.websites?.forEach((website) => {
+        website?.userWebsiteRoles?.forEach((userRole) => {
+          const userId = userRole?.user?.id;
+    
+          // Determine if the invitation is accepted for the current user
+          const invitationAccepted = loginUserDetails?.userWebsiteRoles?.some(
+            (item) => item?.user_id === userId && item?.invitation_accepted
+          );
+    
+          // Create a user object with website details
+          const userObject = {
+            ...userRole?.user,
+            invitation_accepted: invitationAccepted,
+            websites: [
+              {
+                website_name: website?.website_user_name,
+                role_name: userRole?.role?.role_name,
+                website_id: website?.id,
+                role_id: userRole?.role?.id,
+                accesslevel: userRole?.accesslevel,
+              },
+            ],
+          };
+    
+          // Check if the user already exists in `tempUserData`
+          const existingUserIndex = tempUserData.findIndex(
+            (user) => user?.id === userId
+          );
+    
+          if (existingUserIndex >= 0) {
+            // If user exists, update their websites array and invitation status
+            const existingUser = tempUserData[existingUserIndex];
+            existingUser.websites.push({
+              website_name: website?.website_user_name,
+              role_name: userRole?.role?.role_name,
+              website_id: website?.id,
+              role_id: userRole?.role?.id,
+              accesslevel: userRole?.accesslevel,
+            });
+    
+            // Update invitation_accepted to ensure it's up-to-date
+            existingUser.invitation_accepted = invitationAccepted;
+          } else {
+            // If user doesn't exist, add the new user object
+            tempUserData.push(userObject);
+          }
+        });
+      });
+    });
+      
+
+    setclinicUsers(tempUserData || [])
+    setuserSeletedWebsiteList(temp || []);
+  }, [loginUserDetails]);
+
+  useEffect(() => {
     if (location.pathname === "/leads") {
       setsidebarkey("4");
       setdefaultValueSearch("leads");
@@ -550,7 +640,6 @@ const CustomLayout = ({ loginUserDetails }) => {
               "linear-gradient(180deg, #FFFBFE 0%, #FEF7FE 51.48%, #F5F8FF 100%)",
             borderRight: "1px solid #E8EBEF",
           }}
-          // collapsible
           collapsed={collapsed}
           onCollapse={(value) => setCollapsed(value)}
         >
@@ -574,7 +663,7 @@ const CustomLayout = ({ loginUserDetails }) => {
           <div
             style={{ display: "flex", flexDirection: "column", height: "90%" }}
           >
-            {/* Main Menu items */}
+          
             <Menu
               onClick={onClick}
               selectedKeys={[sidebarkey]}
@@ -583,7 +672,6 @@ const CustomLayout = ({ loginUserDetails }) => {
               style={{ padding: 10, background: "none", flexGrow: 1 }}
             />
 
-            {/* Settings item positioned at the bottom */}
             <Menu
               mode="inline"
               style={{ padding: 10, background: "none" }}
@@ -787,6 +875,8 @@ const CustomLayout = ({ loginUserDetails }) => {
                 setquickConversationView={setquickConversationView}
                 setselectedConversationDetails={setselectedConversationDetails}
                 loginUserDetails={loginUserDetails}
+                userSeletedWebsiteList={userSeletedWebsiteList}
+                clinicUsers={clinicUsers}
               />
             ) : sidebarkey === "6" ? (
               <Conversations

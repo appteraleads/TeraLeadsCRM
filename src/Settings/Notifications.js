@@ -25,7 +25,6 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [receiveNotificationsEmail, setreceiveNotificationsEmail] = useState();
   const [receiveInAppNotification, setreceiveInAppNotification] = useState();
   const [notifications_DND, setnotifications_DND] = useState();
-
   const [notifyAppointmentBooked, setnotifyAppointmentBooked] = useState();
   const [notifyLeadReschedule, setnotifyLeadReschedule] = useState();
   const [
@@ -38,12 +37,10 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [notifyNewLeadAdded, setnotifyNewLeadAdded] = useState();
   const [notifyLeadAssignments, setnotifyLeadAssignments] = useState();
   const [notifyMentionedLeadNotes, setnotifyMentionedLeadNotes] = useState();
-
   const [
     notifyConversationReceiveNewMessage,
     setnotifyConversationReceiveNewMessage,
   ] = useState();
-
   const [notifyCampaignSentScheduled, setnotifyCampaignSentScheduled] =
     useState();
   const [
@@ -52,15 +49,12 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
   ] = useState();
 
   const [unsaveChanges, setunsaveChanges] = useState(false);
-  const onChange = (key) => {
-    console.log(key);
-  };
 
   const handleSubmitNotificationsSetting = async () => {
+
     setbuttonLoader(true);
     let data = {
       user_id: loginUserDetails?.id,
-      clinic_id: loginUserDetails?.clinic_id,
       receive_notifications_sms: receiveNotificationsSMS,
       receive_notifications_email: receiveNotificationsEmail,
       receive_inapp_notification: receiveInAppNotification,
@@ -82,7 +76,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
     }; 
 
     const token = localStorage.getItem("authToken");
-
+ 
     await axios
       .post(
         `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/notification-settings`,
@@ -122,7 +116,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
     try {
       await axios
         .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/notification-settings?user_id=${loginUserDetails?.id}&clinic_id=${loginUserDetails?.clinic_id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/notification-settings?user_id=${loginUserDetails?.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -130,7 +124,7 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
           }
         )
         .then((res) => {
-          console.log(res?.data?.notificationSetting);
+          
           setreceiveNotificationsSMS(
             res?.data?.notificationSetting?.receive_notifications_sms
           );
@@ -751,12 +745,12 @@ const Notifications = ({ openNotificationWithIcon, loginUserDetails }) => {
   useEffect(() => {
     handleGetNotificationsDetails();
   }, []);
+
   return (
     <>
       <Tabs
         defaultActiveKey="1"
         items={items}
-        onChange={onChange}
         style={{ width: "100%", }}
       />
     </>

@@ -14,7 +14,6 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   Typography,
 } from "antd";
@@ -1913,7 +1912,7 @@ export const ManageAccessModal = ({
     setbuttonLoader(true);
     let data = {
       access_level_id: accesslevelData?.id || undefined,
-      user_id: seletedUserDetails?.id,
+      user_id: seletedUserDetails?.dataValues?.id,
       clinic_id: clinicDetails?.id,
       role_id: selectedRoleId,
       website_id: selectedWebsiteId,
@@ -1963,6 +1962,8 @@ export const ManageAccessModal = ({
     }
     setbuttonLoader(false);
   };
+
+
 
   useEffect(() => {
     setappointmentsAccess(accesslevelData?.appointments);
@@ -2042,22 +2043,22 @@ export const ManageAccessModal = ({
             gutter={[5, 5]}
           >
             <Col style={{ display: "flex", justifyContent: "center" }}>
-              {seletedUserDetails.profile_picture ? (
-                <Avatar size="large" src={seletedUserDetails.profile_picture} />
+              {seletedUserDetails?.dataValues?.profile_picture ? (
+                <Avatar size="large" src={seletedUserDetails?.dataValues?.profile_picture} />
               ) : (
                 <Avatar
                   style={{
-                    background: seletedUserDetails?.avatar_color,
+                    background: seletedUserDetails?.dataValues?.avatar_color,
                   }}
                   size="large"
                 >
-                  {getInitials(seletedUserDetails.dentist_full_name)}
+                  {getInitials(seletedUserDetails?.dataValues?.dentist_full_name)}
                 </Avatar>
               )}
             </Col>
             <Col>
-              <Typography> {seletedUserDetails?.dentist_full_name}</Typography>
-              <Typography> {seletedUserDetails?.email}</Typography>
+              <Typography> {seletedUserDetails?.dataValues?.dentist_full_name}</Typography>
+              <Typography> {seletedUserDetails?.dataValues?.email}</Typography>
             </Col>
           </Row>
         </Col>

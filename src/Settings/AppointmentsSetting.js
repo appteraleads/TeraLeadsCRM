@@ -38,6 +38,7 @@ const AppointmentsSetting = ({
   openNotificationWithIcon,
   loginUserDetails,
 }) => {
+
   const [pageloader, setpageloader] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone // Default to user's local timezone
@@ -299,7 +300,9 @@ const AppointmentsSetting = ({
     const token = localStorage.getItem("authToken");
     await axios
       .get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/appointment-settings/${loginUserDetails?.clinic_id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/appointment-settings/${loginUserDetails?.
+        userClinicRoles[0]?.clinic
+        }`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -864,6 +867,7 @@ const AppointmentsSetting = ({
   useEffect(() => {
     handlesGetAppointmentsSettingDetails();
   }, []);
+  
   return (
     <>
       <Tabs

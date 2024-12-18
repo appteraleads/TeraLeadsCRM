@@ -75,6 +75,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [clinicDetails, setclinicDetails] = useState([]);
   const [manageAccessModalVisible, setmanageAccessModalVisible] =
     useState(false);
+  const [clinicUsers, setclinicUsers] = useState([]);
 
   const menu = (item) => {
     return (
@@ -83,6 +84,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           key="1"
           icon={<IoSettingsOutline size={15} />}
           onClick={() => {
+            console.log(item);
             setseletedUserDetails(item);
             setmanageAccessModalVisible(true);
           }}
@@ -103,123 +105,6 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     );
   };
 
-  let dataSource = [];
-
-  clinicsWebsiteList?.forEach((web) => {
-    web?.userWebsiteRoles?.forEach((userdata) => {
-      const invitationAccepted = clinicDetails?.userClinicRoles?.find(
-        (item) => item?.user_id === userdata?.user?.id
-      )?.invitation_accepted;
-
-      const userObject = {
-        ...userdata?.user,
-        invitation_accepted: invitationAccepted,
-        websites: [
-          {
-            website_name: web?.website_user_name,
-            role_name: userdata?.role?.role_name,
-            website_id: web?.id,
-            role_id: userdata?.role?.id,
-            accesslevel: userdata?.accesslevel,
-          },
-        ],
-      };
-
-      const existingUserIndex = dataSource.findIndex(
-        (user) => user?.id === userdata?.user?.id
-      );
-
-      if (existingUserIndex >= 0) {
-        const existingUser = dataSource[existingUserIndex];
-
-        // Add the website and role to the user's websites array
-        existingUser.websites = [
-          ...existingUser.websites,
-          {
-            website_name: web?.website_user_name,
-            role_name: userdata?.role?.role_name,
-            website_id: web?.id,
-            role_id: userdata?.role?.id,
-            accesslevel: userdata?.accesslevel,
-          },
-        ];
-
-        // Ensure invitation_accepted is updated for the existing user
-        existingUser.invitation_accepted = invitationAccepted;
-      } else {
-        // Push the new user object with the websites array
-        dataSource.push(userObject);
-      }
-    });
-  });
-
-
-
-  //   {
-  //     title: "Users",
-  //     dataIndex: "user",
-  //     key: "user",
-  //     width: 150,
-  //     render: (_, record) => (
-  //       <div style={{ display: "flex", alignItems: "center" }}>
-  //         {record.profile_picture ? (
-  //           <Avatar
-  //             size="large"
-  //             src={record.profile_picture}
-  //             style={{ marginRight: 10 }}
-  //           />
-  //         ) : (
-  //           <Avatar
-  //             style={{ background: record?.avatar_color, marginRight: 10 }}
-  //             size="large"
-  //           >
-  //             {getInitials(record.dentist_full_name)}
-  //           </Avatar>
-  //         )}
-  //         <div>
-  //           <div>{record.dentist_f}</div>
-  //           <div style={{ color: "#888" }}>{record.email}</div>
-  //         </div>
-  //       </div>
-  //     ),
-  //   },
-  //   ...clinicsWebsiteList?.map((web) => ({
-  //     title: web?.website_user_name,
-  //     width: 150,
-  //     render: (_, record) => (
-  //       <>
-  //         {record?.activated_yn ? (
-  //           <Select
-  //             defaultValue={
-  //               record?.websites?.find(
-  //                 (item) => item?.website_name === web?.website_user_name
-  //               )?.role_name || null
-  //             }
-  //             style={{ width: 150 }}
-  //             onChange={(role_id) => {
-  //               handleRoleChange(web?.clinic_id, web?.id, record?.id, role_id);
-  //             }}
-  //             placeholder="Select role"
-  //           >
-  //             {clinicRolesList?.length > 0
-  //               ? clinicRolesList.map((item) => (
-  //                   <Option key={item?.id} value={item?.id}>
-  //                     {item?.role_name}
-  //                   </Option>
-  //                 ))
-  //               : null}
-  //           </Select>
-  //         ) : (
-  //           <Space>
-  //             <FiMail style={{color:'#72779E'}} />
-  //             <Typography> An invitation has been sent</Typography>
-  //             <Typography style={{ color: "#DB0000" }}> Withdraw Invite</Typography>
-  //           </Space>
-  //         )}
-  //       </>
-  //     ),
-  //   })),
-  // ];
   const columns = [
     {
       title: "Users",
@@ -246,7 +131,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                       width: 270,
                     }}
                   >
-                    {record.profile_picture ? (
+                    {record.dataValues.profile_picture ? (
                       <Avatar
                         size="large"
                         src={record.profile_picture}
@@ -255,19 +140,21 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                     ) : (
                       <Avatar
                         style={{
-                          background: record?.avatar_color,
+                          background: record.dataValues?.avatar_color,
                           marginRight: 10,
                         }}
                         size="large"
                       >
-                        {getInitials(record.dentist_full_name)}
+                        {getInitials(record.dataValues.dentist_full_name)}
                       </Avatar>
                     )}
                     <div>
                       <div style={{ fontWeight: "500" }}>
-                        {record.dentist_full_name}
+                        {record.dataValues.dentist_full_name}
                       </div>
-                      <div style={{ color: "#888" }}>{record.email}</div>
+                      <div style={{ color: "#888" }}>
+                        {record.dataValues.email}
+                      </div>
                     </div>
                   </div>
 
@@ -310,25 +197,28 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>
-              {record.profile_picture ? (
+              {record.dataValues.profile_picture ? (
                 <Avatar
                   size="large"
-                  src={record.profile_picture}
+                  src={record.dataValues.profile_picture}
                   style={{ marginRight: 10 }}
                 />
               ) : (
                 <Avatar
-                  style={{ background: record?.avatar_color, marginRight: 10 }}
+                  style={{
+                    background: record.dataValues?.avatar_color,
+                    marginRight: 10,
+                  }}
                   size="large"
                 >
-                  {getInitials(record.dentist_full_name)}
+                  {getInitials(record.dataValues.dentist_full_name)}
                 </Avatar>
               )}
               <div>
                 <div style={{ fontWeight: "500" }}>
-                  {record.dentist_full_name}
+                  {record.dataValues.dentist_full_name}
                 </div>
-                <div style={{ color: "#888" }}>{record.email}</div>
+                <div style={{ color: "#888" }}>{record.dataValues.email}</div>
               </div>
             </div>
 
@@ -339,7 +229,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         );
       },
     },
-    // Dynamically render other website columns
+
     ...clinicsWebsiteList?.map((web) => ({
       title: (
         <Space>
@@ -361,21 +251,24 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       key: web?.id,
       width: 250,
       render: (_, record) => {
-        if (!record?.activated_yn) {
-          return { props: { colSpan: 0 } }; // Hide dynamic columns for inactive users
+        if (!record?.invitation_accepted) {
+          return { props: { colSpan: 0 } };
         }
-
-        // Show dropdown for active users
         return (
           <Select
             defaultValue={
               record?.websites?.find(
                 (item) => item?.website_name === web?.website_user_name
-              )?.role_name || null
+              )?.role_name || "Remove"
             }
             style={{ width: "100%" }}
             onChange={(role_id) => {
-              handleRoleChange(web?.clinic_id, web?.id, record?.id, role_id);
+              handleRoleChange(
+                web?.clinic_id,
+                web?.id,
+                record?.dataValues?.id,
+                role_id
+              );
             }}
             placeholder="Select role"
           >
@@ -384,6 +277,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 {item?.role_name}
               </Option>
             ))}
+            <Option key={"Remove"} value={"Remove"}>
+              No Access
+            </Option>
           </Select>
         );
       },
@@ -435,37 +331,37 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       search: search,
     };
     try {
-      await axios
-        .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getAllClinicUserDetails/${loginUserDetails?.userClinicRoles?.[0]?.clinic_id}`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        .then((res) => {
-          console.log(res?.data);
-          setclinicDetails(res?.data?.clinics);
-          setclinicsWebsiteList(res?.data?.clinics?.websites);
-          setloaderList(false);
-        })
-        .catch((err) => {
-          setloaderList(false);
-          openNotificationWithIcon(
-            "error",
-            "Settings",
-            err?.response?.data?.message || err?.message
-          );
-          console.log(err);
-        });
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getAllClinicUserDetails/${loginUserDetails?.userClinicRoles?.[0]?.clinic_id}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const clinicDetails = res?.data?.clinicDetails;
+      if (clinicDetails) {
+        setclinicDetails(clinicDetails.clinic || null);
+        setclinicUsers(clinicDetails.users || []);
+        setclinicsWebsiteList(clinicDetails.websites || []);
+      } else {
+        setclinicDetails(null);
+        setclinicUsers([]);
+        setclinicsWebsiteList([]);
+      }
     } catch (err) {
+      openNotificationWithIcon(
+        "error",
+        "Settings",
+        err?.response?.data?.message || err?.message
+      );
+    } finally {
       setloaderList(false);
-      console.log(err);
     }
   };
-
+console.log(clinicUsers)
   const handleRoleChange = async (clinic_id, website_id, user_id, role_id) => {
     const token = localStorage.getItem("authToken");
 
@@ -490,6 +386,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         )
         .then((res) => {
           getAllClinicUserDetails();
+
         })
         .catch((err) => {
           console.log(err);
@@ -526,7 +423,6 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   };
 
   useEffect(() => {
-    console.log("useEffect triggered");
     getallpermissionList();
     handlegetAllRoles();
     getAllClinicUserDetails();
@@ -582,7 +478,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
 
       <Table
         columns={columns}
-        dataSource={dataSource}
+        dataSource={clinicUsers.length ? clinicUsers : []}
         pagination={false}
         loading={loaderList}
         scroll={{

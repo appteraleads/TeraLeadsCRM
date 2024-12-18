@@ -31,289 +31,106 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [settingSidebarKey, setsettingSidebarKey] = useState("1");
   const [settingSidebarValue, setsettingSidebarValue] = useState("My Account");
 
+  const isClinicOwner =
+    loginUserDetails?.id ===
+    loginUserDetails?.userClinicRoles?.[0]?.clinic?.owner_id;
+
+  const generateSidebarItem = (key, SVGComponent, label, activeValue) => ({
+    key,
+    icon: (
+      <div>
+        <SVGComponent
+          color={settingSidebarValue === activeValue ? "#3900DB" : "#72779E"}
+          style={{ width: 20 }}
+        />
+      </div>
+    ),
+    label: (
+      <span className="custom-text1" style={{ padding: 2 }}>
+        {label}
+      </span>
+    ),
+    onClick: () => setsettingSidebarValue(activeValue),
+  });
+
   const sidebaritems = [
     {
       key: "Account",
       label: "Account",
       type: "group",
       children: [
-        {
-          key: "1",
-          icon: (
-            <div>
-              <MyAccountSVG
-                color={
-                  settingSidebarValue === "My Account" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              My Account
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("My Account"),
-        },
-        ...(loginUserDetails?.id ===
-        loginUserDetails?.userClinicRoles?.[0]?.clinic?.owner_id
+        generateSidebarItem("1", MyAccountSVG, "My Account", "My Account"),
+        ...(isClinicOwner
           ? [
-              {
-                key: "2",
-                icon: (
-                  <div>
-                    <ClinicDetailsSVG
-                      color={
-                        settingSidebarValue === "Clinic Details"
-                          ? "#3900DB"
-                          : "#72779E"
-                      }
-                      style={{ width: 20 }}
-                    />
-                  </div>
-                ),
-                label: (
-                  <span className="custom-text1" style={{ padding: 2 }}>
-                    Clinic Details
-                  </span>
-                ),
-                onClick: () => setsettingSidebarValue("Clinic Details"),
-              },
-              {
-                key: "3",
-                icon: (
-                  <div>
-                    <TeamSVG
-                      color={
-                        settingSidebarValue === "Team" ? "#3900DB" : "#72779E"
-                      }
-                      style={{ width: 20 }}
-                    />
-                  </div>
-                ),
-                label: (
-                  <span className="custom-text1" style={{ padding: 2 }}>
-                    Team
-                  </span>
-                ),
-                onClick: () => setsettingSidebarValue("Team"),
-              },
+              generateSidebarItem(
+                "2",
+                ClinicDetailsSVG,
+                "Clinic Details",
+                "Clinic Details"
+              ),
+              generateSidebarItem("3", TeamSVG, "Team", "Team"),
+              generateSidebarItem(
+                "4",
+                BillingPlanSVG,
+                "Billing & Plan",
+                "Billing & Plan"
+              ),
             ]
           : []),
-
-        {
-          key: "4",
-          icon: (
-            <div>
-              <BillingPlanSVG
-                color={
-                  settingSidebarValue === "Billing & Plan"
-                    ? "#3900DB"
-                    : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Billing & Plan
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Billing & Plan"),
-        },
-        {
-          key: "5",
-          icon: (
-            <div>
-              <NotificationsSVG
-                color={
-                  settingSidebarValue === "Notifications"
-                    ? "#3900DB"
-                    : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Notifications
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Notifications"),
-        },
+        generateSidebarItem(
+          "5",
+          NotificationsSVG,
+          "Notifications",
+          "Notifications"
+        ),
       ],
     },
-    {
-      key: "AIAgent",
-      label: "AI Agent",
-      type: "group",
-      children: [
-        {
-          key: "6",
-          icon: (
-            <div>
-              <AICallsSVG
-                color={
-                  settingSidebarValue === "AI Calls" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              AI Calls
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("AI Calls"),
-        },
-        {
-          key: "7",
-          icon: (
-            <div>
-              <ConversationalAISVG
-                color={
-                  settingSidebarValue === "Conversational AI"
-                    ? "#3900DB"
-                    : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Conversational AI
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Conversational AI"),
-        },
-      ],
-    },
-    {
-      key: "Preferences ",
-      label: "Preferences ",
-      type: "group",
-      children: [
-        {
-          key: "8",
-          icon: (
-            <div>
-              <AppointmentsSVG
-                color={
-                  settingSidebarValue === "Appointments" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Appointments
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Appointments"),
-        },
-        {
-          key: "9",
-          icon: (
-            <div>
-              <ConversationalAISVG
-                color={
-                  settingSidebarValue === "Conversations"
-                    ? "#3900DB"
-                    : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Conversations
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Conversations"),
-        },
-        {
-          key: "10",
-          icon: (
-            <div>
-              <LeadsSVG
-                color={settingSidebarValue === "Leads" ? "#3900DB" : "#72779E"}
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Leads
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Leads"),
-        },
-        {
-          key: "11",
-          icon: (
-            <div>
-              <CampaignsSVG
-                color={
-                  settingSidebarValue === "Campaigns" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Campaigns
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Campaigns"),
-        },
-        {
-          key: "12",
-          icon: (
-            <div>
-              <AutomationsSVG
-                color={
-                  settingSidebarValue === "Automations" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Automations
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Automations"),
-        },
-        {
-          key: "13",
-          icon: (
-            <div>
-              <ReportsSVG
-                color={
-                  settingSidebarValue === "Reports" ? "#3900DB" : "#72779E"
-                }
-                style={{ width: 20 }}
-              />
-            </div>
-          ),
-          label: (
-            <span className="custom-text1" style={{ padding: 2 }}>
-              Reports
-            </span>
-          ),
-          onClick: () => setsettingSidebarValue("Reports"),
-        },
-      ],
-    },
+    ...(isClinicOwner
+      ? [
+          {
+            key: "AIAgent",
+            label: "AI Agent",
+            type: "group",
+            children: [
+              generateSidebarItem("6", AICallsSVG, "AI Calls", "AI Calls"),
+              generateSidebarItem(
+                "7",
+                ConversationalAISVG,
+                "Conversational AI",
+                "Conversational AI"
+              ),
+            ],
+          },
+          {
+            key: "Preferences",
+            label: "Preferences",
+            type: "group",
+            children: [
+              generateSidebarItem(
+                "8",
+                AppointmentsSVG,
+                "Appointments",
+                "Appointments"
+              ),
+              generateSidebarItem(
+                "9",
+                ConversationalAISVG,
+                "Conversations",
+                "Conversations"
+              ),
+              generateSidebarItem("10", LeadsSVG, "Leads", "Leads"),
+              generateSidebarItem("11", CampaignsSVG, "Campaigns", "Campaigns"),
+              generateSidebarItem(
+                "12",
+                AutomationsSVG,
+                "Automations",
+                "Automations"
+              ),
+              generateSidebarItem("13", ReportsSVG, "Reports", "Reports"),
+            ],
+          },
+        ]
+      : []),
   ];
 
   const onClickSettingSidebar = (e) => {
@@ -326,6 +143,7 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
         <Sider
           width={200}
           style={{
+            minHeight: "90vh",
             background: "#fff",
             borderRight: "1px solid #E8EBEF",
           }}
@@ -448,7 +266,9 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
               </Col>
             </Row>
           </Header>
-          <Content style={{ padding: 10, background: "#FCFDFF" }}>
+          <Content
+            style={{ padding: 10, background: "#FCFDFF", maxHeight: "100%" }}
+          >
             {settingSidebarValue === "My Account" ? (
               <MyAccount
                 openNotificationWithIcon={openNotificationWithIcon}

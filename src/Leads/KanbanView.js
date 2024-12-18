@@ -35,6 +35,8 @@ import { ReactComponent as Tooth } from "../assets/IconSvg/mdi_tooth.svg";
 import { FiEye, FiPhoneCall } from "react-icons/fi";
 import axios from "axios";
 import { HiOutlineChatBubbleLeft } from "react-icons/hi2";
+import { ClinicUserOptionsList } from "../Common/CommmonComponent";
+
 const { Text } = Typography;
 
 const KanbanView = ({
@@ -58,15 +60,21 @@ const KanbanView = ({
   setisVisibleQuickConversation,
   setquickConversationView,
   setselectedConversationDetails,
+  clinicUsers,
 }) => {
   const [dropIndex, setDropIndex] = useState(null);
   const [currentContainer, setCurrentContainer] = useState(null);
   const getInitials = (name) => {
     const nameParts = name?.split(" ");
+
     const initials = nameParts?.map((part) => part[0]?.toUpperCase())?.join("");
     return initials;
   };
-
+  const [visiblelUserAssignedDropdown, setvisiblelUserAssignedDropdown] =
+    useState();
+  const handlevisiblelUserAssignedDropdownChange = (visible, cardId) => {
+    setvisiblelUserAssignedDropdown(visible ? cardId : null);
+  };
   const calledAttemptsList = [
     { label: "⁠First call", value: "first call" },
     { label: "⁠⁠Second call", value: "⁠⁠second call" },
@@ -502,7 +510,7 @@ const KanbanView = ({
                                 <div
                                   className="containerStyle thumbStyle"
                                   style={{
-                                    height: "130px",
+                                    height: "150px",
                                     overflowY: "auto",
                                     // scrollbarColor: "auto",
                                     // scrollbarWidth: "auto",
@@ -586,8 +594,9 @@ const KanbanView = ({
                                                 </Typography>
 
                                                 {item?.appointment_status !==
-                                                "Confirmed" && item?.appointment_status !==
-                                                "Cancelled" ? (
+                                                  "Confirmed" &&
+                                                item?.appointment_status !==
+                                                  "Cancelled" ? (
                                                   <Space
                                                     style={{
                                                       cursor: "pointer",
@@ -598,7 +607,6 @@ const KanbanView = ({
                                                       );
                                                     }}
                                                   >
-                                                   
                                                     <BsArrowClockwise
                                                       style={{
                                                         fontSize: 16,
@@ -830,7 +838,7 @@ const KanbanView = ({
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "space-between",
-                                    height:40
+                                    height: 40,
                                   }}
                                 >
                                   <Divider
@@ -897,20 +905,73 @@ const KanbanView = ({
                                     />
                                   </Tooltip>
 
-                                  <div
-                                    style={{
-                                      border: "1px solid #ddd",
-                                      borderRadius: 8,
-                                      height: 30,
-                                      width: 50,
-                                      display: "flex",
-                                      justifyContent: "center",
-                                      alignItems: "center",
-                                    }}
+                                  <Dropdown
+                                    overlay={
+                                      <ClinicUserOptionsList
+                                        clinicUsers={clinicUsers}
+                                        lead={item}
+                                        handlevisiblelUserAssignedDropdownChange={handlevisiblelUserAssignedDropdownChange}
+                                        handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
+                                        openNotificationWithIcon={openNotificationWithIcon}
+                                      />
+                                    }
+                                    trigger={["click"]}
+                                    placement="bottomCenter"
+                                    visible={
+                                      visiblelUserAssignedDropdown === item?.id
+                                    }
+                                    onVisibleChange={(visible) =>
+                                      handlevisiblelUserAssignedDropdownChange(
+                                        visible,
+                                        item?.id
+                                      )
+                                    }
                                   >
-                                    <Avatar size={"small"}> A</Avatar>
-                                    <MdOutlineKeyboardArrowDown />
-                                  </div>
+                                    <div
+                                      style={{
+                                        border: "1px solid #ddd",
+                                        borderRadius: 8,
+                                        height: 30,
+                                        width: "auto",
+                                        padding: 5,
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      {item?.User ? (
+                                        <>
+                                          {item?.User?.profile_picture ? (
+                                            <Avatar size={25} src={item?.User?.profile_picture} >
+                                            </Avatar>
+                                          ) : (
+                                            <Avatar
+                                              style={{
+                                                backgroundColor:
+                                                  item?.User?.avatar_color,
+                                              }}
+                                              size={25}
+                                            >
+                                              {item?.User?.dentist_full_name
+                                                ? getInitials(
+                                                    item?.User
+                                                      ?.dentist_full_name
+                                                  )
+                                                : ""}
+                                            </Avatar>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <Typography className="custom-text1">
+                                          Assign
+                                        </Typography>
+                                      )}
+
+                                      <MdOutlineKeyboardArrowDown className="custom-text1" />
+                                    </div>
+                                  </Dropdown>
+
                                   <Tooltip
                                     placement="top"
                                     title={"View Details"}

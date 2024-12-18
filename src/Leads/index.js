@@ -22,6 +22,7 @@ import {
   Spin,
   notification,
   Empty,
+
 } from "antd";
 import axios from "axios";
 import { ReactComponent as Usersvg } from "../assets/IconSvg/solar_user-broken.svg";
@@ -36,7 +37,7 @@ import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaMicrophone } from "react-icons/fa6";
 import { MdSpaceDashboard } from "react-icons/md";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { leadsColumns } from "../Common/ReturnColumnValue";
+import {  leadsColumns } from "../Common/ReturnColumnValue";
 import KanbanView from "./KanbanView";
 import {
   ViewUpdateLeadDetails,
@@ -47,6 +48,7 @@ import {
   CreateDuplicateLead,
 } from "./Modals";
 import { FaFilter } from "react-icons/fa";
+
 const { Header, Content } = Layout;
 
 const defaultColunmList = [
@@ -69,6 +71,8 @@ const Leads = ({
   setisVisibleQuickConversation,
   setquickConversationView,
   setselectedConversationDetails,
+  userSeletedWebsiteList,
+  clinicUsers,
 }) => {
   const [CreateLeadsform] = Form.useForm();
   const [ViewUpdateLeadform] = Form.useForm();
@@ -79,15 +83,12 @@ const Leads = ({
   const [ClosedLeadsCount, setClosedLeadsCount] = useState(0);
   const [RevenueCount, setRevenueCount] = useState(0);
   const [noShowCount, setnoShowCount] = useState(0);
-
   const [api, contextHolder] = notification.useNotification();
   const [columnsList, setcolumnsList] = useState([]);
   const [tempcolumnsList, settempcolumnsList] = useState(columnsList);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-
   const [visibleFilter, setvisibleFilter] = useState(false);
   const [leaadActiveTab, setleaadActiveTab] = useState(1);
-
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isFinancingEnabled, setIsFinancingEnabled] = useState(false);
   const [pageLoader, setpageLoader] = useState(false);
@@ -104,15 +105,13 @@ const Leads = ({
     useState(false);
   const [isAppointmentModalVisible, setisAppointmentModalVisible] =
     useState(false);
-
   const [isCloseLeadsPaymentModalVisible, setisCloseLeadsPaymentModalVisible] =
     useState(false);
-
   const [totalRecords, settotalRecords] = useState(0);
   const [addCustomListColunm, setaddCustomListColunm] = useState(false);
   const [visible, setVisible] = useState(false);
-
   const [leadsListcolumns, setleadsListcolumns] = useState([]);
+
   const openNotificationWithIcon = (type, message, description) => {
     api[type]({
       message: message,
@@ -341,6 +340,7 @@ const Leads = ({
         console.log(err);
       });
   };
+
   const handleSubmitUpdateleads = async (values) => {
     values.id = selectedItemDetails?.id;
     setbuttonLoader(true);
@@ -427,6 +427,7 @@ const Leads = ({
       page: page || 1,
       limit: limit || 10,
       search: search || "",
+      websiteNames: userSeletedWebsiteList || [],
       searchType: searchType?.trim() || "",
     };
 
@@ -500,6 +501,7 @@ const Leads = ({
     let data = {
       search: search || "",
       searchType: searchType || "",
+      websiteNames: userSeletedWebsiteList || [],
     };
     try {
       await axios
@@ -749,6 +751,7 @@ const Leads = ({
                   setselectedConversationDetails={
                     setselectedConversationDetails
                   }
+                  clinicUsers={clinicUsers}
                 />
               )}
             </>
@@ -984,12 +987,12 @@ const Leads = ({
 
   useEffect(() => {
     handleGetAllleads();
-  }, []);
+  }, [userSeletedWebsiteList]);
 
   useEffect(() => {
     handleGetAllleads("", "", searchContent, "text");
     handleGetAllleadsKanbanView(searchContent, "text");
-  }, [searchContent]);
+  }, [searchContent, userSeletedWebsiteList]);
 
   return (
     <div>
@@ -1339,6 +1342,8 @@ const Leads = ({
             setquickConversationView={setquickConversationView}
             setselectedConversationDetails={setselectedConversationDetails}
             handleCancelApointment={handleCancelApointment}
+            clinicUsers={clinicUsers}
+            handleGetAllleadsKanbanView={handleGetAllleadsKanbanView}
           />
 
           {/* Lead Delete Confirmation*/}

@@ -213,6 +213,7 @@ const Appointments = ({
         setbuttonLoader(false);
       });
   };
+
   const handleCancelApointment = async () => {
     const token = localStorage.getItem("authToken");
     let data = {
@@ -245,6 +246,7 @@ const Appointments = ({
         console.log(err);
       });
   };
+  
   const handleSubmitUpdateleads = async (values) => {
     values.id = selectedItemDetails?.id;
     setbuttonLoader(true);
