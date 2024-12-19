@@ -15,13 +15,14 @@ const CustomCalendar = ({
   openNotificationWithIcon,
   setisModalVisibleViewLeadDetailsShort,
   setselectedItemDetails,
+  userSeletedWebsiteList
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalEvents, setModalEvents] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [calendarView, setCalendarView] = useState("timeGridWeek");
 
-  // Handles fetching data and setting calendar events
+
   const handleGetCalenderDataForAppointment = async (
     startDate,
     endDate,
@@ -34,6 +35,7 @@ const CustomCalendar = ({
         start: moment(startDate).format("YYYY-MM-DD"),
         end: moment(endDate).format("YYYY-MM-DD"),
       },
+      websiteNames: userSeletedWebsiteList || [],
     };
 
     try {
@@ -76,16 +78,6 @@ const CustomCalendar = ({
       );
     }
   };
-
-  // Fetch events when component mounts or view changes
-  useEffect(() => {
-    const now = new Date();
-    handleGetCalenderDataForAppointment(
-      now,
-      moment(now).add(1, "week").toDate(),
-      calendarView
-    );
-  }, [calendarView]);
 
   const handleSelectEvent = (info) => {
     setisModalVisibleViewLeadDetailsShort(true);
@@ -157,6 +149,15 @@ const CustomCalendar = ({
       </div>
     );
   };
+
+  useEffect(() => {
+    const now = new Date();
+    handleGetCalenderDataForAppointment(
+      now,
+      moment(now).add(1, "week").toDate(),
+      calendarView
+    );
+  }, [calendarView,userSeletedWebsiteList]);
 
   return (
     <div style={{ height: "80vh", padding: 10 ,overflow:'auto'}}>

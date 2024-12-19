@@ -25,7 +25,7 @@ import { ReactComponent as Appointmentssvg } from "../assets/IconSvg/basil_calen
 import { ReactComponent as Reportsvg } from "../assets/IconSvg/hugeicons_analytics-up.svg";
 import { ReactComponent as Callsvg } from "../assets/IconSvg/Vector.svg";
 import { ReactComponent as Chatsvg } from "../assets/IconSvg/fluent_chat-16-regular.svg";
-
+import { IoIosLogOut } from "react-icons/io";
 import { ReactComponent as LogoCircle } from "../assets/logo/teracrmlogoCircle.svg";
 import { MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { FiPlusCircle } from "react-icons/fi";
@@ -41,7 +41,7 @@ import { FaClinicMedical } from "react-icons/fa";
 import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
 import { Content } from "antd/es/layout/layout";
-
+import { LuLogOut } from "react-icons/lu";
 const Conversations = React.lazy(() => import("../Conversations"));
 const QuickConversation = React.lazy(() =>
   import("../Common/QuickConversation")
@@ -78,11 +78,16 @@ const CustomLayout = ({ loginUserDetails }) => {
   const [selectedItemDetails, setselectedItemDetails] = useState([]);
   const [userSeletedWebsiteList, setuserSeletedWebsiteList] = useState([]);
   const [clinicUsers, setclinicUsers] = useState([]);
+  const [visibleprofileMenu, setvisibleprofileMenu] = useState(false);
   const handlesetvisibleNotificationDropdown = (visible) => {
     if (visible) {
       handleGetNotificationDetails();
     }
     setisNotificationDropdownVisible(visible);
+  };
+
+  const handlesetvisibleprofileMenu = (visible) => {
+    setvisibleprofileMenu(visible);
   };
 
   const enterFullScreen = () => {
@@ -301,6 +306,83 @@ const CustomLayout = ({ loginUserDetails }) => {
             </List.Item>
           )}
         />
+      </div>
+    </Menu>
+  );
+
+  const profileMenu = (
+    <Menu>
+      <div
+        style={{
+          padding: "10px 10px 0px 10px",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Typography className="custom-text1" style={{ fontSize: 15 }}>
+          Account
+        </Typography>
+      </div>
+      <div
+        style={{
+          width: 250,
+        }}
+      >
+        <Space style={{ padding: 10 }}>
+          {loginUserDetails?.profile_picture ? (
+            <Avatar size={34} src={loginUserDetails?.profile_picture} />
+          ) : (
+            <Avatar
+              size={34}
+              style={{ background: loginUserDetails?.avatar_color }}
+            >
+              {getInitials(loginUserDetails?.dentist_full_name)}
+            </Avatar>
+          )}
+          <div>
+            <Typography
+              style={{
+                fontWeight: "bold",
+              }}
+            >
+              {loginUserDetails?.dentist_full_name}
+            </Typography>
+
+            <Typography
+              className="custom-text1"
+              style={{ overflow: "hidden", textOverflow: "ellipsis",whiteSpace: 'nowrap',width: '180px' }}
+            >
+              {loginUserDetails?.email}
+            </Typography>
+          </div>
+        </Space>
+        <Divider style={{ margin: 0 }} />
+        <Space
+          style={{ padding: 10, cursor: "pointer" }}
+          onClick={() => {
+            navigate("/settings");
+            setvisibleprofileMenu(false);
+          }}
+        >
+          <div style={{ display: "flex", width: 20 }}>
+            <SettingsSVG color={"#72779E"} />
+          </div>
+          <Typography style={{ fontWeight: 500 }}>Settings</Typography>
+        </Space>
+        <Divider style={{ margin: 0 }} />
+        <Space
+          style={{ padding: 10, cursor: "pointer" }}
+          onClick={() => {
+            navigate("/login");
+            localStorage.clear();
+            setvisibleprofileMenu(false);
+          }}
+        >
+          <div style={{ display: "flex", width: 20 }}>
+            <LuLogOut style={{ fontSize: 18, color: "#72779E" }} />
+          </div>
+          <Typography style={{ fontWeight: 500 }}>Logout</Typography>
+        </Space>
       </div>
     </Menu>
   );
@@ -549,8 +631,11 @@ const CustomLayout = ({ loginUserDetails }) => {
   };
 
   useEffect(() => {
-    let temp = loginUserDetails?.userClinicRoles?.flatMap((clinicRole) => 
-      clinicRole?.clinic?.websites?.map((website) => website?.website_user_name) || []
+    let temp = loginUserDetails?.userClinicRoles?.flatMap(
+      (clinicRole) =>
+        clinicRole?.clinic?.websites?.map(
+          (website) => website?.website_user_name
+        ) || []
     );
     let tempUserData = [];
 
@@ -558,12 +643,12 @@ const CustomLayout = ({ loginUserDetails }) => {
       clinicRole?.clinic?.websites?.forEach((website) => {
         website?.userWebsiteRoles?.forEach((userRole) => {
           const userId = userRole?.user?.id;
-    
+
           // Determine if the invitation is accepted for the current user
           const invitationAccepted = loginUserDetails?.userWebsiteRoles?.some(
             (item) => item?.user_id === userId && item?.invitation_accepted
           );
-    
+
           // Create a user object with website details
           const userObject = {
             ...userRole?.user,
@@ -578,12 +663,12 @@ const CustomLayout = ({ loginUserDetails }) => {
               },
             ],
           };
-    
+
           // Check if the user already exists in `tempUserData`
           const existingUserIndex = tempUserData.findIndex(
             (user) => user?.id === userId
           );
-    
+
           if (existingUserIndex >= 0) {
             // If user exists, update their websites array and invitation status
             const existingUser = tempUserData[existingUserIndex];
@@ -594,7 +679,7 @@ const CustomLayout = ({ loginUserDetails }) => {
               role_id: userRole?.role?.id,
               accesslevel: userRole?.accesslevel,
             });
-    
+
             // Update invitation_accepted to ensure it's up-to-date
             existingUser.invitation_accepted = invitationAccepted;
           } else {
@@ -604,9 +689,8 @@ const CustomLayout = ({ loginUserDetails }) => {
         });
       });
     });
-      
 
-    setclinicUsers(tempUserData || [])
+    setclinicUsers(tempUserData || []);
     setuserSeletedWebsiteList(temp || []);
   }, [loginUserDetails]);
 
@@ -663,7 +747,6 @@ const CustomLayout = ({ loginUserDetails }) => {
           <div
             style={{ display: "flex", flexDirection: "column", height: "90%" }}
           >
-          
             <Menu
               onClick={onClick}
               selectedKeys={[sidebarkey]}
@@ -712,7 +795,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                   shape="square"
                   size={40}
                   src={
-                    loginUserDetails.userClinicRoles?.[0]?.clinic
+                    loginUserDetails?.userClinicRoles?.[0]?.clinic
                       ?.clinic_favicon
                   }
                 />
@@ -725,7 +808,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                   <Space style={{ margin: 10 }}>
                     <Typography style={{ fontWeight: "bold" }}>
                       {
-                        loginUserDetails.userClinicRoles?.[0]?.clinic
+                        loginUserDetails?.userClinicRoles?.[0]?.clinic
                           ?.clinic_name
                       }
                     </Typography>
@@ -834,31 +917,44 @@ const CustomLayout = ({ loginUserDetails }) => {
                       }}
                     />
                   )}
-
-                  {loginUserDetails?.profile_picture ? (
-                    <Avatar src={loginUserDetails?.profile_picture} />
-                  ) : (
-                    <Avatar
-                      style={{ background: loginUserDetails?.avatar_color }}
-                    >
-                      {getInitials(loginUserDetails?.dentist_full_name)}
-                    </Avatar>
-                  )}
-
-                  <Typography
-                    style={{
-                      fontWeight: "bold",
-                      width: 100,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                  <Dropdown
+                    overlay={profileMenu}
+                    trigger={["click"]}
+                    placement="bottomLeft"
+                    visible={visibleprofileMenu}
+                    onVisibleChange={handlesetvisibleprofileMenu}
                   >
-                    {loginUserDetails?.dentist_full_name}
-                  </Typography>
-                  <MdOutlineKeyboardArrowDown
-                    style={{ fontSize: 20, display: "flex" }}
-                  />
+                    <Space style={{ cursor: "pointer" }}>
+                      {loginUserDetails?.profile_picture ? (
+                        <Avatar
+                          size={34}
+                          src={loginUserDetails?.profile_picture}
+                        />
+                      ) : (
+                        <Avatar
+                          size={34}
+                          style={{ background: loginUserDetails?.avatar_color }}
+                        >
+                          {getInitials(loginUserDetails?.dentist_full_name)}
+                        </Avatar>
+                      )}
+
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          maxWidth: 100,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {loginUserDetails?.dentist_full_name}
+                      </Typography>
+                      <MdOutlineKeyboardArrowDown
+                        style={{ fontSize: 20, display: "flex" }}
+                      />
+                    </Space>
+                  </Dropdown>
                 </Space>
               </Col>
             </Row>
@@ -891,6 +987,7 @@ const CustomLayout = ({ loginUserDetails }) => {
                 setquickConversationView={setquickConversationView}
                 setselectedConversationDetails={setselectedConversationDetails}
                 loginUserDetails={loginUserDetails}
+                userSeletedWebsiteList={userSeletedWebsiteList}
               />
             ) : sidebarkey === "3" ? (
               <Reports

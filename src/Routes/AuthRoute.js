@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "../Authentication/Login";
 import Signup from "../Authentication/Signup";
 import ForgotPassword from "../Authentication/ForgotPassword";
@@ -17,7 +17,7 @@ import { jwtDecode } from "jwt-decode";
 const AuthRoute = () => {
   const [userEmailId, setuserEmailId] = useState();
   const [loginUserDetails, setloginUserDetails] = useState([]);
-
+  const navigate = useNavigate();
   const RouteComponent = ({ ChildComponent }) => {
     return (
       <Row>
@@ -69,9 +69,15 @@ const AuthRoute = () => {
     const decoded = localStorage?.getItem("usertDetailsToken")
       ? jwtDecode(localStorage?.getItem("usertDetailsToken"))
       : "";
-    console.log(decoded?.user);
+
     setloginUserDetails(decoded?.user);
   }, [localStorage?.getItem("usertDetailsToken")]);
+
+  useEffect(() => {
+    if (!localStorage?.getItem("authToken")) {
+      navigate("/login");
+    }
+  }, [localStorage?.getItem("authToken")]);
 
   return (
     <>

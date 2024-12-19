@@ -81,7 +81,8 @@ const AppointmentsList = ({
   openNotificationWithIcon,
   dateCheck,
   setselectedItemDetails,
-  setisModalVisibleViewLeadDetailsShort
+  setisModalVisibleViewLeadDetailsShort,
+  userSeletedWebsiteList
 }) => {
   const [activeTab, setactiveTab] = useState(1);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -417,6 +418,7 @@ const AppointmentsList = ({
       search: search || "",
       searchType: searchType?.trim() || "status",
       filterSearch: !search ? filterSearch : undefined,
+      websiteNames: userSeletedWebsiteList || [],
     };
 
     try {
@@ -455,7 +457,7 @@ const AppointmentsList = ({
 
   useEffect(() => {
     handleGetAllleadsForAppointment();
-  }, []);
+  }, [userSeletedWebsiteList]);
 
   return (
     <div className="App">

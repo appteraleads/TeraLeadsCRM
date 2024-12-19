@@ -289,6 +289,7 @@ export const LeadListAccodingToStatus = ({
   setisModalVisibleLeadListAccodingToStatus,
   setselectedItemDetails,
   setisModalVisibleViewLeadDetailsShort,
+  userSeletedWebsiteList,
 }) => {
   const [loadingleadsList, setloadingleadsList] = useState(false);
   const [leadsList, setleadsList] = useState([]);
@@ -300,11 +301,15 @@ export const LeadListAccodingToStatus = ({
   const handleGetLeadListAccodingToStatus = async () => {
     setloadingleadsList(true);
     const token = localStorage.getItem("authToken");
+    let data = {
+      type: selectedCardTitle?.trim(),
+      websiteNames: userSeletedWebsiteList || [],
+    };
     await axios
-      .get(
+      .post(
         `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-LeadListAccodingToStatus`,
+        data,
         {
-          params: { type: selectedCardTitle?.trim() },
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -359,23 +364,27 @@ export const LeadListAccodingToStatus = ({
                       setisModalVisibleViewLeadDetailsShort(true);
                     }}
                   >
-                    <Avatar
-                      size={25}
-                      style={{
-                        backgroundColor: lead?.avatar_color,
-                        fontSize: 14,
-                        marginRight: 10,
-                      }}
-                    >
-                      {lead?.first_name && lead?.last_name
-                        ? getInitials(lead?.first_name + " " + lead?.last_name)
-                        : lead?.phone_number}
-                    </Avatar>
-                    <Typography>
-                      {lead?.first_name && lead?.last_name
-                        ? lead?.first_name + " " + lead?.last_name
-                        : lead?.phone_number}
-                    </Typography>
+                    <Space>
+                      <Avatar
+                        size={25}
+                        style={{
+                          backgroundColor: lead?.avatar_color,
+                          fontSize: 14,
+                          marginRight: 5,
+                        }}
+                      >
+                        {lead?.first_name && lead?.last_name
+                          ? getInitials(
+                              lead?.first_name + " " + lead?.last_name
+                            )
+                          : lead?.phone_number}
+                      </Avatar>
+                      <Typography>
+                        {lead?.first_name && lead?.last_name
+                          ? lead?.first_name + " " + lead?.last_name
+                          : lead?.phone_number}
+                      </Typography>
+                    </Space>
                   </Menu.Item>
                 ))
               ) : (

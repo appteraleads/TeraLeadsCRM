@@ -93,6 +93,8 @@ const Appointments = ({
   setisVisibleQuickConversation,
   setquickConversationView,
   setselectedConversationDetails,
+  loginUserDetails,
+  userSeletedWebsiteList,
 }) => {
   const [api, contextHolder] = notification.useNotification();
   const [ViewUpdateLeadform] = Form.useForm();
@@ -150,11 +152,15 @@ const Appointments = ({
   const handleGetAllLeadStatusNotConfirm = async (searchTerm) => {
     setloadingleadsList(true);
     const token = localStorage.getItem("authToken");
+    let data = {
+      search: searchTerm,
+      websiteNames: userSeletedWebsiteList || [],
+    };
     await axios
-      .get(
+      .post(
         `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/get-AllLeadStatusNotConfirm`,
+        data,
         {
-          params: { search: searchTerm },
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -208,7 +214,11 @@ const Appointments = ({
       .catch((err) => {
         console.log(err);
 
-        openNotificationWithIcon("error", "Close Lead",err?.response?.data?.message || err?.message);
+        openNotificationWithIcon(
+          "error",
+          "Close Lead",
+          err?.response?.data?.message || err?.message
+        );
         RecordPaymentform.resetFields();
         setbuttonLoader(false);
       });
@@ -246,7 +256,7 @@ const Appointments = ({
         console.log(err);
       });
   };
-  
+
   const handleSubmitUpdateleads = async (values) => {
     values.id = selectedItemDetails?.id;
     setbuttonLoader(true);
@@ -290,6 +300,7 @@ const Appointments = ({
     let data = {
       search: search || "",
       searchType: searchType?.trim() || "",
+      websiteNames: userSeletedWebsiteList || [],
     };
 
     const token = localStorage.getItem("authToken");
@@ -314,7 +325,8 @@ const Appointments = ({
           setnotConfirmedAppointmentsCount(
             res?.data?.overview?.not_confirmed_appointments
           );
-          setappointmentsData(res?.data?.upcomingappointments || []);
+      
+          setappointmentsData(res?.data?.upcomingAppointments || []);
           setpastappointmentsData(res?.data?.pastAppointments || []);
         })
         .catch((err) => {
@@ -337,7 +349,7 @@ const Appointments = ({
 
   useEffect(() => {
     handleGetAppointmentOverview(searchContent, "text");
-  }, [searchContent]);
+  }, [searchContent,userSeletedWebsiteList]);
 
   return (
     <>
@@ -429,6 +441,7 @@ const Appointments = ({
                       setisModalVisibleViewLeadDetailsShort
                     }
                     setselectedItemDetails={setselectedItemDetails}
+                    userSeletedWebsiteList={userSeletedWebsiteList}
                   />
                 ),
               },
@@ -443,6 +456,7 @@ const Appointments = ({
                     setisModalVisibleViewLeadDetailsShort={
                       setisModalVisibleViewLeadDetailsShort
                     }
+                    userSeletedWebsiteList={userSeletedWebsiteList}
                   />
                 ),
               },
@@ -519,6 +533,7 @@ const Appointments = ({
             setisModalVisibleViewLeadDetailsShort={
               setisModalVisibleViewLeadDetailsShort
             }
+            userSeletedWebsiteList={userSeletedWebsiteList}
           />
         </Content>
       </Layout>
