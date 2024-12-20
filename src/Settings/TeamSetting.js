@@ -95,7 +95,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           key="2"
           icon={<AiOutlineDelete size={15} />}
           onClick={() => {
-            console.log(item)
+            console.log(item);
             setseletedUserDetails(item);
             setisUserDeleteModalVisible(true);
           }}
@@ -158,10 +158,13 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                       </div>
                     </div>
                   </div>
-
-                  <Dropdown overlay={menu(record)}>
-                    <BiDotsHorizontal style={{ cursor: "pointer" }} />
-                  </Dropdown>
+                  {record?.dataValues?.id !== clinicDetails?.owner_id ? (
+                    <Dropdown overlay={menu(record)}>
+                      <BiDotsHorizontal style={{ cursor: "pointer" }} />
+                    </Dropdown>
+                  ) : (
+                    ""
+                  )}
                 </div>
                 <div
                   style={{
@@ -222,10 +225,13 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 <div style={{ color: "#888" }}>{record?.dataValues?.email}</div>
               </div>
             </div>
-
-            <Dropdown overlay={menu(record)}>
-              <BiDotsHorizontal style={{ cursor: "pointer" }} />
-            </Dropdown>
+            {record?.dataValues?.id !== clinicDetails?.owner_id ? (
+              <Dropdown overlay={menu(record)}>
+                <BiDotsHorizontal style={{ cursor: "pointer" }} />
+              </Dropdown>
+            ) : (
+              ""
+            )}
           </div>
         );
       },
@@ -262,7 +268,9 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 (item) => item?.website_name === web?.website_user_name
               )?.role_name || "Remove"
             }
-            disabled={clinicDetails?.owner_id === record?.dataValues?.id ? true : false}
+            disabled={
+              clinicDetails?.owner_id === record?.dataValues?.id ? true : false
+            }
             style={{ width: "100%" }}
             onChange={(role_id) => {
               handleRoleChange(

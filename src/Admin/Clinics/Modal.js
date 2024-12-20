@@ -436,7 +436,7 @@ export const CreateNewClinicModal = ({
           <Button
             icon={<IoChevronBackSharp />}
             onClick={() => {
-              setcreateNewClinicActiveTabKey(1)
+              setcreateNewClinicActiveTabKey(1);
               crearteNewClinicModalForm?.resetFields();
               setiscrearteNewClinicModalVisible(false);
             }}
@@ -460,7 +460,7 @@ export const CreateNewClinicModal = ({
               <Button
                 onClick={() => {
                   crearteNewClinicModalForm?.resetFields();
-                  setcreateNewClinicActiveTabKey(1)
+                  setcreateNewClinicActiveTabKey(1);
                   setiscrearteNewClinicModalVisible(false);
                 }}
               >
@@ -609,7 +609,7 @@ export const CreateNewClinicModal = ({
               label: "Account",
               key: "1",
               children: (
-                <>
+                <div style={{ padding: 10 }}>
                   <Row
                     style={{
                       display: "flex",
@@ -942,14 +942,14 @@ export const CreateNewClinicModal = ({
                       </Form.Item>
                     </Col>
                   </Row>
-                </>
+                </div>
               ),
             },
             {
               label: "Clinic Details",
               key: "2",
               children: (
-                <>
+                <div style={{ padding: 10 }}>
                   <Row style={{ padding: "10px 0px 10px 0px" }}>
                     <Col span={8}>
                       <Typography>Clinic Address </Typography>
@@ -1805,14 +1805,14 @@ export const CreateNewClinicModal = ({
                       </Form.Item>
                     </Col>
                   </Row>
-                </>
+                </div>
               ),
             },
             {
               label: "Dialer",
               key: "3",
               children: (
-                <>
+                <div style={{ padding: 10 }}>
                   <Row
                     gutter={[20, 20]}
                     style={{ display: "flex", alignItems: "center" }}
@@ -1883,14 +1883,14 @@ export const CreateNewClinicModal = ({
                       </Form.Item>
                     </Col>
                   </Row>
-                </>
+                </div>
               ),
             },
             {
               label: "Websites",
               key: "4",
               children: (
-                <>
+                <div style={{ padding: 10 }}>
                   <Typography>Clinic Website</Typography>
                   <Row
                     gutter={[10, 0]}
@@ -1974,7 +1974,7 @@ export const CreateNewClinicModal = ({
                       ))}
                     </Col>
                   </Row>
-                </>
+                </div>
               ),
             },
           ]}
