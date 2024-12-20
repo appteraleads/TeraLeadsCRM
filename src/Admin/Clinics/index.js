@@ -4,11 +4,13 @@ import {
   Button,
   Card,
   Col,
+  Divider,
   Input,
   List,
   Row,
   Space,
   Spin,
+  Tag,
   Typography,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -20,9 +22,14 @@ import {
   SearchOutlined,
   EditOutlined,
   EyeOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { ClinicsSVG } from "../../Common/SettingSidebarIconsSvg";
-import { CreateNewClinicModal, VieworEditClinicDetailsModal } from "./Modal";
+import {
+  CreateNewClinicModal,
+  DeleteClinicModalToConfirm,
+  VieworEditClinicDetailsModal,
+} from "./Modal";
 import axios from "axios";
 
 const { Text } = Typography;
@@ -40,12 +47,13 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
   const [openModeClinicDetails, setopenModeClinicDetails] = useState();
   const [selectedClinicDetails, setselectedClinicDetails] = useState([]);
 
+  const [
+    visibleDeleteClinicModalToConfirm,
+    setvisibleDeleteClinicModalToConfirm,
+  ] = useState(false);
   const renderListItem = (item) => (
     <List.Item
       style={{
-        background: "#FCFCFC",
-        border: "1px solid #E8EBEF",
-        borderRadius: "8px",
         padding: "16px",
         marginBottom: "12px",
       }}
@@ -67,25 +75,47 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
                   src={item?.clinic_favicon}
                 ></Avatar>
               </div>
-              <Text type="secondary">{item.clinic_name}</Text>
+              <div style={{ display: "grid", alignItems: "center" }}>
+                <Text type="secondary">{item.clinic_name}</Text>
+                <Space>
+                  <Typography className="custom-text1">
+                    {item?.websites?.length || 0} Websites
+                  </Typography>
+                  <Typography className="custom-text1">
+                    {item?.userClinicRoles?.length || 0} Users
+                  </Typography>
+                </Space>
+              </div>
             </Space>
             <Space>
-              <Button
-                icon={<EditOutlined />}
-                onClick={() => {
-                  setopenModeClinicDetails("edit");
-                  setselectedClinicDetails(item);
-                  setisVieworEditClinicDetailsModal(true);
+              <Tag
+                style={{
+                  width: "100%",
+                  margin: "3px 0px",
+                  background: "#DBEFCF",
+                  border: "none",
                 }}
-              ></Button>
+              >
+                2421 Leads this month
+              </Tag>
               <Button
+                style={{ width: "100%", margin: "3px 0px" }}
                 icon={<EyeOutlined />}
+                onClick={() => {}}
+              >
+                View Dashboard
+              </Button>
+              <Button
+                style={{ width: "100%", margin: "3px 0px" }}
+                icon={<SettingOutlined />}
                 onClick={() => {
                   setopenModeClinicDetails("view");
                   setselectedClinicDetails(item);
                   setisVieworEditClinicDetailsModal(true);
                 }}
-              ></Button>
+              >
+                Manage Clinic
+              </Button>
             </Space>
           </div>
         }
@@ -94,7 +124,7 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
   );
 
   const renderGridItem = (item) => (
-    <List.Item>
+    <List.Item style={{ padding: "16px" }}>
       <Card
         hoverable
         style={{
@@ -103,11 +133,6 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
           transition: "transform 0.2s",
           background: "#FCFCFC",
           border: "1px solid #E8EBEF",
-        }}
-        onClick={() => {
-          setopenModeClinicDetails("view");
-          setselectedClinicDetails(item);
-          setisVieworEditClinicDetailsModal(true);
         }}
         onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
         onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
@@ -137,6 +162,7 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: 10,
           }}
         >
           <Space>
@@ -147,6 +173,42 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
               {item?.userClinicRoles?.length || 0} Users
             </Typography>
           </Space>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Tag
+            style={{
+              width: "100%",
+              margin: "3px 0px",
+              background: "#DBEFCF",
+              border: "none",
+            }}
+          >
+            2421 Leads this month
+          </Tag>
+          <Button
+            style={{ width: "100%", margin: "3px 0px" }}
+            icon={<EyeOutlined />}
+            onClick={() => {}}
+          >
+            View Dashboard
+          </Button>
+          <Button
+            style={{ width: "100%", margin: "3px 0px" }}
+            icon={<SettingOutlined />}
+            onClick={() => {
+              setopenModeClinicDetails("view");
+              setselectedClinicDetails(item);
+              setisVieworEditClinicDetailsModal(true);
+            }}
+          >
+            Manage Clinic
+          </Button>
         </div>
       </Card>
     </List.Item>
@@ -303,25 +365,23 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
                   : setsearchClinicVisible(true);
               }}
             />
-
-            <Button
-              icon={<UnorderedListOutlined />}
-              type={viewMode === "list" ? "primary" : "default"}
-              onClick={() => setViewMode("list")}
-            >
-              List View
-            </Button>
-            <Button
-              icon={<AppstoreOutlined />}
-              type={viewMode === "grid" ? "primary" : "default"}
-              onClick={() => setViewMode("grid")}
-            >
-              Grid View
-            </Button>
+            {viewMode !== "list" ? (
+              <Button
+                icon={<UnorderedListOutlined />}
+                type={"default"}
+                onClick={() => setViewMode("list")}
+              />
+            ) : (
+              <Button
+                icon={<AppstoreOutlined />}
+                type={"default"}
+                onClick={() => setViewMode("grid")}
+              />
+            )}
           </Space>
         </Col>
       </Row>
-
+      <Divider style={{ margin: 0 }} />
       <div style={{ height: "67vh", overflow: "auto" }}>
         {viewMode === "list" ? (
           <>
@@ -337,11 +397,14 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
                 <Spin></Spin>
               </Row>
             ) : (
-              <List
-                itemLayout="horizontal"
-                dataSource={allClinicDetails}
-                renderItem={(item) => renderListItem(item)}
-              />
+              <>
+                <List
+                  itemLayout="horizontal"
+                  dataSource={allClinicDetails}
+                  renderItem={(item) => renderListItem(item)}
+                />
+                <Divider style={{ margin: 0 }} />
+              </>
             )}
           </>
         ) : (
@@ -359,7 +422,7 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
               </Row>
             ) : (
               <List
-                grid={{ gutter: 16, column: 5 }}
+                grid={{ column: 4 }}
                 dataSource={allClinicDetails}
                 renderItem={(item) => renderGridItem(item)}
               />
@@ -386,6 +449,19 @@ const Clinics = ({ loginUserDetails, openNotificationWithIcon }) => {
         openNotificationWithIcon={openNotificationWithIcon}
         buttonLoader={buttonLoader}
         setbuttonLoader={setbuttonLoader}
+        getAllClinicDetails={getAllClinicDetails}
+        setopenModeClinicDetails={setopenModeClinicDetails}
+        setvisibleDeleteClinicModalToConfirm={setvisibleDeleteClinicModalToConfirm}
+      />
+
+      <DeleteClinicModalToConfirm
+        visibleDeleteClinicModalToConfirm={visibleDeleteClinicModalToConfirm}
+        setvisibleDeleteClinicModalToConfirm={
+          setvisibleDeleteClinicModalToConfirm
+        }
+        selectedClinicDetails={selectedClinicDetails}
+        openNotificationWithIcon={openNotificationWithIcon}
+        setisVieworEditClinicDetailsModal={setisVieworEditClinicDetailsModal}
         getAllClinicDetails={getAllClinicDetails}
       />
     </>

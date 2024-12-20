@@ -40,7 +40,7 @@ const decryptPassword = (encryptedPassword, iv) => {
   return bytes.toString(CryptoJS.enc.Utf8); // Return decrypted password as string
 };
 
-const MyAccount = ({ openNotificationWithIcon, loginUserDetails }) => {
+const MyAccount = ({ openNotificationWithIcon, loginUserDetails ,setloginUserDetails}) => {
   const [fullName, setfullName] = useState();
   const [email, setemail] = useState("");
   const [password, setpassword] = useState();
@@ -107,17 +107,7 @@ const MyAccount = ({ openNotificationWithIcon, loginUserDetails }) => {
         }
       )
       .then((res) => {
-        setfullName(res?.data?.user?.dentist_full_name);
-        setemail(res?.data?.user?.email);
-        if (res?.data?.user?.password && res?.data?.user?.iv_encrypted_password)
-          setpassword(
-            decryptPassword(
-              res?.data?.user?.password,
-              res?.data?.user?.iv_encrypted_password
-            )
-          );
-        setprofile_picture(res?.data?.user?.profile_picture);
-        setuserDetails(res?.data?.user);
+        setloginUserDetails(res?.data)
       })
       .catch((err) => {
         console.log(err);
@@ -170,7 +160,6 @@ const MyAccount = ({ openNotificationWithIcon, loginUserDetails }) => {
   };
 
   useEffect(() => {
- 
     setprofile_picture(loginUserDetails?.profile_picture);
     setfullName(loginUserDetails?.dentist_full_name);
     setemail(loginUserDetails?.email);

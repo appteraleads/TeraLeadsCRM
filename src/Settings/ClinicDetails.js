@@ -31,10 +31,11 @@ import { RiZzzFill } from "react-icons/ri";
 import dayjs from "dayjs";
 import axios from "axios";
 import { DeleteOutlined, LinkOutlined } from "@ant-design/icons";
-import {DeleteWebsite} from "./Modal";
+import { DeleteWebsite } from "./Modal";
+
 const { Text } = Typography;
 
-const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
+const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails ,setloginUserDetails}) => {
   const [buttonLoader, setbuttonLoader] = useState();
   const [pageloader, setpageloader] = useState();
   const [clinicLogo, setclinicLogo] = useState();
@@ -89,8 +90,8 @@ const ClinicDetails = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [websiteList, setwebsiteList] = useState([]);
   const [websitedeleteConfirmation, setwebsitedeleteConfirmation] =
     useState(false);
-const [seletedwebsitefordelete,setseletedwebsitefordelete]=useState([])
-const [clinicData,setclinicData]=useState([])
+  const [seletedwebsitefordelete, setseletedwebsitefordelete] = useState([]);
+  const [clinicData, setclinicData] = useState([]);
 
   const handleInputChange = (e) => {
     setCurrentValue(e.target.value);
@@ -111,7 +112,10 @@ const [clinicData,setclinicData]=useState([])
       e.preventDefault();
       // Example usage
       if (isValidUrl(currentValue?.trim())) {
-        if (currentValue?.trim() && !websiteList?.includes(currentValue.trim())) {
+        if (
+          currentValue?.trim() &&
+          !websiteList?.includes(currentValue.trim())
+        ) {
           // setwebsiteList([...websiteList, currentValue.trim()]);
         }
         // setCurrentValue();
@@ -122,7 +126,7 @@ const [clinicData,setclinicData]=useState([])
   };
 
   const handleRemoveValue = (removedValue) => {
-    setwebsitedeleteConfirmation(true)
+    setwebsitedeleteConfirmation(true);
     // setwebsiteList(websiteList.filter((v) => v !== removedValue));
   };
 
@@ -253,7 +257,7 @@ const [clinicData,setclinicData]=useState([])
     try {
       await axios
         .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/create-update-clinic/${loginUserDetails?.clinic_id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/create-update-clinic/${clinicData?.id}`,
           data,
           {
             headers: {
@@ -302,8 +306,9 @@ const [clinicData,setclinicData]=useState([])
           }
         )
         .then((res) => {
-          let temp = res?.data;
-          setclinicData(res?.data)
+          let temp = res?.data?.userClinicRoles?.[0]?.clinic;
+          setloginUserDetails(res?.data)
+          setclinicData(res?.data?.userClinicRoles?.[0]?.clinic);
           setclinicLogo(temp?.clinic_logo ? temp?.clinic_logo : "");
           setclinicFavicon(temp?.clinic_favicon ? temp?.clinic_favicon : "");
           setclinicName(temp?.clinic_name ? temp?.clinic_name : "");
@@ -359,9 +364,7 @@ const [clinicData,setclinicData]=useState([])
             temp?.clinic_dialer_number ? temp?.clinic_dialer_number : ""
           );
 
-          setwebsiteList(
-            temp?.websites ? temp?.websites: []
-          );
+          setwebsiteList(temp?.websites ? temp?.websites : []);
         })
         .catch((err) => {
           console.log(err);
@@ -1508,7 +1511,10 @@ const [clinicData,setclinicData]=useState([])
 
                     <Tooltip title="Delete">
                       <DeleteOutlined
-                        onClick={() => {handleRemoveValue(val);setseletedwebsitefordelete(val)}}
+                        onClick={() => {
+                          handleRemoveValue(val);
+                          setseletedwebsitefordelete(val);
+                        }}
                         style={{
                           color: "#ff4d4f",
                           cursor: "pointer",

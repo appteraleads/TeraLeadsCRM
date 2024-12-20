@@ -693,3 +693,8 @@ a {
 a:hover{
   color: #3900DB;
 }
+
+.ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
+  border-color: #3900DB;
+  background-color: #3900DB;
+}

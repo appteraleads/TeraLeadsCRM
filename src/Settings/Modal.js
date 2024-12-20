@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   Avatar,
@@ -616,9 +617,6 @@ export const OTPVerificationModal = ({
 export const ShowAllRolesModal = ({
   showAllRolesModalVisible,
   setshowAllRolesModalVisible,
-  buttonLoader,
-  setbuttonLoader,
-  clinicDetails,
   setrolesAndPermissionsModal,
   clinicRolesList,
   setisRoleDeleteModalVisible,
@@ -706,39 +704,43 @@ export const ShowAllRolesModal = ({
                           <Col span={12}>
                             <Typography>{item.role_name}</Typography>
                             <Typography className="custom-text1">
-                              {item.users ? item.users?.length : 0} Users
+                              {item.userCount ? item.userCount : 0} Users
                             </Typography>
                           </Col>
-                          <Col
-                            span={12}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "end",
-                            }}
-                          >
-                            <Space>
-                              <Button
-                                icon={<FaRegEdit />}
-                                onClick={() => {
-                                  setselectedRoleDetails(item);
-                                  setupdateRolesAndPermissionsModal(true);
-                                }}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                type="link"
-                                danger
-                                onClick={() => {
-                                  setselectedRoleDetails(item);
-                                  setisRoleDeleteModalVisible(true);
-                                }}
-                              >
-                                Delete
-                              </Button>
-                            </Space>
-                          </Col>
+                          {item.role_name !== "Admin" ? (
+                            <Col
+                              span={12}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "end",
+                              }}
+                            >
+                              <Space>
+                                <Button
+                                  icon={<FaRegEdit />}
+                                  onClick={() => {
+                                    setselectedRoleDetails(item);
+                                    setupdateRolesAndPermissionsModal(true);
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  type="link"
+                                  danger
+                                  onClick={() => {
+                                    setselectedRoleDetails(item);
+                                    setisRoleDeleteModalVisible(true);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </Space>
+                            </Col>
+                          ) : (
+                            ""
+                          )}
                         </Row>
                       </>
                     }
@@ -766,92 +768,54 @@ export const RolesAndPermissionsModal = ({
   const [RolesAndPermissionsModalform] = Form.useForm();
   const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  // Handle checkbox change
-  const handleCheckboxChange = (checked, code) => {
-    setSelectedPermissions((prev) =>
-      checked ? [...prev, code] : prev.filter((item) => item !== code)
-    );
-  };
-  const columns = [
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-    },
-    {
-      title: "View",
-      dataIndex: "view",
-      key: "view",
-      render: (_, record) => (
-        <>
-          {record?.type === "View" ? (
-            <Checkbox
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Edit",
-      dataIndex: "edit",
-      key: "edit",
-      render: (_, record) => (
-        <>
-          {record?.type === "Edit" ? (
-            <Checkbox
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Full Access",
-      dataIndex: "fullAccess",
-      key: "fullAccess",
-      render: (_, record) => (
-        <>
-          {record?.type === "FullAccess" ? (
-            <Checkbox
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-    {
-      title: "Limited",
-      dataIndex: "limited",
-      key: "limited",
-      render: (_, record) => (
-        <>
-          {record?.type === "Limited" ? (
-            <Checkbox
-              onChange={(e) =>
-                handleCheckboxChange(e.target.checked, record.code)
-              }
-            />
-          ) : (
-            "-"
-          )}
-        </>
-      ),
-    },
-  ];
+  const handleCheckboxChange = (checked, code, category) => {
+    const categoryPermissions = permissionList?.[category] || [];
+    const fullAccessCode = categoryPermissions.find(
+      (item) => item?.description === "Full Access"
+    )?.code;
 
+    setSelectedPermissions((prev) => {
+      const updatedPermissions = checked
+        ? [...prev, code]
+        : prev.filter((item) => item !== code);
+
+      const allPermissionCodes = categoryPermissions.map((perm) => perm.code);
+      const allOtherPermissions = allPermissionCodes.filter(
+        (permCode) => permCode !== fullAccessCode
+      );
+
+      const hasAllOtherPermissions = allOtherPermissions.every((permCode) =>
+        updatedPermissions.includes(permCode)
+      );
+
+      if (hasAllOtherPermissions) {
+        return [...new Set([...updatedPermissions, fullAccessCode])];
+      }
+
+      if (!hasAllOtherPermissions) {
+        return updatedPermissions.filter(
+          (permCode) => permCode !== fullAccessCode
+        );
+      }
+
+      return updatedPermissions;
+    });
+  };
+
+  const handleFullAccess = (category, isChecked) => {
+    const categoryPermissions =
+      permissionList[category]?.map((list) => list?.code) || [];
+
+    if (isChecked) {
+      setSelectedPermissions((prev) => [
+        ...new Set([...prev, ...categoryPermissions]),
+      ]);
+    } else {
+      setSelectedPermissions((prev) =>
+        prev.filter((code) => !categoryPermissions.includes(code))
+      );
+    }
+  };
 
   const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
@@ -888,6 +852,7 @@ export const RolesAndPermissionsModal = ({
             "Role created successfully"
           );
           RolesAndPermissionsModalform?.resetFields();
+          setSelectedPermissions([]);
           setrolesAndPermissionsModal(false);
         })
         .catch((err) => {
@@ -934,6 +899,7 @@ export const RolesAndPermissionsModal = ({
               <Button
                 onClick={() => {
                   RolesAndPermissionsModalform?.resetFields();
+                  setSelectedPermissions([]);
                   setrolesAndPermissionsModal(false);
                 }}
               >
@@ -1006,6 +972,12 @@ export const RolesAndPermissionsModal = ({
                 </div>
               }
               name="description"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter  description",
+                },
+              ]}
             >
               <Input style={{ width: "100%" }} />
             </Form.Item>
@@ -1015,51 +987,271 @@ export const RolesAndPermissionsModal = ({
                 <Divider style={{ margin: "10px 0px" }} />
                 {Object.keys(permissionList || {}).map((category) => (
                   <div key={category} style={{ marginBottom: "20px" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {category === "Appointments" ? (
-                        <AppointmentsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Lead" ? (
-                        <LeadsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Conversations" ? (
-                        <ConversationsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Team" ? (
-                        <TeamSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Campaigns" ? (
-                        <CampaignsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Reports" ? (
-                        <ReportsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : (
-                        ""
-                      )}
+                    {category === "Appointments" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <AppointmentsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "AAT:FA"
+                                )} // Check if "AAT:FA" is in selectedPermissions
+                                size="small"
+                                onClick={(checked) =>
+                                  handleFullAccess(category, checked)
+                                } // Pass current state to handleFullAccess
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Lead" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <LeadsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "LAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Conversations" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <ConversationsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "CAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Team" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <TeamSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "TAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Campaigns" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <CampaignsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "CAAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Reports" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <ReportsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "RAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      ""
+                    )}
 
-                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
-                        {category}
-                      </Typography>
-                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
-                        Permissions
-                      </Typography>
-                    </div>
                     <Row>
-                      {permissionList[category]["View"]?.map(
-                        (permissionlist) => {
+                      {permissionList[category]?.map((permissionlist) => {
+                        if (permissionlist?.description !== "Full Access") {
                           return (
                             <Col span={12} style={{ padding: 5 }}>
                               <Space>
@@ -1067,9 +1259,13 @@ export const RolesAndPermissionsModal = ({
                                   onChange={(e) =>
                                     handleCheckboxChange(
                                       e.target.checked,
-                                      permissionlist.code
+                                      permissionlist.code,
+                                      category
                                     )
                                   }
+                                  checked={selectedPermissions?.includes(
+                                    permissionlist.code
+                                  )}
                                 ></Checkbox>
                                 <Typography>
                                   {permissionlist?.description}
@@ -1078,70 +1274,7 @@ export const RolesAndPermissionsModal = ({
                             </Col>
                           );
                         }
-                      )}
-                      {permissionList[category]["Edit"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
-                      {permissionList[category]["Limited"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
-                      {permissionList[category]["FullAccess"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
+                      })}
                     </Row>
                   </div>
                 ))}
@@ -1167,13 +1300,55 @@ export const EditRolesAndPermissionModal = ({
   const [RolesAndPermissionsModalform] = Form.useForm();
   const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  // Handle checkbox change
-  const handleCheckboxChange = (checked, code) => {
-    setSelectedPermissions((prev) =>
-      checked ? [...prev, code] : prev.filter((item) => item !== code)
-    );
+  const handleCheckboxChange = (checked, code, category) => {
+    const categoryPermissions = permissionList?.[category] || [];
+    const fullAccessCode = categoryPermissions.find(
+      (item) => item?.description === "Full Access"
+    )?.code;
+
+    setSelectedPermissions((prev) => {
+      const updatedPermissions = checked
+        ? [...prev, code]
+        : prev.filter((item) => item !== code);
+
+      const allPermissionCodes = categoryPermissions.map((perm) => perm.code);
+      const allOtherPermissions = allPermissionCodes.filter(
+        (permCode) => permCode !== fullAccessCode
+      );
+
+      const hasAllOtherPermissions = allOtherPermissions.every((permCode) =>
+        updatedPermissions.includes(permCode)
+      );
+
+      if (hasAllOtherPermissions) {
+        return [...new Set([...updatedPermissions, fullAccessCode])];
+      }
+
+      if (!hasAllOtherPermissions) {
+        return updatedPermissions.filter(
+          (permCode) => permCode !== fullAccessCode
+        );
+      }
+
+      return updatedPermissions;
+    });
   };
-  
+
+  const handleFullAccess = (category, isChecked) => {
+    const categoryPermissions =
+      permissionList[category]?.map((list) => list?.code) || [];
+
+    if (isChecked) {
+      setSelectedPermissions((prev) => [
+        ...new Set([...prev, ...categoryPermissions]),
+      ]);
+    } else {
+      setSelectedPermissions((prev) =>
+        prev.filter((code) => !categoryPermissions.includes(code))
+      );
+    }
+  };
+
   const handleSubmitRolesAndPermissions = async (values) => {
     const token = localStorage.getItem("authToken");
     setbuttonLoader(true);
@@ -1342,63 +1517,290 @@ export const EditRolesAndPermissionModal = ({
                 <Divider style={{ margin: "10px 0px" }} />
                 {Object.keys(permissionList || {}).map((category) => (
                   <div key={category} style={{ marginBottom: "20px" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {category === "Appointments" ? (
-                        <AppointmentsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Lead" ? (
-                        <LeadsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Conversations" ? (
-                        <ConversationsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Team" ? (
-                        <TeamSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Campaigns" ? (
-                        <CampaignsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : category === "Reports" ? (
-                        <ReportsSVG
-                          color={"#72779E"}
-                          style={{ width: 12, display: "contents" }}
-                        />
-                      ) : (
-                        ""
-                      )}
+                    {category === "Appointments" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <AppointmentsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "AAT:FA"
+                                )} // Check if "AAT:FA" is in selectedPermissions
+                                size="small"
+                                onClick={(checked) =>
+                                  handleFullAccess(category, checked)
+                                } // Pass current state to handleFullAccess
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Lead" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <LeadsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "LAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Conversations" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <ConversationsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "CAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Team" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <TeamSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "TAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Campaigns" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <CampaignsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "CAAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "Reports" ? (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <div>
+                            <Space>
+                              <ReportsSVG
+                                color={"#72779E"}
+                                style={{ width: 12, display: "contents" }}
+                              />
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                {category}
+                              </Typography>
+                              <Typography
+                                style={{ fontWeight: 500, marginLeft: 5 }}
+                              >
+                                Permissions
+                              </Typography>
+                            </Space>
+                          </div>
+                          <div>
+                            <Space>
+                              <Typography>Full Access</Typography>
+                              <Switch
+                                checked={selectedPermissions?.includes(
+                                  "RAT:FA"
+                                )}
+                                size="small"
+                                onClick={(e) => {
+                                  handleFullAccess(category, e);
+                                }}
+                              />
+                            </Space>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      ""
+                    )}
 
-                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
-                        {category}
-                      </Typography>
-                      <Typography style={{ fontWeight: 500, marginLeft: 5 }}>
-                        Permissions
-                      </Typography>
-                    </div>
                     <Row>
-                      {permissionList[category]["View"]?.map(
-                        (permissionlist) => {
+                      {permissionList[category]?.map((permissionlist) => {
+                        if (permissionlist?.description !== "Full Access") {
                           return (
-                            <Col span={12} style={{ padding: 5 }}>
+                            <Col
+                              span={12}
+                              style={{ padding: 5 }}
+                              key={permissionlist?.code}
+                            >
                               <Space>
                                 <Checkbox
-                                checked={selectedPermissions?.includes(permissionlist?.code)}
+                                  checked={selectedPermissions?.includes(
+                                    permissionlist?.code
+                                  )}
                                   onChange={(e) =>
                                     handleCheckboxChange(
                                       e.target.checked,
-                                      permissionlist.code
+                                      permissionlist.code,
+                                      category
                                     )
                                   }
-                                ></Checkbox>
+                                />
                                 <Typography>
                                   {permissionlist?.description}
                                 </Typography>
@@ -1406,75 +1808,9 @@ export const EditRolesAndPermissionModal = ({
                             </Col>
                           );
                         }
-                      )}
-                      {permissionList[category]["Edit"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                 checked={selectedPermissions?.includes(permissionlist?.code)}
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
-                      {permissionList[category]["Limited"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                 checked={selectedPermissions?.includes(permissionlist?.code)}
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
-                      {permissionList[category]["FullAccess"]?.map(
-                        (permissionlist) => {
-                          return (
-                            <Col span={12} style={{ padding: 5 }}>
-                              <Space>
-                                <Checkbox
-                                 checked={selectedPermissions?.includes(permissionlist?.code)}
-                                  onChange={(e) =>
-                                    handleCheckboxChange(
-                                      e.target.checked,
-                                      permissionlist.code
-                                    )
-                                  }
-                                ></Checkbox>
-                                <Typography>
-                                  {permissionlist?.description}
-                                </Typography>
-                              </Space>
-                            </Col>
-                          );
-                        }
-                      )}
+                        return null;
+                      })}
                     </Row>
-                  
                   </div>
                 ))}
               </div>
@@ -1569,7 +1905,7 @@ export const InviteTeamMemberModal = ({
         "Settings",
         "Please assign a role to the selected website."
       );
- 
+
       setbuttonLoader(false);
 
       return;
@@ -1603,9 +1939,11 @@ export const InviteTeamMemberModal = ({
             "Settings",
             "Invited Team Member successfully"
           );
+          setselectedInviteWebsiteOrRole();
           setisInviteTeamMemberModalVisible(false);
         })
         .catch((err) => {
+          setselectedInviteWebsiteOrRole();
           openNotificationWithIcon(
             "error",
             "Settings",
@@ -1656,6 +1994,7 @@ export const InviteTeamMemberModal = ({
           {next ? (
             <Button
               onClick={() => {
+                setselectedInviteWebsiteOrRole();
                 setnext(false);
               }}
               icon={<IoChevronBackSharp />}
@@ -1681,6 +2020,7 @@ export const InviteTeamMemberModal = ({
             <Space>
               <Button
                 onClick={() => {
+                  setselectedInviteWebsiteOrRole();
                   setisInviteTeamMemberModalVisible(false);
                   InviteTeamMemberform?.resetFields();
                 }}
@@ -1963,8 +2303,6 @@ export const ManageAccessModal = ({
     setbuttonLoader(false);
   };
 
-
-
   useEffect(() => {
     setappointmentsAccess(accesslevelData?.appointments);
     setleadaAccess(accesslevelData?.lead);
@@ -2044,7 +2382,10 @@ export const ManageAccessModal = ({
           >
             <Col style={{ display: "flex", justifyContent: "center" }}>
               {seletedUserDetails?.dataValues?.profile_picture ? (
-                <Avatar size="large" src={seletedUserDetails?.dataValues?.profile_picture} />
+                <Avatar
+                  size="large"
+                  src={seletedUserDetails?.dataValues?.profile_picture}
+                />
               ) : (
                 <Avatar
                   style={{
@@ -2052,12 +2393,17 @@ export const ManageAccessModal = ({
                   }}
                   size="large"
                 >
-                  {getInitials(seletedUserDetails?.dataValues?.dentist_full_name)}
+                  {getInitials(
+                    seletedUserDetails?.dataValues?.dentist_full_name
+                  )}
                 </Avatar>
               )}
             </Col>
             <Col>
-              <Typography> {seletedUserDetails?.dataValues?.dentist_full_name}</Typography>
+              <Typography>
+                {" "}
+                {seletedUserDetails?.dataValues?.dentist_full_name}
+              </Typography>
               <Typography> {seletedUserDetails?.dataValues?.email}</Typography>
             </Col>
           </Row>
@@ -2426,7 +2772,7 @@ export const DeleteUser = ({
 
     await axios
       .delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/delete-user/${clinicDetails?.id}/${seletedUserDetails?.id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/delete-user/${clinicDetails?.id}/${seletedUserDetails?.dataValues?.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -2763,7 +3109,7 @@ export const BlockIpModal = ({
   const [blockType, setBlockType] = useState("");
   const handleSubmitBlockIP = async (values) => {
     setbuttonLoader(true);
-    values.clinic_id = loginUserDetails?.clinic_id;
+    values.clinic_id = loginUserDetails?.userClinicRoles[0]?.clinic_id;
     try {
       const token = localStorage.getItem("authToken");
 
@@ -2990,7 +3336,7 @@ export const UpdateBlockIpModal = ({
   const [blockType, setBlockType] = useState("");
   const handleSubmitBlockIP = async (values) => {
     setbuttonLoader(true);
-    values.clinic_id = loginUserDetails?.clinic_id;
+    values.clinic_id = loginUserDetails?.userClinicRoles[0]?.clinic_id;
     values.block_id = selectedblocklead?.id;
 
     try {
@@ -3007,7 +3353,6 @@ export const UpdateBlockIpModal = ({
           }
         )
         .then((res) => {
-          console.log(res);
           setisupdateBlockIpModalVisible();
           getAllBlockDetails();
           openNotificationWithIcon(
@@ -3279,7 +3624,6 @@ export const DeleteWebsite = ({
         err?.response?.data?.message || err?.message
       );
     }
-    console.log(seletedwebsitefordelete);
     setbuttonLoader(false);
   };
 

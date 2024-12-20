@@ -244,6 +244,7 @@ const AuthRoute = () => {
               userEmailId={userEmailId}
               setuserEmailId={setuserEmailId}
               loginUserDetails={loginUserDetails}
+              setloginUserDetails={setloginUserDetails}
             />
           }
         />

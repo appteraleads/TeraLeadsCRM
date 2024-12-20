@@ -13,6 +13,7 @@ import {
   Input,
   Table,
   Dropdown,
+  Skeleton,
 } from "antd";
 import { IoAlertCircleOutline } from "react-icons/io5";
 import {
@@ -43,6 +44,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
   const [blokListData, setblokListData] = useState();
   const [tableLoader, settableLoader] = useState(false);
   const [selectedblocklead, setselectedblocklead] = useState([]);
+  const [pageloader, setpageloader] = useState(false);
   const onChange = (key) => {
     console.log(key);
   };
@@ -62,7 +64,15 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     },
     {
       title: "Type",
-      render: (text) => <>{text?.block_type==='IP'?'IP Address':text?.block_type==='IP'?'Phone Number':text?.block_type}</>,
+      render: (text) => (
+        <>
+          {text?.block_type === "IP"
+            ? "IP Address"
+            : text?.block_type === "IP"
+            ? "Phone Number"
+            : text?.block_type}
+        </>
+      ),
       width: 100,
     },
     {
@@ -94,7 +104,6 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 icon: <MdDeleteOutline size={15} />,
                 label: <Typography>Delete</Typography>,
                 onClick: () => {
-                 
                   handledeleteSeletedlead(text?.id);
                 },
               },
@@ -145,7 +154,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       let data = {
         duplicate_lead_handling: duplicateLeadHandling,
         lead_assignment_rules: leadAssignmentRules,
-        clinic_id: loginUserDetails?.clinic_id,
+        clinic_id: loginUserDetails?.userClinicRoles[0]?.clinic_id,
         user_id: selectedUserDetails?.item?.id,
       };
       await axios
@@ -183,13 +192,14 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     }
     setbuttonLoader(false);
   };
+
   const getAllBlockDetails = async (search) => {
     const token = localStorage.getItem("authToken");
     settableLoader(true);
     try {
       await axios
         .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/blockLead/${loginUserDetails?.clinic_id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/blockLead/${loginUserDetails?.userClinicRoles[0]?.clinic_id}`,
 
           {
             headers: {
@@ -208,6 +218,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     }
     settableLoader(false);
   };
+
   const getAllClinicUserDetails = async (search) => {
     const token = localStorage.getItem("authToken");
     let data = {
@@ -216,7 +227,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     try {
       await axios
         .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getAllClinicUserDetails/${loginUserDetails?.clinic_id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getAllClinicUserDetails/${loginUserDetails?.userClinicRoles[0]?.clinic_id}`,
           data,
           {
             headers: {
@@ -225,7 +236,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           }
         )
         .then((res) => {
-          const temp = res?.data?.users.map((user) => {
+          const temp = res?.data?.users?.map((user) => {
             const data = {};
             data.label = user?.dentist_full_name;
             data.value = user?.id;
@@ -244,11 +255,11 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
 
   const getLeadSettingByClinicId = async () => {
     const token = localStorage.getItem("authToken");
-
+    setpageloader(true);
     try {
       await axios
         .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/lead-setting/${loginUserDetails?.clinic_id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/lead-setting/${loginUserDetails?.userClinicRoles[0]?.clinic_id}`,
 
           {
             headers: {
@@ -257,6 +268,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           }
         )
         .then((res) => {
+          setpageloader(false);
           setduplicateLeadHandling(res?.data?.duplicate_lead_handling);
           setleadAssignmentRules(res?.data?.lead_assignment_rules);
           setselectedUserDetails({
@@ -266,9 +278,11 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           });
         })
         .catch((err) => {
+          setpageloader(false);
           console.log(err);
         });
     } catch (err) {
+      setpageloader(false);
       console.log(err);
     }
   };
@@ -279,124 +293,88 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       label: "General",
       children: (
         <>
-          <Card bordered={false} style={{ width: "100%" }}>
-            <Typography style={{ fontWeight: 600 }}>Leads Settings</Typography>
-            <Divider />
-            <Row align="middle" gutter={[16, 16]}>
-              <Col span={12}>
-                <Typography style={{ fontWeight: 600 }}>
-                  Duplicate Lead Handling
-                </Typography>
-                <Text className="custom-text1">
-                  Decide how to manage leads with identical information to
-                  prevent conflicts.
-                </Text>
-              </Col>
-              <Col span={12}>
-                <Typography>Lead Handling</Typography>
-                <Select
-                  showSearch
-                  style={{ width: "100%" }}
-                  placeholder="Select a lead handling"
-                  optionFilterProp="children"
-                  value={duplicateLeadHandling}
-                  onChange={(e) => {
-                    setduplicateLeadHandling(e);
-                    setunsavedchanges(true);
-                  }}
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {LeadHandlingOptions.map((tz) => (
-                    <Option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-            </Row>
-            <Divider />
-            <Row align="middle" gutter={[16, 16]}>
-              <Col span={12}>
-                <Typography style={{ fontWeight: 600 }}>
-                  Lead Assignment Rules
-                </Typography>
-                <Text className="custom-text1">
-                  Automatically assign new leads or set a default owner for
-                  unclaimed leads.
-                </Text>
-              </Col>
-              <Col span={12}>
-                <Typography>Rules</Typography>
-                <Select
-                  showSearch
-                  style={{ width: "100%" }}
-                  placeholder="Select a lead assignment rule"
-                  optionFilterProp="children"
-                  value={leadAssignmentRules}
-                  onChange={(e) => {
-                    setleadAssignmentRules(e);
-                    setselectedUserDetails();
-                    setunsavedchanges(true);
-                  }}
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                >
-                  {LeadAssignmentRulesOptions.map((tz) => (
-                    <Option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </Option>
-                  ))}
-                </Select>
-                {leadAssignmentRules === "Specific User Role" ? (
+          {pageloader ? (
+            <Skeleton
+              paragraph={{
+                rows: 4,
+              }}
+            />
+          ) : (
+            <Card bordered={false} style={{ width: "100%" }}>
+              <Typography style={{ fontWeight: 600 }}>
+                Leads Settings
+              </Typography>
+              <Divider />
+              <Row align="middle" gutter={[16, 16]}>
+                <Col span={12}>
+                  <Typography style={{ fontWeight: 600 }}>
+                    Duplicate Lead Handling
+                  </Typography>
+                  <Text className="custom-text1">
+                    Decide how to manage leads with identical information to
+                    prevent conflicts.
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Typography>Lead Handling</Typography>
                   <Select
-                    style={{ width: "100%", marginTop: 10 }}
-                    placeholder="Select a user"
+                    showSearch
+                    style={{ width: "100%" }}
+                    placeholder="Select a lead handling"
                     optionFilterProp="children"
-                    value={selectedUserDetails}
-                    onChange={(e, data) => {
-                      setselectedUserDetails(data);
+                    value={duplicateLeadHandling}
+                    onChange={(e) => {
+                      setduplicateLeadHandling(e);
                       setunsavedchanges(true);
                     }}
-                    showClear
-                    options={ClinicUserDetails}
-                  ></Select>
-                ) : (
-                  ""
-                )}
-              </Col>
-            </Row>
-            <Divider />
-            <Row align="middle" gutter={[16, 16]}>
-              <Col span={12} style={{ display: "flex", alignItems: "center" }}>
-                <Button
-                  type="primary"
-                  disabled={!unsavedchanges}
-                  loading={buttonLoader}
-                  onClick={() => {
-                    handleSubmitLeadsSetting();
-                  }}
-                >
-                  Save
-                </Button>
-                <Space style={{ marginLeft: 10 }}>
-                  {unsavedchanges && (
-                    <>
-                      <IoAlertCircleOutline
-                        size={20}
-                        className="custom-text1"
-                        style={{ display: "flex", color: "red" }}
-                      />
+                    filterOption={(input, option) =>
+                      option.children
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                  >
+                    {LeadHandlingOptions.map((tz) => (
+                      <Option key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Col>
+              </Row>
 
-                      <Text type="danger">You have unsaved changes</Text>
-                    </>
-                  )}
-                </Space>
-              </Col>
-            </Row>
-          </Card>
+              <Divider />
+              <Row align="middle" gutter={[16, 16]}>
+                <Col
+                  span={12}
+                  style={{ display: "flex", alignItems: "center" }}
+                >
+                  <Button
+                    type="primary"
+                    disabled={!unsavedchanges}
+                    loading={buttonLoader}
+                    onClick={() => {
+                      handleSubmitLeadsSetting();
+                    }}
+                  >
+                    Save
+                  </Button>
+                  <Space style={{ marginLeft: 10 }}>
+                    {unsavedchanges && (
+                      <>
+                        <IoAlertCircleOutline
+                          size={20}
+                          className="custom-text1"
+                          style={{ display: "flex", color: "red" }}
+                        />
+
+                        <Text type="danger">You have unsaved changes</Text>
+                      </>
+                    )}
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+          )}
         </>
       ),
     },
@@ -406,7 +384,9 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
       children: (
         <>
           <Card bordered={false} style={{ width: "100%" }}>
-            <Typography style={{ fontWeight: 600 }}>Leads Assignment</Typography>
+            <Typography style={{ fontWeight: 600 }}>
+              Leads Assignment
+            </Typography>
             <Divider />
             <Row align="middle" gutter={[16, 16]}>
               <Col span={12}>
@@ -573,6 +553,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         onChange={onChange}
         style={{ width: "100%", overflow: "auto", height: "75vh" }}
       />
+
       <BlockIpModal
         isBlockIpModalVisible={isBlockIpModalVisible}
         setisBlockIpModalVisible={setisBlockIpModalVisible}
@@ -582,6 +563,7 @@ const LeadsSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
         setbuttonLoader={setbuttonLoader}
         getAllBlockDetails={getAllBlockDetails}
       />
+
       <UpdateBlockIpModal
         isupdateBlockIpModalVisible={isupdateBlockIpModalVisible}
         setisupdateBlockIpModalVisible={setisupdateBlockIpModalVisible}

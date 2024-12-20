@@ -95,6 +95,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
           key="2"
           icon={<AiOutlineDelete size={15} />}
           onClick={() => {
+            console.log(item)
             setseletedUserDetails(item);
             setisUserDeleteModalVisible(true);
           }}
@@ -131,29 +132,29 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                       width: 270,
                     }}
                   >
-                    {record.dataValues.profile_picture ? (
+                    {record?.dataValues?.profile_picture ? (
                       <Avatar
                         size="large"
-                        src={record.profile_picture}
+                        src={record?.profile_picture}
                         style={{ marginRight: 10 }}
                       />
                     ) : (
                       <Avatar
                         style={{
-                          background: record.dataValues?.avatar_color,
+                          background: record?.dataValues?.avatar_color,
                           marginRight: 10,
                         }}
                         size="large"
                       >
-                        {getInitials(record.dataValues.dentist_full_name)}
+                        {getInitials(record?.dataValues?.dentist_full_name)}
                       </Avatar>
                     )}
                     <div>
                       <div style={{ fontWeight: "500" }}>
-                        {record.dataValues.dentist_full_name}
+                        {record?.dataValues?.dentist_full_name}
                       </div>
                       <div style={{ color: "#888" }}>
-                        {record.dataValues.email}
+                        {record?.dataValues?.email}
                       </div>
                     </div>
                   </div>
@@ -197,28 +198,28 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>
-              {record.dataValues.profile_picture ? (
+              {record?.dataValues?.profile_picture ? (
                 <Avatar
                   size="large"
-                  src={record.dataValues.profile_picture}
+                  src={record?.dataValues?.profile_picture}
                   style={{ marginRight: 10 }}
                 />
               ) : (
                 <Avatar
                   style={{
-                    background: record.dataValues?.avatar_color,
+                    background: record?.dataValues?.avatar_color,
                     marginRight: 10,
                   }}
                   size="large"
                 >
-                  {getInitials(record.dataValues.dentist_full_name)}
+                  {getInitials(record?.dataValues?.dentist_full_name)}
                 </Avatar>
               )}
               <div>
                 <div style={{ fontWeight: "500" }}>
-                  {record.dataValues.dentist_full_name}
+                  {record?.dataValues?.dentist_full_name}
                 </div>
-                <div style={{ color: "#888" }}>{record.dataValues.email}</div>
+                <div style={{ color: "#888" }}>{record?.dataValues?.email}</div>
               </div>
             </div>
 
@@ -261,6 +262,7 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
                 (item) => item?.website_name === web?.website_user_name
               )?.role_name || "Remove"
             }
+            disabled={clinicDetails?.owner_id === record?.dataValues?.id ? true : false}
             style={{ width: "100%" }}
             onChange={(role_id) => {
               handleRoleChange(
@@ -324,6 +326,65 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     setloaderList(false);
   };
 
+  const handleRoleChange = async (clinic_id, website_id, user_id, role_id) => {
+    const token = localStorage.getItem("authToken");
+
+    let data = {
+      website_id: website_id,
+      role_id: role_id,
+      clinic_id: clinic_id,
+      user_id: user_id,
+    };
+
+    setloaderList(true);
+    try {
+      await axios
+        .post(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/assignRoles`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          getAllClinicUserDetails();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } catch (err) {
+      console.log(err);
+    }
+    setloaderList(false);
+  };
+
+  const getallpermissionList = async () => {
+    const token = localStorage.getItem("authToken");
+    setloaderList(true);
+    try {
+      await axios
+        .get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getallpermissionList`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          setpermissionList(res?.data?.groupedPermissions);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } catch (err) {
+      console.log(err);
+    }
+    setloaderList(false);
+  };
+
   const getAllClinicUserDetails = async (search) => {
     setloaderList(true);
     const token = localStorage.getItem("authToken");
@@ -360,66 +421,6 @@ const TeamSetting = ({ openNotificationWithIcon, loginUserDetails }) => {
     } finally {
       setloaderList(false);
     }
-  };
-console.log(clinicUsers)
-  const handleRoleChange = async (clinic_id, website_id, user_id, role_id) => {
-    const token = localStorage.getItem("authToken");
-
-    let data = {
-      website_id: website_id,
-      role_id: role_id,
-      clinic_id: clinic_id,
-      user_id: user_id,
-    };
-
-    setloaderList(true);
-    try {
-      await axios
-        .post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/assignRoles`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        .then((res) => {
-          getAllClinicUserDetails();
-
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } catch (err) {
-      console.log(err);
-    }
-    setloaderList(false);
-  };
-
-  const getallpermissionList = async () => {
-    const token = localStorage.getItem("authToken");
-    setloaderList(true);
-    try {
-      await axios
-        .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getallpermissionList`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        .then((res) => {
-          setpermissionList(res?.data?.groupedPermissions);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } catch (err) {
-      console.log(err);
-    }
-    setloaderList(false);
   };
 
   useEffect(() => {
@@ -490,9 +491,6 @@ console.log(clinicUsers)
       <ShowAllRolesModal
         showAllRolesModalVisible={showAllRolesModalVisible}
         setshowAllRolesModalVisible={setshowAllRolesModalVisible}
-        buttonLoader={buttonLoader}
-        setbuttonLoader={setbuttonLoader}
-        clinicDetails={clinicDetails}
         setrolesAndPermissionsModal={setrolesAndPermissionsModal}
         clinicRolesList={clinicRolesList}
         setisRoleDeleteModalVisible={setisRoleDeleteModalVisible}

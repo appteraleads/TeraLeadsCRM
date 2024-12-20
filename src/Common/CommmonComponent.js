@@ -79,7 +79,7 @@ export const ClinicUserOptionsList = ({
     try {
       await axios
         .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLeadAssociatedUser/${lead?.user_name}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLeadAssociatedUser/${lead?.website_user_name}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

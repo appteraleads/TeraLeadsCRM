@@ -98,7 +98,7 @@ const QuickConversation = ({
   );
 
   const menu = (
-    <Menu>
+    <Menu >
       <div style={{ padding: 10 }}>
         <Space>
           <div
@@ -136,7 +136,9 @@ const QuickConversation = ({
           width: 295,
           height: "210px",
           overflowY: "auto",
+          padding:0
         }}
+
       >
         <Menu>
           {loadingleadsList ? (
@@ -709,7 +711,7 @@ const QuickConversation = ({
 
   return (
     <>
-      <Dropdown overlay={floatMenu} trigger={["click"]}>
+      <Dropdown overlay={floatMenu} trigger={["click"]} style={{padding:0}}>
         <Button
           icon={
             isVisibleQuickConversation ? (

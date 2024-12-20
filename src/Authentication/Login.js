@@ -39,7 +39,7 @@ const Login = () => {
         localStorage.setItem("authToken", res?.data?.token);
         localStorage.setItem("usertDetailsToken", res?.data?.usertDetailsToken);
         localStorage.setItem("userColumn", res?.data?.userColumn || "");
-        console.log(decoded);
+       
         if (decoded?.user?.role_name === "super-admin")
           window.location.replace("/admin");
         else window.location.replace("/leads");

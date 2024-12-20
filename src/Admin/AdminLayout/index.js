@@ -39,6 +39,7 @@ import { MdOutlineZoomInMap } from "react-icons/md";
 import dayjs from "dayjs";
 import { Content } from "antd/es/layout/layout";
 import Clinics from "../Clinics";
+import { LuLogOut } from "react-icons/lu";
 
 const { Header, Sider } = Layout;
 
@@ -54,13 +55,17 @@ const AdminLayout = ({ loginUserDetails }) => {
     useState(false);
   const [notificationDetailsList, setnotificationDetailsList] = useState([]);
   const [unreadCount, setunreadCount] = useState(0);
+  const [visibleprofileMenu, setvisibleprofileMenu] = useState(false);
 
-  console.log(loginUserDetails)
   const handlesetvisibleNotificationDropdown = (visible) => {
     if (visible) {
       handleGetNotificationDetails();
     }
     setisNotificationDropdownVisible(visible);
+  };
+
+  const handlesetvisibleprofileMenu = (visible) => {
+    setvisibleprofileMenu(visible);
   };
 
   const enterFullScreen = () => {
@@ -276,6 +281,87 @@ const AdminLayout = ({ loginUserDetails }) => {
     </Menu>
   );
 
+  const profileMenu = (
+    <Menu>
+      <div
+        style={{
+          padding: "10px 10px 0px 10px",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Typography className="custom-text1" style={{ fontSize: 15 }}>
+          Account
+        </Typography>
+      </div>
+      <div
+        style={{
+          width: 250,
+        }}
+      >
+        <Space style={{ padding: 10 }}>
+          {loginUserDetails?.profile_picture ? (
+            <Avatar size={34} src={loginUserDetails?.profile_picture} />
+          ) : (
+            <Avatar
+              size={34}
+              style={{ background: loginUserDetails?.avatar_color }}
+            >
+              {getInitials(loginUserDetails?.dentist_full_name)}
+            </Avatar>
+          )}
+          <div>
+            <Typography
+              style={{
+                fontWeight: "bold",
+              }}
+            >
+              {loginUserDetails?.dentist_full_name}
+            </Typography>
+
+            <Typography
+              className="custom-text1"
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                width: "180px",
+              }}
+            >
+              {loginUserDetails?.email}
+            </Typography>
+          </div>
+        </Space>
+        <Divider style={{ margin: 0 }} />
+        <Space
+          style={{ padding: 10, cursor: "pointer" }}
+          onClick={() => {
+            // navigate("/settings");
+            setvisibleprofileMenu(false);
+          }}
+        >
+          <div style={{ display: "flex", width: 20 }}>
+            <SettingsSVG color={"#72779E"} />
+          </div>
+          <Typography style={{ fontWeight: 500 }}>Settings</Typography>
+        </Space>
+        <Divider style={{ margin: 0 }} />
+        <Space
+          style={{ padding: 10, cursor: "pointer" }}
+          onClick={() => {
+            navigate("/login");
+            localStorage.clear();
+            setvisibleprofileMenu(false);
+          }}
+        >
+          <div style={{ display: "flex", width: 20 }}>
+            <LuLogOut style={{ fontSize: 18, color: "#72779E" }} />
+          </div>
+          <Typography style={{ fontWeight: 500 }}>Logout</Typography>
+        </Space>
+      </div>
+    </Menu>
+  );
   const sidebaritems = [
     {
       key: "Admin",
@@ -479,7 +565,7 @@ const AdminLayout = ({ loginUserDetails }) => {
                 style={{ display: "flex", alignItems: "center", padding: 10 }}
               >
                 <AdminSVG />
-                <Typography style={{ fontWeight: 600 ,marginLeft:5}}>
+                <Typography style={{ fontWeight: 600, marginLeft: 5 }}>
                   System Admin
                 </Typography>
               </Col>
@@ -565,37 +651,54 @@ const AdminLayout = ({ loginUserDetails }) => {
                       }}
                     />
                   )}
-                  {loginUserDetails?.profile_picture ? (
-                    <Avatar src={loginUserDetails?.profile_picture} />
-                  ) : (
-                    <Avatar
-                      style={{ background: loginUserDetails?.avatar_color }}
-                    >
-                      {getInitials(loginUserDetails?.dentist_full_name)}
-                    </Avatar>
-                  )}
-
-                  <Typography
-                    style={{
-                      fontWeight: "bold",
-                      width: 100,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                  <Dropdown
+                    overlay={profileMenu}
+                    trigger={["click"]}
+                    placement="bottomLeft"
+                    visible={visibleprofileMenu}
+                    onVisibleChange={handlesetvisibleprofileMenu}
                   >
-                    {loginUserDetails?.dentist_full_name}
-                  </Typography>
-                  <MdOutlineKeyboardArrowDown
-                    style={{ fontSize: 20, display: "flex" }}
-                  />
+                    <Space style={{ cursor: "pointer" }}>
+                      {loginUserDetails?.profile_picture ? (
+                        <Avatar
+                          size={34}
+                          src={loginUserDetails?.profile_picture}
+                        />
+                      ) : (
+                        <Avatar
+                          size={34}
+                          style={{ background: loginUserDetails?.avatar_color }}
+                        >
+                          {getInitials(loginUserDetails?.dentist_full_name)}
+                        </Avatar>
+                      )}
+
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          maxWidth: 100,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {loginUserDetails?.dentist_full_name}
+                      </Typography>
+                      <MdOutlineKeyboardArrowDown
+                        style={{ fontSize: 20, display: "flex" }}
+                      />
+                    </Space>
+                  </Dropdown>
                 </Space>
               </Col>
             </Row>
           </Header>
           <Content style={{ padding: 20 }}>
             {sidebarkey === "1" ? (
-              <Clinics loginUserDetails={loginUserDetails} openNotificationWithIcon={openNotificationWithIcon} />
+              <Clinics
+                loginUserDetails={loginUserDetails}
+                openNotificationWithIcon={openNotificationWithIcon}
+              />
             ) : (
               ""
             )}

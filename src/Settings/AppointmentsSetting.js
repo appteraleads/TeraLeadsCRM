@@ -38,7 +38,6 @@ const AppointmentsSetting = ({
   openNotificationWithIcon,
   loginUserDetails,
 }) => {
-
   const [pageloader, setpageloader] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone // Default to user's local timezone
@@ -87,7 +86,7 @@ const AppointmentsSetting = ({
     } else {
       const token = localStorage.getItem("authToken");
       const data = {
-        clinic_id: loginUserDetails?.clinic_id,
+        clinic_id: loginUserDetails?.userClinicRoles[0]?.clinic_id,
         appointment_close_dates: appointmentcloseDates,
         appointment_from_time: appointmentFromTime,
         appointment_end_time: appointmentEndTime,
@@ -138,7 +137,7 @@ const AppointmentsSetting = ({
     } else {
       const token = localStorage.getItem("authToken");
       const data = {
-        clinic_id: loginUserDetails?.clinic_id,
+        clinic_id: loginUserDetails?.userClinicRoles[0]?.clinic_id,
         appointment_close_dates: appointmentcloseDates?.toString(),
         appointment_from_time: appointmentFromTime,
         appointment_end_time: appointmentEndTime,
@@ -216,7 +215,7 @@ const AppointmentsSetting = ({
     setloaderAvailability(true);
     await axios
       .get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/clinicclosedates/clinic/${loginUserDetails?.clinic_id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/clinicclosedates/clinic/${loginUserDetails?.userClinicRoles[0]?.clinic_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -246,7 +245,7 @@ const AppointmentsSetting = ({
     const token = localStorage.getItem("authToken");
 
     let data = {
-      clinic_id: loginUserDetails?.clinic_id,
+      clinic_id: loginUserDetails?.userClinicRoles[0]?.clinic_id,
       appointment_time_zone: selectedTimezone ? selectedTimezone : undefined,
       appointment_days_week: appointmentDaysOfWeek
         ? appointmentDaysOfWeek
@@ -300,9 +299,7 @@ const AppointmentsSetting = ({
     const token = localStorage.getItem("authToken");
     await axios
       .get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/appointment-settings/${loginUserDetails?.
-        userClinicRoles[0]?.clinic
-        }`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/appointment-settings/${loginUserDetails?.userClinicRoles[0]?.clinic_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -328,7 +325,7 @@ const AppointmentsSetting = ({
         setcancellationNotification(res?.data?.cancellation_notification);
       })
       ?.catch((err) => {
-       console.log(err)
+        console.log(err);
       });
     setpageloader(false);
   };
@@ -867,7 +864,7 @@ const AppointmentsSetting = ({
   useEffect(() => {
     handlesGetAppointmentsSettingDetails();
   }, []);
-  
+
   return (
     <>
       <Tabs

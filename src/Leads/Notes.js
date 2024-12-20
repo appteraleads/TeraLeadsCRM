@@ -357,7 +357,7 @@ const Notes = ({
     try {
       await axios
         .get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLeadAssociatedUser/${selectedLeadDetails?.user_name}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/getLeadAssociatedUser/${selectedLeadDetails?.website_user_name}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

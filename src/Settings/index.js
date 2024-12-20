@@ -27,7 +27,7 @@ import LeadsSetting from "./LeadsSetting";
 import TeamSetting from "./TeamSetting";
 const { Header, Sider } = Layout;
 
-const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
+const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails ,setloginUserDetails}) => {
   const [settingSidebarKey, setsettingSidebarKey] = useState("1");
   const [settingSidebarValue, setsettingSidebarValue] = useState("My Account");
 
@@ -273,12 +273,14 @@ const SettingsLayout = ({ openNotificationWithIcon, loginUserDetails }) => {
               <MyAccount
                 openNotificationWithIcon={openNotificationWithIcon}
                 loginUserDetails={loginUserDetails}
+                setloginUserDetails={setloginUserDetails}
               />
             ) : settingSidebarValue === "Clinic Details" ? (
               <div style={{ display: "flex" }}>
                 <ClinicDetails
                   openNotificationWithIcon={openNotificationWithIcon}
                   loginUserDetails={loginUserDetails}
+                  setloginUserDetails={setloginUserDetails}
                 />
               </div>
             ) : settingSidebarValue === "Team" ? (

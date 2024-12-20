@@ -53,7 +53,7 @@ const Reports = React.lazy(() => import("../Reports"));
 
 const { Header, Sider } = Layout;
 const { Option } = Select;
-const CustomLayout = ({ loginUserDetails }) => {
+const CustomLayout = ({ loginUserDetails ,setloginUserDetails}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -1002,6 +1002,7 @@ const CustomLayout = ({ loginUserDetails }) => {
               <Settings
                 openNotificationWithIcon={openNotificationWithIcon}
                 loginUserDetails={loginUserDetails}
+                setloginUserDetails={setloginUserDetails}
               />
             ) : (
               ""
